@@ -5,6 +5,8 @@ import br.com.silsys.admsuporte.util.CondoPdfGenerator;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -25,6 +27,7 @@ public class GoogleFormPdfServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(GoogleFormPdfServlet.class.getName());
+    private static final DateTimeFormatter FILE_TIMESTAMP = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
@@ -71,9 +74,12 @@ public class GoogleFormPdfServlet extends HttpServlet {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             CondoPdfGenerator.generate(selectedRows, buffer);
 
+            String fileName = "condominio-" + LocalDateTime.now().format(FILE_TIMESTAMP) + ".pdf";
             response.setContentType("application/pdf");
             response.setContentLength(buffer.size());
-            response.setHeader("Content-Disposition", "inline; filename=\"condominio.pdf\"");
+            // "attachment" faz o navegador baixar o arquivo (pasta Downloads) em vez de
+            // navegar para o PDF na mesma aba, para nao "fechar" a tela do app.
+            response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
             buffer.writeTo(response.getOutputStream());
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Falha ao gerar o PDF do condominio.", e);
