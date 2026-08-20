@@ -118,9 +118,8 @@ usando so o driver que ja vai empacotado no WAR.
 Equivalente web de `GoogleFormScreen.tsx` no app mobile:
 
 1. **Upload** (`/google-form/upload`, [`GoogleFormUploadServlet`](src/main/java/br/com/silsys/admsuporte/servlet/GoogleFormUploadServlet.java)):
-   o usuario envia um arquivo `.xlsx`/`.xls`. O nome do arquivo (sem extensao)
-   precisa ser exatamente `form` (sem diferenciar maiusculas/minusculas), senao
-   a mensagem de erro mostra o nome do arquivo que foi enviado, igual ao app mobile.
+   o usuario envia qualquer arquivo `.xlsx`/`.xls` — nao ha exigencia de nome
+   (diferente do app mobile, que so aceitava um arquivo chamado "form").
 2. **Leitura** ([`SpreadsheetParser`](src/main/java/br/com/silsys/admsuporte/util/SpreadsheetParser.java),
    via Apache POI): le a primeira aba, ignora a linha de cabecalho, descarta linhas
    com as colunas D e E vazias, monta o rotulo `"{D} - {E}"` e ordena pela coluna D
@@ -164,7 +163,7 @@ src/main/java/br/com/silsys/admsuporte/
     ValidationUtil.java            validacao de e-mail/telefone
     AppException.java              erro de negocio com mensagem amigavel
     ErrorMessages.java             descricao curta de excecoes para mostrar na tela
-    SpreadsheetParser.java         le/ordena a planilha "Form" (Apache POI)
+    SpreadsheetParser.java         le/ordena a planilha enviada (Apache POI)
     CondoPdfGenerator.java         gera o PDF das unidades selecionadas (OpenPDF)
   servlet/
     LoginServlet, RegisterServlet, ForgotPasswordServlet, ResetPasswordServlet,

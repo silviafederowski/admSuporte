@@ -14,7 +14,7 @@
         <img class="logo" src="${pageContext.request.contextPath}/logo" alt="Logotipo">
         <h1 class="title">Formulario Google</h1>
         <p class="subtitle">
-            Selecione a planilha "Form" (.xlsx). As linhas serao ordenadas pela
+            Selecione uma planilha (.xlsx). As linhas serao ordenadas pela
             coluna D e exibidas para voce escolher quais entram no PDF.
         </p>
 

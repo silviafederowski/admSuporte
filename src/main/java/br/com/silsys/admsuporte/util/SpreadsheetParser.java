@@ -19,7 +19,7 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 
 /**
- * Le a planilha "Form" (.xlsx/.xls) e monta as linhas ja ordenadas, equivalente
+ * Le a planilha .xlsx/.xls enviada e monta as linhas ja ordenadas, equivalente
  * ao handlePick() de GoogleFormScreen.tsx no app mobile: colunas D e E viram o
  * rotulo, linhas com D e E vazias sao descartadas, e a ordenacao e numerica
  * quando os dois lados forem numeros, senao alfabetica (pt-BR, ignorando
@@ -42,7 +42,7 @@ public final class SpreadsheetParser {
     public static List<SpreadsheetRow> parseFormSheet(InputStream in) throws IOException, AppException {
         try (Workbook workbook = WorkbookFactory.create(in)) {
             if (workbook.getNumberOfSheets() == 0) {
-                throw new AppException("A planilha \"Form\" nao tem nenhuma aba com dados.");
+                throw new AppException("A planilha enviada nao tem nenhuma aba com dados.");
             }
 
             Sheet sheet = workbook.getSheetAt(0);
@@ -77,7 +77,7 @@ public final class SpreadsheetParser {
             }
 
             if (rows.isEmpty()) {
-                throw new AppException("As colunas D e E da planilha \"Form\" estao vazias.");
+                throw new AppException("As colunas D e E da planilha enviada estao vazias.");
             }
 
             rows.sort((a, b) -> compareAscending(sortKey(a), sortKey(b)));
