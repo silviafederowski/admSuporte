@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE resources PUBLIC "-//GlassFish.org//DTD GlassFish Application Server 3.1 Resource Definitions//EN" "http://glassfish.org/dtds/glassfish-resources_1_5.dtd">
+<resources>
+
+    <!--
+        Pool de conexao com o banco MySQL "condo".
+        Host, porta, usuario e senha ficam aqui (descritor especifico do GlassFish,
+        empacotado dentro do WAR) para que o pool e o recurso JNDI sejam criados
+        automaticamente no deploy, sem precisar editar domain.xml na mao.
+    -->
+    <jdbc-connection-pool
+        name="condoPool"
+        datasource-classname="com.mysql.cj.jdbc.MysqlDataSource"
+        res-type="javax.sql.DataSource"
+        is-connection-validation-required="true"
+        connection-validation-method="auto-commit"
+        max-pool-size="20"
+        steady-pool-size="2">
+        <property name="serverName" value="mysql-ag-br1-17.hospedagemelastica.com.br"/>
+        <property name="portNumber" value="33240"/>
+        <property name="databaseName" value="condo"/>
+        <property name="user" value="jyprgz_condo"/>
+        <property name="password" value="MboyEvpQ55"/>
+        <property name="useSSL" value="false"/>
+        <property name="useUnicode" value="true"/>
+        <property name="characterEncoding" value="UTF-8"/>
+        <property name="connectTimeout" value="10000"/>
+    </jdbc-connection-pool>
+
+    <jdbc-resource
+        pool-name="condoPool"
+        jndi-name="jdbc/condoDS"/>
+
+</resources>
