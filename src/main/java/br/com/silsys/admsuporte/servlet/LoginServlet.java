@@ -2,6 +2,7 @@ package br.com.silsys.admsuporte.servlet;
 
 import br.com.silsys.admsuporte.dao.UserDao;
 import br.com.silsys.admsuporte.model.User;
+import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -60,7 +61,7 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/menu");
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao autenticar usuario.", e);
-            request.setAttribute("formError", "Nao foi possivel entrar. Tente novamente.");
+            request.setAttribute("formError", "Nao foi possivel entrar: " + ErrorMessages.describe(e));
             request.setAttribute("identifier", identifier);
             forward(request, response);
         }

@@ -2,6 +2,7 @@ package br.com.silsys.admsuporte.servlet;
 
 import br.com.silsys.admsuporte.dao.UserDao;
 import br.com.silsys.admsuporte.util.AppException;
+import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -48,7 +49,7 @@ public class RegisterServlet extends HttpServlet {
                 errors.put("form", e.getMessage());
             } catch (SQLException e) {
                 LOGGER.log(Level.SEVERE, "Falha ao cadastrar usuario.", e);
-                errors.put("form", "Nao foi possivel criar a conta. Tente novamente.");
+                errors.put("form", "Nao foi possivel criar a conta: " + ErrorMessages.describe(e));
             }
         }
 

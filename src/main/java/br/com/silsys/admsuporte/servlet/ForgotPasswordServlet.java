@@ -4,6 +4,7 @@ import br.com.silsys.admsuporte.dao.PasswordResetDao;
 import br.com.silsys.admsuporte.dao.UserDao;
 import br.com.silsys.admsuporte.model.ResetMethod;
 import br.com.silsys.admsuporte.model.User;
+import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -80,7 +81,7 @@ public class ForgotPasswordServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/reset-password");
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao gerar codigo de recuperacao.", e);
-            request.setAttribute("error", "Nao foi possivel gerar o codigo. Tente novamente.");
+            request.setAttribute("error", "Nao foi possivel gerar o codigo: " + ErrorMessages.describe(e));
             request.setAttribute("method", method.paramValue());
             request.setAttribute("destination", destination);
             forward(request, response);

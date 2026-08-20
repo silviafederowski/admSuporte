@@ -2,6 +2,7 @@ package br.com.silsys.admsuporte.servlet;
 
 import br.com.silsys.admsuporte.dao.PasswordResetDao;
 import br.com.silsys.admsuporte.model.ResetMethod;
+import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -75,7 +76,7 @@ public class ResetPasswordServlet extends HttpServlet {
                 }
             } catch (SQLException e) {
                 LOGGER.log(Level.SEVERE, "Falha ao redefinir senha.", e);
-                errors.put("form", "Nao foi possivel redefinir a senha. Tente novamente.");
+                errors.put("form", "Nao foi possivel redefinir a senha: " + ErrorMessages.describe(e));
             }
         }
 
@@ -95,7 +96,7 @@ public class ResetPasswordServlet extends HttpServlet {
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao reenviar codigo de recuperacao.", e);
             request.setAttribute("errors", java.util.Collections.singletonMap(
-                    "form", "Nao foi possivel gerar um novo codigo. Tente novamente."));
+                    "form", "Nao foi possivel gerar um novo codigo: " + ErrorMessages.describe(e)));
         }
         forward(request, response);
     }
