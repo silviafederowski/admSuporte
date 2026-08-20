@@ -195,6 +195,36 @@ a.link:hover {
     text-align: center;
 }
 
+.row-list {
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 6px;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.row-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 8px;
+    border-radius: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.row-item:hover {
+    background: var(--background);
+}
+
+.row-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
+}
+
 .menu-page .logo {
     width: 80px;
     height: 80px;

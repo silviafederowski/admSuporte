@@ -1,0 +1,86 @@
+package br.com.silsys.admsuporte.servlet;
+
+import br.com.silsys.admsuporte.model.SpreadsheetRow;
+import br.com.silsys.admsuporte.util.CondoPdfGenerator;
+import br.com.silsys.admsuporte.util.ErrorMessages;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+/**
+ * Gera o PDF com as unidades selecionadas na tela de selecao, equivalente a
+ * handleGeneratePdf() de GoogleFormScreen.tsx no app mobile (que la usa
+ * expo-print + Sharing; aqui o navegador recebe o PDF diretamente).
+ */
+public class GoogleFormPdfServlet extends HttpServlet {
+
+    private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = Logger.getLogger(GoogleFormPdfServlet.class.getName());
+
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        @SuppressWarnings("unchecked")
+        List<SpreadsheetRow> allRows = session == null ? null
+                : (List<SpreadsheetRow>) session.getAttribute("googleFormRows");
+
+        if (allRows == null || allRows.isEmpty()) {
+            response.sendRedirect(request.getContextPath() + "/google-form");
+            return;
+        }
+
+        String[] selectedIndexes = request.getParameterValues("rowIndex");
+        java.util.SortedSet<Integer> orderedIndexes = new java.util.TreeSet<>();
+        if (selectedIndexes != null) {
+            for (String value : selectedIndexes) {
+                try {
+                    int index = Integer.parseInt(value);
+                    if (index >= 0 && index < allRows.size()) {
+                        orderedIndexes.add(index);
+                    }
+                } catch (NumberFormatException ignored) {
+                    // indice invalido, ignora
+                }
+            }
+        }
+
+        List<SpreadsheetRow> selectedRows = new ArrayList<>();
+        for (int index : orderedIndexes) {
+            selectedRows.add(allRows.get(index));
+        }
+
+        if (selectedRows.isEmpty()) {
+            request.setAttribute("rows", allRows);
+            request.setAttribute("error", "Selecione ao menos uma unidade antes de gerar o PDF.");
+            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/googleFormSelect.jsp");
+            dispatcher.forward(request, response);
+            return;
+        }
+
+        try {
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            CondoPdfGenerator.generate(selectedRows, buffer);
+
+            response.setContentType("application/pdf");
+            response.setContentLength(buffer.size());
+            response.setHeader("Content-Disposition", "inline; filename=\"condominio.pdf\"");
+            buffer.writeTo(response.getOutputStream());
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Falha ao gerar o PDF do condominio.", e);
+            request.setAttribute("rows", allRows);
+            request.setAttribute("error", "Nao foi possivel gerar o PDF: " + ErrorMessages.describe(e));
+            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/googleFormSelect.jsp");
+            dispatcher.forward(request, response);
+        }
+    }
+}

@@ -7,6 +7,7 @@ de autenticacao para o condominio:
 - Cadastro
 - "Esqueci minha senha" (SMS ou e-mail, fluxo simulado — sem provedor real conectado)
 - Menu pos-login com "Formulario Google", "Outra" e "Sair"
+- "Formulario Google": upload de planilha `.xlsx`, selecao de unidades e geracao de PDF
 - Logotipo servido a partir do banco de dados (nao de um arquivo estatico)
 
 Construido em **Java EE 7 Web Profile** (Servlet 3.1 + JSP 2.3 + JSTL), para rodar em
@@ -18,16 +19,16 @@ Construido em **Java EE 7 Web Profile** (Servlet 3.1 + JSP 2.3 + JSTL), para rod
 > aqui, entao a aplicacao roda normalmente — mas vale conferir com quem administra o
 > servidor se a versao pretendida era mesmo a 4.1.
 
-> A tela "Formulario Google" no app mobile ja faz upload de planilha `.xlsx`, ordena
-> pela coluna D e gera PDF com dados do condominio. Essa parte **ainda nao foi portada**
-> aqui — por enquanto a tela e um placeholder "Em construcao", igual a tela "Outra".
-> Portar exigiria Apache POI (ler .xlsx) e iText/OpenPDF (gerar PDF) no servidor.
+> A tela "Outra" continua como placeholder "Em construcao". Ja "Formulario Google"
+> foi portada por completo (ver secao "Formulario Google" abaixo).
 
 ## Stack
 
 - Java EE 7 Web Profile (Servlet 3.1, JSP 2.3, JSTL) — `javaee-web-api:7.0` (`provided`)
 - GlassFish Server **4.1** (Open Source Edition)
 - MySQL, via `mysql-connector-java:8.0.28` (empacotado em `WEB-INF/lib`, dentro do proprio WAR)
+- Apache POI (`poi-ooxml:5.2.5`) — leitura da planilha `.xlsx` da tela "Formulario Google"
+- OpenPDF (`openpdf:1.3.30`) — geracao do PDF com os dados do condominio
 - Maven (`pom.xml`, packaging `war`)
 - Java 8 (`maven.compiler.source/target = 1.8`, compativel com GlassFish 4.1)
 
@@ -112,6 +113,33 @@ dominio como alternativa), a solucao foi eliminar a dependencia de `DataSource`/
 por completo: `ConnectionProvider` abre as conexoes direto via `DriverManager`,
 usando so o driver que ja vai empacotado no WAR.
 
+## Formulario Google
+
+Equivalente web de `GoogleFormScreen.tsx` no app mobile:
+
+1. **Upload** (`/google-form/upload`, [`GoogleFormUploadServlet`](src/main/java/br/com/silsys/admsuporte/servlet/GoogleFormUploadServlet.java)):
+   o usuario envia um arquivo `.xlsx`/`.xls`. O nome do arquivo (sem extensao)
+   precisa ser exatamente `form` (sem diferenciar maiusculas/minusculas), senao
+   a mensagem de erro mostra o nome do arquivo que foi enviado, igual ao app mobile.
+2. **Leitura** ([`SpreadsheetParser`](src/main/java/br/com/silsys/admsuporte/util/SpreadsheetParser.java),
+   via Apache POI): le a primeira aba, ignora a linha de cabecalho, descarta linhas
+   com as colunas D e E vazias, monta o rotulo `"{D} - {E}"` e ordena pela coluna D
+   — numericamente quando os dois lados forem numeros, senao alfabeticamente
+   (pt-BR, ignorando maiusculas/minusculas e acentos), igual a `compareAscending()`
+   do app mobile. As linhas processadas ficam na sessao (`googleFormRows`).
+3. **Selecao** (`/google-form`, GET): com a sessao populada, mostra a lista de
+   unidades como checkboxes ([`googleFormSelect.jsp`](src/main/webapp/WEB-INF/jsp/googleFormSelect.jsp)).
+4. **PDF** (`/google-form/pdf`, [`GoogleFormPdfServlet`](src/main/java/br/com/silsys/admsuporte/servlet/GoogleFormPdfServlet.java) +
+   [`CondoPdfGenerator`](src/main/java/br/com/silsys/admsuporte/util/CondoPdfGenerator.java), via OpenPDF):
+   gera uma pagina por unidade selecionada (unidade, telefones, contatos de
+   emergencia, ambulancia, hospital, convenio, pets, outras informacoes —
+   mesmas colunas A-T do app mobile) e devolve o PDF direto na resposta HTTP
+   (`Content-Type: application/pdf`), sem precisar de compartilhamento como no
+   celular — o navegador abre/baixa o arquivo.
+
+O botao "Selecionar outro arquivo" limpa a sessao (`googleFormRows`) e volta
+para a tela de upload.
+
 ## Estrutura
 
 ```
@@ -123,7 +151,7 @@ src/main/java/br/com/silsys/admsuporte/
   listener/
     AppInitListener.java           cria tabelas + seed do logo no startup
   model/
-    User.java, ResetMethod.java
+    User.java, ResetMethod.java, SpreadsheetRow.java
   dao/
     ConnectionProvider.java        abre conexoes MySQL via DriverManager
     SchemaInitializer.java         DDL + seed do logotipo
@@ -135,14 +163,19 @@ src/main/java/br/com/silsys/admsuporte/
     ResetCodeUtil.java             codigo de 6 digitos
     ValidationUtil.java            validacao de e-mail/telefone
     AppException.java              erro de negocio com mensagem amigavel
+    ErrorMessages.java             descricao curta de excecoes para mostrar na tela
+    SpreadsheetParser.java         le/ordena a planilha "Form" (Apache POI)
+    CondoPdfGenerator.java         gera o PDF das unidades selecionadas (OpenPDF)
   servlet/
     LoginServlet, RegisterServlet, ForgotPasswordServlet, ResetPasswordServlet,
-    MenuServlet, PlaceholderServlet, GoogleFormServlet, LogoutServlet, LogoServlet
+    MenuServlet, PlaceholderServlet, LogoutServlet, LogoServlet,
+    GoogleFormServlet, GoogleFormUploadServlet, GoogleFormPdfServlet
 src/main/resources/seed/logo-placeholder.png   logotipo padrao (seed)
 src/main/webapp/
   WEB-INF/web.xml                  servlets, filtros, allowedHosts
   WEB-INF/glassfish-web.xml        context-root
-  WEB-INF/jsp/*.jsp                telas (login, cadastro, recuperacao, menu...)
+  WEB-INF/jsp/*.jsp                telas (login, cadastro, recuperacao, menu,
+                                    formulario google, selecao de unidades...)
   css/style.css
   index.jsp                        redireciona para /login
 ```

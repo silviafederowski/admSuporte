@@ -45,6 +45,22 @@
             <version>8.0.28</version>
             <scope>compile</scope>
         </dependency>
+
+        <!-- Le a planilha .xlsx "Form" enviada na tela "Formulario Google" -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <!-- Gera o PDF com os dados do condominio a partir das linhas selecionadas -->
+        <dependency>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+            <version>1.3.30</version>
+            <scope>compile</scope>
+        </dependency>
     </dependencies>
 
     <build>
