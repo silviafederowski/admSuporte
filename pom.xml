@@ -33,16 +33,17 @@
         </dependency>
 
         <!--
-            Driver JDBC do MySQL: NAO vai dentro do WAR. O pool de conexao "condoPool"
-            e criado no dominio do GlassFish (ver README), entao o driver precisa estar
-            em glassfish/domains/domain1/lib/ext no servidor, nao em WEB-INF/lib.
-            Dependencia mantida como "provided" so para eventual uso em testes locais.
+            Driver JDBC do MySQL: vai empacotado em WEB-INF/lib dentro do proprio WAR.
+            A aplicacao abre as conexoes diretamente via DriverManager (ver
+            ConnectionProvider), sem depender de nenhum recurso/pool configurado no
+            dominio do GlassFish, ja que esta hospedagem so permite deploy via
+            autodeploy por FTP, sem acesso a asadmin/console/lib/ext.
         -->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.28</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 

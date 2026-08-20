@@ -27,7 +27,7 @@ Construido em **Java EE 7 Web Profile** (Servlet 3.1 + JSP 2.3 + JSTL), para rod
 
 - Java EE 7 Web Profile (Servlet 3.1, JSP 2.3, JSTL) — `javaee-web-api:7.0` (`provided`)
 - GlassFish Server **4.1** (Open Source Edition)
-- MySQL, via `mysql-connector-java:8.0.28` (instalado no dominio do GlassFish, nao no WAR — ver "Deploy")
+- MySQL, via `mysql-connector-java:8.0.28` (empacotado em `WEB-INF/lib`, dentro do proprio WAR)
 - Maven (`pom.xml`, packaging `war`)
 - Java 8 (`maven.compiler.source/target = 1.8`, compativel com GlassFish 4.1)
 
@@ -40,11 +40,15 @@ Banco **`condo`**, MySQL, hospedado em:
 - Usuario: `jyprgz_condo`
 - Senha: `MboyEvpQ55`
 
-O pool de conexao e o recurso JNDI `jdbc/condoDS` sao criados **uma vez, no dominio
-do GlassFish** (nao dentro do WAR — ver secao "Deploy" abaixo). Isso evita depender
-do autodeploy processar corretamente um `glassfish-resources.xml` embutido (que se
-mostrou pouco confiavel via autodeploy por pasta, ver "Problema conhecido" no fim
-deste arquivo) e evita deixar as credenciais do banco dentro do artefato implantavel.
+[`ConnectionProvider`](src/main/java/br/com/silsys/admsuporte/dao/ConnectionProvider.java)
+abre as conexoes **diretamente via `DriverManager`**, sem usar `DataSource`/JNDI —
+essas credenciais estao la, hardcoded. Essa escolha foi deliberada: esta hospedagem
+so permite deploy via **autodeploy por FTP** (sem acesso a `asadmin`, ao console
+administrativo ou a pasta `lib/ext` do dominio), e um recurso JDBC declarado em
+`glassfish-resources.xml` embutido no WAR se mostrou **nao confiavel** nesse cenario
+(ver "Problema conhecido" mais abaixo). Conectar direto e o mesmo modelo que os
+outros WARs do site ja usam com sucesso: tudo dentro do artefato, zero configuracao
+manual no servidor.
 
 Ao subir, [`AppInitListener`](src/main/java/br/com/silsys/admsuporte/listener/AppInitListener.java)
 cria as tabelas (se nao existirem) e carrega o logotipo padrao:
@@ -55,10 +59,9 @@ cria as tabelas (se nao existirem) e carrega o logotipo padrao:
 - `app_assets` — logotipo (BLOB) usado nas telas de login/menu; a seed vem de
   `src/main/resources/seed/logo-placeholder.png` (mesmo placeholder do app mobile)
 
-> **Importante:** as credenciais do banco nao vao mais dentro do WAR, mas ainda
-> aparecem em texto puro nos comandos deste README (secao "Deploy") e em
-> [`glassfish-resources.xml.reference`](glassfish-resources.xml.reference) — mantenha
-> o repositorio Git **privado** e restrinja quem tem acesso a ele.
+> **Importante:** como a senha do banco fica em texto puro dentro do codigo-fonte
+> (`ConnectionProvider.java`) e do `.war` gerado, mantenha o repositorio Git
+> **privado** e restrinja quem tem acesso a ele e ao servidor.
 
 ## Restricao de dominio
 
@@ -79,68 +82,33 @@ Gera `target/admSuporte.war`.
 
 ## Deploy no GlassFish
 
-**Passo 1 — driver MySQL no dominio (uma vez so, sobrevive a redeploys do WAR):**
-
-Copie `mysql-connector-java-8.0.28.jar` para dentro de
-`glassfish/domains/domain1/lib/ext/` no servidor (crie a pasta `ext` se nao existir)
-e reinicie o dominio do GlassFish em seguida — o driver so e carregado no classpath
-no boot. Baixe o jar em:
-`https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.28/mysql-connector-java-8.0.28.jar`
-
-**Passo 2 — criar o pool de conexao e o recurso JNDI (uma vez so):**
-
-Via `asadmin` (ajuste o caminho do GlassFish se for diferente):
-
-```bash
-cd /home/application/appserver/glassfish/bin
-
-./asadmin create-jdbc-connection-pool \
-  --datasourceclassname com.mysql.cj.jdbc.MysqlDataSource \
-  --restype javax.sql.DataSource \
-  --property serverName=mysql-ag-br1-17.hospedagemelastica.com.br:portNumber=33240:databaseName=condo:user=jyprgz_condo:password=MboyEvpQ55:useSSL=false:useUnicode=true:characterEncoding=UTF-8:connectTimeout=10000 \
-  condoPool
-
-./asadmin create-jdbc-resource --connectionpoolid condoPool jdbc/condoDS
-
-./asadmin ping-connection-pool condoPool
-```
-
-O `ping-connection-pool` deve responder `Command ping-connection-pool executed successfully.`
-— se falhar, o problema e conectividade do servidor GlassFish ate o MySQL
-(host/porta/firewall), nao a aplicacao.
-
-Se preferir pelo console administrativo em vez de `asadmin`: Resources > JDBC >
-JDBC Connection Pools > New (mesmos valores acima), depois Resources > JDBC >
-JDBC Resources > New, JNDI Name `jdbc/condoDS`, apontando pro pool `condoPool`.
-
-**Passo 3 — subir o WAR:**
-
 ```bash
 mvn clean package
 ```
 
-Copie `target/admSuporte.war` para a pasta de autodeploy do GlassFish (mesmo
-mecanismo ja usado pelos outros WARs do site), ou implante pelo console/`asadmin deploy`.
-O WAR agora **nao** traz driver nem descritor de recurso — so a aplicacao.
+Copie o `target/admSuporte.war` gerado para a pasta de autodeploy do GlassFish —
+o mesmo mecanismo por FTP ja usado pelos outros WARs do site. Nenhuma configuracao
+adicional e necessaria no servidor: driver, credenciais e schema do banco (criado
+automaticamente no startup) ja vao todos dentro do artefato.
 
-**Passo 4:**
+Confirme que o dominio `silsys.com.br` esta apontando para esse listener/virtual
+server do GlassFish (o filtro de dominio dentro do app e uma segunda camada de
+protecao, nao substitui a configuracao de rede/DNS/vhost). Acesse
+`https://silsys.com.br/admSuporte/` (o context-root pode ser ajustado em
+[`WEB-INF/glassfish-web.xml`](src/main/webapp/WEB-INF/glassfish-web.xml)).
 
-Configure o virtual server / listener do GlassFish para que o dominio
-`silsys.com.br` aponte para essa aplicacao (o filtro de dominio dentro do app e uma
-segunda camada de protecao, nao substitui a configuracao de rede/DNS/vhost).
-Acesse `https://silsys.com.br/admSuporte/` (o context-root pode ser ajustado
-em [`WEB-INF/glassfish-web.xml`](src/main/webapp/WEB-INF/glassfish-web.xml)).
+### Problema conhecido: recurso JDBC bundlado no WAR nao funciona nesta hospedagem
 
-### Problema conhecido: recurso bundlado no WAR + autodeploy por pasta
-
-A primeira versao deste projeto empacotava um `WEB-INF/glassfish-resources.xml`
-dentro do WAR para criar o pool/recurso automaticamente no deploy. Isso funcionou
-na compilacao local, mas ao subir via autodeploy (pasta `domains/domain1/autodeploy`)
-o `server.log` mostrou que o recurso nunca foi criado
-(`javax.naming.NameNotFoundException: condoDS not found`), derrubando o startup
-do app inteiro (o que aparecia como HTTP 404, ja que o contexto `/admSuporte`
-nunca chegava a subir). Por isso o pool passou a ser criado no dominio (Passo 1/2
-acima), que e mais confiavel e e a pratica recomendada em producao de qualquer forma.
+Uma versao anterior deste projeto usava um `DataSource`/JNDI, criado a partir de
+um `WEB-INF/glassfish-resources.xml` embutido no WAR. Funcionou na compilacao local,
+mas ao subir via autodeploy por FTP o `server.log` mostrou que o recurso nunca era
+criado (`javax.naming.NameNotFoundException: condoDS not found`), derrubando o
+startup do app inteiro — o que aparecia como HTTP 404, ja que o contexto
+`/admSuporte` nunca chegava a subir. Como esta hospedagem so oferece deploy via
+autodeploy por FTP (sem `asadmin`/console para criar o recurso manualmente no
+dominio como alternativa), a solucao foi eliminar a dependencia de `DataSource`/JNDI
+por completo: `ConnectionProvider` abre as conexoes direto via `DriverManager`,
+usando so o driver que ja vai empacotado no WAR.
 
 ## Estrutura
 
@@ -155,7 +123,7 @@ src/main/java/br/com/silsys/admsuporte/
   model/
     User.java, ResetMethod.java
   dao/
-    DataSourceProvider.java        lookup JNDI do DataSource
+    ConnectionProvider.java        abre conexoes MySQL via DriverManager
     SchemaInitializer.java         DDL + seed do logotipo
     UserDao.java                   cadastro, login, busca para recuperacao
     PasswordResetDao.java          geracao/validacao do codigo de recuperacao

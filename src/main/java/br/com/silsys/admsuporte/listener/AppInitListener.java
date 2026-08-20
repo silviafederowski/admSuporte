@@ -1,6 +1,5 @@
 package br.com.silsys.admsuporte.listener;
 
-import br.com.silsys.admsuporte.dao.DataSourceProvider;
 import br.com.silsys.admsuporte.dao.SchemaInitializer;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -20,7 +19,7 @@ public class AppInitListener implements ServletContextListener {
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         try {
-            SchemaInitializer.initialize(DataSourceProvider.getDataSource());
+            SchemaInitializer.initialize();
             LOGGER.info("admSuporte: schema do banco 'condo' verificado/criado com sucesso.");
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "admSuporte: falha ao inicializar o schema do banco 'condo'.", e);

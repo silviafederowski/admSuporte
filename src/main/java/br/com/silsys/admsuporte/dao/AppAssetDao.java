@@ -4,7 +4,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import javax.sql.DataSource;
 
 /** Le ativos binarios (como o logotipo) da tabela app_assets. */
 public class AppAssetDao {
@@ -19,14 +18,8 @@ public class AppAssetDao {
         }
     }
 
-    private final DataSource dataSource;
-
-    public AppAssetDao() {
-        this.dataSource = DataSourceProvider.getDataSource();
-    }
-
     public Asset findByKey(String key) throws SQLException {
-        try (Connection conn = dataSource.getConnection();
+        try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT mime_type, data FROM app_assets WHERE asset_key = ?")) {
             stmt.setString(1, key);

@@ -7,7 +7,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import javax.sql.DataSource;
 
 /**
  * Cria as tabelas (se nao existirem) e carrega o logotipo padrao no banco MySQL "condo",
@@ -22,8 +21,8 @@ public final class SchemaInitializer {
     private SchemaInitializer() {
     }
 
-    public static void initialize(DataSource dataSource) throws SQLException {
-        try (Connection conn = dataSource.getConnection()) {
+    public static void initialize() throws SQLException {
+        try (Connection conn = ConnectionProvider.getConnection()) {
             createTables(conn);
             seedLogo(conn);
         }

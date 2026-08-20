@@ -9,24 +9,17 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import javax.sql.DataSource;
 
 /** Equivalente a createPasswordReset/redeemPasswordReset de src/db/database.ts no app mobile. */
 public class PasswordResetDao {
 
     private static final int RESET_CODE_TTL_MINUTES = 10;
 
-    private final DataSource dataSource;
-
-    public PasswordResetDao() {
-        this.dataSource = DataSourceProvider.getDataSource();
-    }
-
     public String createPasswordReset(int userId, ResetMethod method, String destination) throws SQLException {
         String code = ResetCodeUtil.generate();
         LocalDateTime expiresAt = LocalDateTime.now().plusMinutes(RESET_CODE_TTL_MINUTES);
 
-        try (Connection conn = dataSource.getConnection();
+        try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "INSERT INTO password_resets (user_id, code, method, destination, expires_at, used, created_at) " +
                      "VALUES (?, ?, ?, ?, ?, 0, ?)")) {
@@ -42,7 +35,7 @@ public class PasswordResetDao {
     }
 
     public boolean redeemPasswordReset(int userId, String code, String newPassword) throws SQLException {
-        try (Connection conn = dataSource.getConnection()) {
+        try (Connection conn = ConnectionProvider.getConnection()) {
             Integer resetId = null;
             try (PreparedStatement select = conn.prepareStatement(
                     "SELECT id FROM password_resets " +

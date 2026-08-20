@@ -11,22 +11,15 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import javax.sql.DataSource;
 
 /** Equivalente as funcoes de usuario de src/db/database.ts no app mobile. */
 public class UserDao {
-
-    private final DataSource dataSource;
-
-    public UserDao() {
-        this.dataSource = DataSourceProvider.getDataSource();
-    }
 
     public int createUser(String name, String email, String phone, String password) throws SQLException, AppException {
         String normalizedEmail = email.trim().toLowerCase();
         String normalizedPhone = phone.trim();
 
-        try (Connection conn = dataSource.getConnection()) {
+        try (Connection conn = ConnectionProvider.getConnection()) {
             if (findByEmail(conn, normalizedEmail) != null) {
                 throw new AppException("Ja existe uma conta com este e-mail.");
             }
@@ -61,7 +54,7 @@ public class UserDao {
     public User findByIdentifier(String identifier) throws SQLException {
         String value = identifier.trim().toLowerCase();
         String rawValue = identifier.trim();
-        try (Connection conn = dataSource.getConnection();
+        try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT * FROM users WHERE LOWER(email) = ? OR phone = ? LIMIT 1")) {
             stmt.setString(1, value);
@@ -82,7 +75,7 @@ public class UserDao {
     }
 
     public User findForReset(ResetMethod method, String destination) throws SQLException {
-        try (Connection conn = dataSource.getConnection()) {
+        try (Connection conn = ConnectionProvider.getConnection()) {
             if (method == ResetMethod.EMAIL) {
                 return findByEmail(conn, destination.trim().toLowerCase());
             }
@@ -93,7 +86,7 @@ public class UserDao {
     public void updatePassword(int userId, String newPassword) throws SQLException {
         String salt = PasswordUtil.generateSalt();
         String passwordHash = PasswordUtil.hashPassword(newPassword, salt);
-        try (Connection conn = dataSource.getConnection();
+        try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "UPDATE users SET password_hash = ?, password_salt = ? WHERE id = ?")) {
             stmt.setString(1, passwordHash);
