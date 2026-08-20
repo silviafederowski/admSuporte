@@ -22,16 +22,16 @@
             <p class="form-error">${formError}</p>
         </c:if>
 
-        <form method="post" action="${pageContext.request.contextPath}/login">
+        <form method="post" action="${pageContext.request.contextPath}/login" autocomplete="off">
             <div class="field">
                 <label for="identifier">E-mail ou telefone</label>
                 <input type="text" id="identifier" name="identifier" placeholder="voce@exemplo.com"
-                       value="${identifier}" autocomplete="username" required>
+                       value="${identifier}" autocomplete="off" required>
             </div>
             <div class="field">
                 <label for="password">Senha</label>
                 <input type="password" id="password" name="password" placeholder="Sua senha"
-                       autocomplete="current-password" required>
+                       autocomplete="new-password" required>
             </div>
 
             <div class="forgot-link">
