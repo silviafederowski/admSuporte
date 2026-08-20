@@ -20,7 +20,9 @@ public final class ConnectionProvider {
 
     private static final String HOST = "mysql-ag-br1-17.hospedagemelastica.com.br";
     private static final int PORT = 33240;
-    private static final String DATABASE = "condo";
+    // Hospedagens cPanel prefixam banco e usuario com o mesmo prefixo da conta
+    // (ex.: usuario "jyprgz_condo" -> banco "jyprgz_condo", nao so "condo").
+    private static final String DATABASE = "jyprgz_condo";
     private static final String USER = "jyprgz_condo";
     private static final String PASSWORD = "MboyEvpQ55";
 

@@ -33,10 +33,12 @@ Construido em **Java EE 7 Web Profile** (Servlet 3.1 + JSP 2.3 + JSTL), para rod
 
 ## Banco de dados
 
-Banco **`condo`**, MySQL, hospedado em:
+Banco **`jyprgz_condo`** (cPanel prefixa banco e usuario com o mesmo prefixo da
+conta, entao o nome do banco nao e so `condo`), MySQL, hospedado em:
 
 - Host: `mysql-ag-br1-17.hospedagemelastica.com.br`
 - Porta: `33240`
+- Banco: `jyprgz_condo`
 - Usuario: `jyprgz_condo`
 - Senha: `MboyEvpQ55`
 
