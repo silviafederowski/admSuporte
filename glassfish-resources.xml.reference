@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Referencia dos mesmos parametros usados nos comandos `asadmin` do README
+    (secao "Deploy no GlassFish"). Este arquivo NAO fica dentro do WAR (ver
+    README > "Problema conhecido") — e so uma copia de consulta caso voce
+    prefira criar o pool pelo console administrativo em vez de linha de comando,
+    ou queira comparar com o que foi digitado no asadmin.
+-->
 <!DOCTYPE resources PUBLIC "-//GlassFish.org//DTD GlassFish Application Server 3.1 Resource Definitions//EN" "http://glassfish.org/dtds/glassfish-resources_1_5.dtd">
 <resources>
 
-    <!--
-        Pool de conexao com o banco MySQL "condo".
-        Host, porta, usuario e senha ficam aqui (descritor especifico do GlassFish,
-        empacotado dentro do WAR) para que o pool e o recurso JNDI sejam criados
-        automaticamente no deploy, sem precisar editar domain.xml na mao.
-    -->
     <jdbc-connection-pool
         name="condoPool"
         datasource-classname="com.mysql.cj.jdbc.MysqlDataSource"
