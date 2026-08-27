@@ -19,10 +19,12 @@
         </c:if>
 
         <form method="post" action="${pageContext.request.contextPath}/google-form/pdf">
+            <button type="button" id="toggleAllBtn" class="btn btn-secondary" onclick="toggleAllRows()">Todos</button>
+
             <div class="row-list">
                 <c:forEach var="row" items="${rows}" varStatus="status">
                     <label class="row-item">
-                        <input type="checkbox" name="rowIndex" value="${status.index}">
+                        <input type="checkbox" name="rowIndex" value="${status.index}" onchange="updateToggleAllBtn()">
                         <span>${row.label}</span>
                     </label>
                 </c:forEach>
@@ -30,6 +32,25 @@
 
             <button type="submit" class="btn btn-primary">Gerar PDF</button>
         </form>
+
+        <script>
+            function getRowCheckboxes() {
+                return document.querySelectorAll('input[name="rowIndex"]');
+            }
+
+            function toggleAllRows() {
+                var checkboxes = getRowCheckboxes();
+                var allChecked = Array.prototype.every.call(checkboxes, function (cb) { return cb.checked; });
+                checkboxes.forEach(function (cb) { cb.checked = !allChecked; });
+                updateToggleAllBtn();
+            }
+
+            function updateToggleAllBtn() {
+                var checkboxes = getRowCheckboxes();
+                var allChecked = checkboxes.length > 0 && Array.prototype.every.call(checkboxes, function (cb) { return cb.checked; });
+                document.getElementById('toggleAllBtn').textContent = allChecked ? 'Nenhum' : 'Todos';
+            }
+        </script>
 
         <form method="post" action="${pageContext.request.contextPath}/google-form">
             <input type="hidden" name="reset" value="1">
