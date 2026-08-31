@@ -15,6 +15,9 @@ public class MenuServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (request.getParameter("registered") != null) {
+            request.setAttribute("infoMessage", "Conta criada com sucesso.");
+        }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/menu.jsp");
         dispatcher.forward(request, response);
     }

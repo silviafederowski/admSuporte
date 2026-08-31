@@ -1,4 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -14,8 +15,18 @@
         <h1 class="title">Bem-vindo, ${sessionScope.userName}!</h1>
         <p class="subtitle">O que voce quer fazer?</p>
 
-        <a class="btn btn-primary" href="${pageContext.request.contextPath}/google-form">Formulario Google</a>
-        <a class="btn btn-primary" href="${pageContext.request.contextPath}/placeholder?title=Outra">Outra</a>
+        <c:if test="${not empty infoMessage}">
+            <p class="form-info">${infoMessage}</p>
+        </c:if>
+
+        <c:if test="${sessionScope.userNivel <= 9}">
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/google-form">Formulario Google</a>
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/register">Criar conta</a>
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/operacoes">Log de operacoes</a>
+        </c:if>
+        <a class="btn btn-primary" href="${pageContext.request.contextPath}/prestadores">Cadastro de prestadores</a>
+        <a class="btn btn-primary" href="${pageContext.request.contextPath}/servicos">Servicos de manutencao</a>
+
         <a class="btn btn-secondary" href="${pageContext.request.contextPath}/logout">Sair</a>
     </div>
 </div>

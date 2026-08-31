@@ -24,9 +24,6 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (request.getParameter("registered") != null) {
-            request.setAttribute("infoMessage", "Sua conta foi criada com sucesso. Faca login para continuar.");
-        }
         if (request.getParameter("reset") != null) {
             request.setAttribute("infoMessage", "Sua senha foi atualizada. Faca login novamente.");
         }
@@ -58,7 +55,9 @@ public class LoginServlet extends HttpServlet {
             HttpSession session = request.getSession(true);
             session.setAttribute("userId", user.getId());
             session.setAttribute("userName", user.getName());
-            response.sendRedirect(request.getContextPath() + "/menu");
+            session.setAttribute("userType", user.getUserTypeName());
+            session.setAttribute("userNivel", user.getUserTypeNivel());
+            response.sendRedirect(request.getContextPath() + "/alerta-servicos");
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao autenticar usuario.", e);
             request.setAttribute("formError", "Nao foi possivel entrar: " + ErrorMessages.describe(e));

@@ -40,11 +40,6 @@
 
             <button type="submit" class="btn btn-primary">Entrar</button>
         </form>
-
-        <div class="link-row">
-            <span>Nao tem conta?</span>
-            <a class="link" href="${pageContext.request.contextPath}/register">Criar conta</a>
-        </div>
     </div>
 </div>
 </body>

@@ -14,6 +14,9 @@ public class User implements Serializable {
     private String passwordHash;
     private String passwordSalt;
     private LocalDateTime createdAt;
+    private int userTypeId;
+    private String userTypeName;
+    private int userTypeNivel;
 
     public int getId() {
         return id;
@@ -69,5 +72,29 @@ public class User implements Serializable {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public int getUserTypeId() {
+        return userTypeId;
+    }
+
+    public void setUserTypeId(int userTypeId) {
+        this.userTypeId = userTypeId;
+    }
+
+    public String getUserTypeName() {
+        return userTypeName;
+    }
+
+    public void setUserTypeName(String userTypeName) {
+        this.userTypeName = userTypeName;
+    }
+
+    public int getUserTypeNivel() {
+        return userTypeNivel;
+    }
+
+    public void setUserTypeNivel(int userTypeNivel) {
+        this.userTypeNivel = userTypeNivel;
     }
 }

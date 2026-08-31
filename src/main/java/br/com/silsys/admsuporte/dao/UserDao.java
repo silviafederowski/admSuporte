@@ -2,6 +2,7 @@ package br.com.silsys.admsuporte.dao;
 
 import br.com.silsys.admsuporte.model.ResetMethod;
 import br.com.silsys.admsuporte.model.User;
+import br.com.silsys.admsuporte.model.UserType;
 import br.com.silsys.admsuporte.util.AppException;
 import br.com.silsys.admsuporte.util.PasswordUtil;
 import java.sql.Connection;
@@ -15,7 +16,13 @@ import java.time.LocalDateTime;
 /** Equivalente as funcoes de usuario de src/db/database.ts no app mobile. */
 public class UserDao {
 
-    public int createUser(String name, String email, String phone, String password) throws SQLException, AppException {
+    /** E-mail que deve sempre receber o perfil "administrador", independente do tipo escolhido no formulario. */
+    private static final String BUILTIN_ADMIN_EMAIL = "s070460@gmail.com";
+
+    private final UserTypeDao userTypeDao = new UserTypeDao();
+
+    public int createUser(String name, String email, String phone, String password, int userTypeId)
+            throws SQLException, AppException {
         String normalizedEmail = email.trim().toLowerCase();
         String normalizedPhone = phone.trim();
 
@@ -27,18 +34,27 @@ public class UserDao {
                 throw new AppException("Ja existe uma conta com este telefone.");
             }
 
+            int effectiveTypeId = userTypeId;
+            if (BUILTIN_ADMIN_EMAIL.equals(normalizedEmail)) {
+                UserType adminType = userTypeDao.findByName(conn, UserType.ADMINISTRADOR);
+                if (adminType != null) {
+                    effectiveTypeId = adminType.getId();
+                }
+            }
+
             String salt = PasswordUtil.generateSalt();
             String passwordHash = PasswordUtil.hashPassword(password, salt);
 
             try (PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO users (name, email, phone, password_hash, password_salt, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO users (name, email, phone, password_hash, password_salt, user_type_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, name.trim());
                 stmt.setString(2, normalizedEmail);
                 stmt.setString(3, normalizedPhone);
                 stmt.setString(4, passwordHash);
                 stmt.setString(5, salt);
-                stmt.setTimestamp(6, Timestamp.valueOf(LocalDateTime.now()));
+                stmt.setInt(6, effectiveTypeId);
+                stmt.setTimestamp(7, Timestamp.valueOf(LocalDateTime.now()));
                 stmt.executeUpdate();
 
                 try (ResultSet keys = stmt.getGeneratedKeys()) {
@@ -56,7 +72,9 @@ public class UserDao {
         String rawValue = identifier.trim();
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
-                     "SELECT * FROM users WHERE LOWER(email) = ? OR phone = ? LIMIT 1")) {
+                     "SELECT u.*, t.name AS user_type_name, t.nivel AS user_type_nivel FROM users u " +
+                     "LEFT JOIN user_types t ON u.user_type_id = t.id " +
+                     "WHERE LOWER(u.email) = ? OR u.phone = ? LIMIT 1")) {
             stmt.setString(1, value);
             stmt.setString(2, rawValue);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -98,7 +116,9 @@ public class UserDao {
 
     private User findByEmail(Connection conn, String email) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT * FROM users WHERE LOWER(email) = ? LIMIT 1")) {
+                "SELECT u.*, t.name AS user_type_name, t.nivel AS user_type_nivel FROM users u " +
+                "LEFT JOIN user_types t ON u.user_type_id = t.id " +
+                "WHERE LOWER(u.email) = ? LIMIT 1")) {
             stmt.setString(1, email);
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next() ? mapUser(rs) : null;
@@ -108,7 +128,9 @@ public class UserDao {
 
     private User findByPhone(Connection conn, String phone) throws SQLException {
         try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT * FROM users WHERE phone = ? LIMIT 1")) {
+                "SELECT u.*, t.name AS user_type_name, t.nivel AS user_type_nivel FROM users u " +
+                "LEFT JOIN user_types t ON u.user_type_id = t.id " +
+                "WHERE u.phone = ? LIMIT 1")) {
             stmt.setString(1, phone);
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next() ? mapUser(rs) : null;
@@ -124,6 +146,10 @@ public class UserDao {
         user.setPhone(rs.getString("phone"));
         user.setPasswordHash(rs.getString("password_hash"));
         user.setPasswordSalt(rs.getString("password_salt"));
+        user.setUserTypeId(rs.getInt("user_type_id"));
+        user.setUserTypeName(rs.getString("user_type_name"));
+        int userTypeNivel = rs.getInt("user_type_nivel");
+        user.setUserTypeNivel(rs.wasNull() ? UserType.NIVEL_MAXIMO_ESCRITA + 1 : userTypeNivel);
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {
             user.setCreatedAt(createdAt.toLocalDateTime());

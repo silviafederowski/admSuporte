@@ -44,9 +44,19 @@
                 <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Repita a senha" required>
                 <c:if test="${not empty errors.confirmPassword}"><div class="field-error">${errors.confirmPassword}</div></c:if>
             </div>
+            <div class="field">
+                <label for="userTypeId">Tipo de usuario</label>
+                <select id="userTypeId" name="userTypeId" required>
+                    <option value="" disabled ${empty userTypeId ? 'selected' : ''}>Selecione...</option>
+                    <c:forEach var="type" items="${userTypes}">
+                        <option value="${type.id}" ${userTypeId == type.id ? 'selected' : ''}>${type.name}</option>
+                    </c:forEach>
+                </select>
+                <c:if test="${not empty errors.userTypeId}"><div class="field-error">${errors.userTypeId}</div></c:if>
+            </div>
 
             <button type="submit" class="btn btn-primary">Criar conta</button>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/login">Voltar para o login</a>
+            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar para o menu</a>
         </form>
     </div>
 </div>
