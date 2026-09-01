@@ -89,6 +89,30 @@
         <filter-name>AuthFilter</filter-name>
         <url-pattern>/operacoes</url-pattern>
     </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/fornecedores</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/fornecedores/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/fornecedores/excluir</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/produtos</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/produtos/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/produtos/excluir</url-pattern>
+    </filter-mapping>
 
     <!--
       Restringe acoes de escrita (criar/editar/excluir) a administrador/zelador (nivel <= 9).
@@ -134,6 +158,22 @@
     <filter-mapping>
         <filter-name>AdminOrZeladorFilter</filter-name>
         <url-pattern>/operacoes</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AdminOrZeladorFilter</filter-name>
+        <url-pattern>/fornecedores/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AdminOrZeladorFilter</filter-name>
+        <url-pattern>/fornecedores/excluir</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AdminOrZeladorFilter</filter-name>
+        <url-pattern>/produtos/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AdminOrZeladorFilter</filter-name>
+        <url-pattern>/produtos/excluir</url-pattern>
     </filter-mapping>
 
     <servlet>
@@ -224,6 +264,60 @@
     <servlet-mapping>
         <servlet-name>OperacoesLogServlet</servlet-name>
         <url-pattern>/operacoes</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>FornecedorServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.FornecedorServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FornecedorServlet</servlet-name>
+        <url-pattern>/fornecedores</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>FornecedorFormServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.FornecedorFormServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FornecedorFormServlet</servlet-name>
+        <url-pattern>/fornecedores/form</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>FornecedorDeleteServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.FornecedorDeleteServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>FornecedorDeleteServlet</servlet-name>
+        <url-pattern>/fornecedores/excluir</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ProdutoServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.ProdutoServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProdutoServlet</servlet-name>
+        <url-pattern>/produtos</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ProdutoFormServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.ProdutoFormServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProdutoFormServlet</servlet-name>
+        <url-pattern>/produtos/form</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ProdutoDeleteServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.ProdutoDeleteServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProdutoDeleteServlet</servlet-name>
+        <url-pattern>/produtos/excluir</url-pattern>
     </servlet-mapping>
 
     <servlet>

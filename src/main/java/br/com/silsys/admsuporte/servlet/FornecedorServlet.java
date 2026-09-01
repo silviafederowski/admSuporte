@@ -1,0 +1,46 @@
+package br.com.silsys.admsuporte.servlet;
+
+import br.com.silsys.admsuporte.dao.FornecedorDao;
+import br.com.silsys.admsuporte.util.ErrorMessages;
+import java.io.IOException;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+/** Lista de fornecedores. Acesso liberado a qualquer usuario logado (ver AuthFilter/AdminOrZeladorFilter). */
+public class FornecedorServlet extends HttpServlet {
+
+    private static final long serialVersionUID = 1L;
+    private static final Logger LOGGER = Logger.getLogger(FornecedorServlet.class.getName());
+
+    private final FornecedorDao fornecedorDao = new FornecedorDao();
+
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        if (request.getParameter("criado") != null) {
+            request.setAttribute("infoMessage", "Fornecedor cadastrado com sucesso.");
+        } else if (request.getParameter("atualizado") != null) {
+            request.setAttribute("infoMessage", "Fornecedor atualizado com sucesso.");
+        } else if (request.getParameter("excluido") != null) {
+            request.setAttribute("infoMessage", "Fornecedor excluido com sucesso.");
+        }
+
+        try {
+            List<?> fornecedores = fornecedorDao.listAll();
+            request.setAttribute("fornecedores", fornecedores);
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Falha ao listar fornecedores.", e);
+            request.setAttribute("formError", "Nao foi possivel carregar os fornecedores: " + ErrorMessages.describe(e));
+        }
+
+        RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/fornecedorList.jsp");
+        dispatcher.forward(request, response);
+    }
+}

@@ -27,7 +27,7 @@
                 <label for="file">Arquivo da planilha</label>
                 <input type="file" id="file" name="file" accept=".xlsx,.xls" required>
             </div>
-            <button type="submit" class="btn btn-primary">Selecionar arquivo</button>
+            <button type="submit" class="btn btn-primary">Processar arquivo</button>
         </form>
 
         <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>

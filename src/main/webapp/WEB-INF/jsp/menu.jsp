@@ -26,6 +26,8 @@
         </c:if>
         <a class="btn btn-primary" href="${pageContext.request.contextPath}/prestadores">Cadastro de prestadores</a>
         <a class="btn btn-primary" href="${pageContext.request.contextPath}/servicos">Servicos de manutencao</a>
+        <a class="btn btn-primary" href="${pageContext.request.contextPath}/fornecedores">Cadastro de fornecedores</a>
+        <a class="btn btn-primary" href="${pageContext.request.contextPath}/produtos">Cadastro de produtos</a>
 
         <a class="btn btn-secondary" href="${pageContext.request.contextPath}/logout">Sair</a>
     </div>

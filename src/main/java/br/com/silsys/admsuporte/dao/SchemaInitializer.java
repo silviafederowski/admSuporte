@@ -146,6 +146,54 @@ public final class SchemaInitializer {
                 "  data_hora DATETIME NOT NULL," +
                 "  INDEX idx_operacoes_log_data_hora (data_hora)" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS fornecedores (" +
+                "  id INT PRIMARY KEY AUTO_INCREMENT," +
+                "  nome_razao_social VARCHAR(255) NOT NULL," +
+                "  telefones TEXT NULL," +
+                "  contato1_nome VARCHAR(255) NULL," +
+                "  contato1_cargo VARCHAR(100) NULL," +
+                "  contato2_nome VARCHAR(255) NULL," +
+                "  contato2_cargo VARCHAR(100) NULL," +
+                "  contato3_nome VARCHAR(255) NULL," +
+                "  contato3_cargo VARCHAR(100) NULL," +
+                "  classificacao VARCHAR(15) NOT NULL," +
+                "  observacao LONGTEXT NULL," +
+                "  CONSTRAINT chk_fornecedores_classificacao " +
+                "    CHECK (classificacao IN ('muito_bom', 'bom', 'medio', 'ruim', 'muito_ruim'))" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS produtos (" +
+                "  id INT PRIMARY KEY AUTO_INCREMENT," +
+                "  descricao VARCHAR(255) NOT NULL," +
+                "  periodicidade INT NOT NULL," +
+                "  unidade_periodicidade VARCHAR(10) NOT NULL," +
+                "  ultima_execucao DATE NULL," +
+                "  ultimo_fornecedor_id INT NULL," +
+                "  valor_pago_ultima_execucao DECIMAL(10,2) NULL," +
+                "  data_agendada_proxima_execucao DATE NULL," +
+                "  fornecedor_proxima_execucao_id INT NULL," +
+                "  valor_orcado_proxima_execucao DECIMAL(10,2) NULL," +
+                "  CONSTRAINT chk_produtos_unidade_periodicidade " +
+                "    CHECK (unidade_periodicidade IN ('dia', 'mes', 'ano'))," +
+                "  CONSTRAINT fk_produtos_ultimo_fornecedor FOREIGN KEY (ultimo_fornecedor_id) " +
+                "    REFERENCES fornecedores(id) ON DELETE SET NULL," +
+                "  CONSTRAINT fk_produtos_fornecedor_proxima_execucao FOREIGN KEY (fornecedor_proxima_execucao_id) " +
+                "    REFERENCES fornecedores(id) ON DELETE SET NULL" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS fornecedor_produtos (" +
+                "  fornecedor_id INT NOT NULL," +
+                "  produto_id INT NOT NULL," +
+                "  PRIMARY KEY (fornecedor_id, produto_id)," +
+                "  CONSTRAINT fk_fornecedor_produtos_fornecedor FOREIGN KEY (fornecedor_id) " +
+                "    REFERENCES fornecedores(id) ON DELETE CASCADE," +
+                "  CONSTRAINT fk_fornecedor_produtos_produto FOREIGN KEY (produto_id) " +
+                "    REFERENCES produtos(id) ON DELETE CASCADE" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         }
     }
 
