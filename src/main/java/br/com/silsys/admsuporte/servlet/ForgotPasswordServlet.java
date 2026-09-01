@@ -47,9 +47,9 @@ public class ForgotPasswordServlet extends HttpServlet {
 
         String error = null;
         if (method == ResetMethod.EMAIL && !ValidationUtil.isValidEmail(destination)) {
-            error = "Informe um e-mail valido.";
+            error = "Informe um e-mail válido.";
         } else if (method == ResetMethod.SMS && !ValidationUtil.isValidPhone(destination)) {
-            error = "Informe um telefone valido (com DDD).";
+            error = "Informe um telefone válido (com DDD).";
         }
 
         if (error != null) {
@@ -81,7 +81,7 @@ public class ForgotPasswordServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/reset-password");
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao gerar codigo de recuperacao.", e);
-            request.setAttribute("error", "Nao foi possivel gerar o codigo: " + ErrorMessages.describe(e));
+            request.setAttribute("error", "Não foi possível gerar o código: " + ErrorMessages.describe(e));
             request.setAttribute("method", method.paramValue());
             request.setAttribute("destination", destination);
             forward(request, response);

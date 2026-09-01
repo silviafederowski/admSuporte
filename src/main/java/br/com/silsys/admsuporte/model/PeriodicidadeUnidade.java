@@ -4,7 +4,8 @@ package br.com.silsys.admsuporte.model;
 public enum PeriodicidadeUnidade {
     DIA,
     MES,
-    ANO;
+    ANO,
+    POR_DEMANDA;
 
     public static PeriodicidadeUnidade fromDbValue(String value) {
         if (value == null) {
@@ -17,6 +18,8 @@ public enum PeriodicidadeUnidade {
                 return MES;
             case "ano":
                 return ANO;
+            case "por_demanda":
+                return POR_DEMANDA;
             default:
                 throw new IllegalArgumentException("Unidade de periodicidade invalida: " + value);
         }
@@ -30,6 +33,8 @@ public enum PeriodicidadeUnidade {
                 return "mes";
             case ANO:
                 return "ano";
+            case POR_DEMANDA:
+                return "por_demanda";
             default:
                 throw new IllegalStateException("Unidade de periodicidade nao mapeada: " + this);
         }
@@ -45,9 +50,11 @@ public enum PeriodicidadeUnidade {
             case DIA:
                 return "dia(s)";
             case MES:
-                return "mes(es)";
+                return "mês(es)";
             case ANO:
                 return "ano(s)";
+            case POR_DEMANDA:
+                return "por demanda";
             default:
                 throw new IllegalStateException("Unidade de periodicidade nao mapeada: " + this);
         }

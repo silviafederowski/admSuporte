@@ -32,7 +32,7 @@ public class PrestadorServlet extends HttpServlet {
         } else if (request.getParameter("atualizado") != null) {
             request.setAttribute("infoMessage", "Prestador atualizado com sucesso.");
         } else if (request.getParameter("excluido") != null) {
-            request.setAttribute("infoMessage", "Prestador excluido com sucesso.");
+            request.setAttribute("infoMessage", "Prestador excluído com sucesso.");
         }
 
         String servicoIdParam = request.getParameter("servicoId");
@@ -54,7 +54,7 @@ public class PrestadorServlet extends HttpServlet {
             request.setAttribute("servicoIdFiltro", servicoIdFiltro);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao listar prestadores.", e);
-            request.setAttribute("formError", "Nao foi possivel carregar os prestadores: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível carregar os prestadores: " + ErrorMessages.describe(e));
         }
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/prestadorList.jsp");

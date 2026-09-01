@@ -36,25 +36,30 @@
                     <table class="data-table" data-sortable>
                         <thead>
                         <tr>
-                            <th>Descricao</th>
+                            <th>Descrição</th>
                             <th>Periodicidade</th>
-                            <th>Ultima execucao</th>
-                            <th>Fornecedor da ultima atualizacao</th>
+                            <th>Última execução</th>
+                            <th>Fornecedor da última atualização</th>
                             <th>Valor pago</th>
                             <th>Fornecedores que oferecem</th>
-                            <th>Proxima execucao (calculada)</th>
+                            <th>Próxima execução (calculada)</th>
                             <th>Dias faltantes</th>
-                            <th>Proxima execucao (agendada)</th>
-                            <th>Fornecedor da proxima execucao</th>
-                            <th>Valor orcado</th>
-                            <th data-no-sort>Acoes</th>
+                            <th>Próxima execução (agendada)</th>
+                            <th>Fornecedor da próxima execução</th>
+                            <th>Valor orçado</th>
                         </tr>
                         </thead>
                         <tbody>
                         <c:forEach var="p" items="${produtos}">
-                            <tr>
+                            <tr class="clickable-row"
+                                onclick="window.location='${pageContext.request.contextPath}/produtos/form?id=${p.id}'">
                                 <td>${p.descricao}</td>
-                                <td>A cada ${p.periodicidade} ${p.unidadePeriodicidade.label}</td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${p.unidadePeriodicidade == 'POR_DEMANDA'}">Por demanda</c:when>
+                                        <c:otherwise>A cada ${p.periodicidade} ${p.unidadePeriodicidade.label}</c:otherwise>
+                                    </c:choose>
+                                </td>
                                 <td>${empty p.ultimaExecucao ? '-' : p.ultimaExecucao}</td>
                                 <td>${empty p.ultimoFornecedorNome ? '-' : p.ultimoFornecedorNome}</td>
                                 <td><c:choose><c:when test="${empty p.valorPagoUltimaExecucao}">-</c:when><c:otherwise>R$ ${p.valorPagoUltimaExecucao}</c:otherwise></c:choose></td>
@@ -69,30 +74,23 @@
                                     </c:choose>
                                 </td>
                                 <td class="${p.atrasado ? 'atrasado' : ''}">
-                                    ${empty p.proximaExecucao ? 'Nunca executado' : p.proximaExecucao}
+                                    <c:choose>
+                                        <c:when test="${p.unidadePeriodicidade == 'POR_DEMANDA'}">Por demanda</c:when>
+                                        <c:when test="${empty p.proximaExecucao}">Nunca executado</c:when>
+                                        <c:otherwise>${p.proximaExecucao}</c:otherwise>
+                                    </c:choose>
                                 </td>
                                 <td class="${p.atrasado ? 'atrasado' : ''}">
                                     <c:choose>
+                                        <c:when test="${p.unidadePeriodicidade == 'POR_DEMANDA'}">Por demanda</c:when>
                                         <c:when test="${empty p.ultimaExecucao}">Nunca executado</c:when>
-                                        <c:when test="${p.diasFaltantes lt 0}">Atrasado ha ${-1 * p.diasFaltantes} dia(s)</c:when>
+                                        <c:when test="${p.diasFaltantes lt 0}">Atrasado há ${-1 * p.diasFaltantes} dia(s)</c:when>
                                         <c:otherwise>${p.diasFaltantes} dia(s)</c:otherwise>
                                     </c:choose>
                                 </td>
                                 <td>${empty p.dataAgendadaProximaExecucao ? '-' : p.dataAgendadaProximaExecucao}</td>
                                 <td>${empty p.fornecedorProximaExecucaoNome ? '-' : p.fornecedorProximaExecucaoNome}</td>
                                 <td><c:choose><c:when test="${empty p.valorOrcadoProximaExecucao}">-</c:when><c:otherwise>R$ ${p.valorOrcadoProximaExecucao}</c:otherwise></c:choose></td>
-                                <td>
-                                    <c:if test="${sessionScope.userNivel <= 9}">
-                                        <div class="table-actions">
-                                            <a class="btn btn-secondary btn-small" href="${pageContext.request.contextPath}/produtos/form?id=${p.id}">Editar</a>
-                                            <form method="post" action="${pageContext.request.contextPath}/produtos/excluir"
-                                                  onsubmit="return confirm('Excluir este produto?');">
-                                                <input type="hidden" name="id" value="${p.id}">
-                                                <button type="submit" class="btn btn-danger btn-small">Excluir</button>
-                                            </form>
-                                        </div>
-                                    </c:if>
-                                </td>
                             </tr>
                         </c:forEach>
                         </tbody>

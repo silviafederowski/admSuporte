@@ -1,5 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="readOnly" value="${sessionScope.userNivel > 9}" />
+<c:set var="dis" value="${readOnly ? 'disabled' : ''}" />
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -11,7 +13,13 @@
 <body>
 <div class="page">
     <div class="card card-wide">
-        <h1 class="title">${empty param.id ? 'Novo fornecedor' : 'Editar fornecedor'}</h1>
+        <h1 class="title">
+            <c:choose>
+                <c:when test="${readOnly}">Consultar fornecedor</c:when>
+                <c:when test="${empty param.id}">Novo fornecedor</c:when>
+                <c:otherwise>Editar fornecedor</c:otherwise>
+            </c:choose>
+        </h1>
         <p class="subtitle">Dados do fornecedor</p>
 
         <c:if test="${not empty errors.form}">
@@ -22,50 +30,68 @@
             <input type="hidden" name="id" value="${param.id}">
 
             <div class="field">
-                <label for="nomeRazaoSocial">Nome ou razao social</label>
-                <input type="text" id="nomeRazaoSocial" name="nomeRazaoSocial" value="${fornecedor.nomeRazaoSocial}" required>
+                <label for="nomeRazaoSocial">Nome ou razão social</label>
+                <input type="text" id="nomeRazaoSocial" name="nomeRazaoSocial" value="${fornecedor.nomeRazaoSocial}" ${dis} required>
                 <c:if test="${not empty errors.nomeRazaoSocial}"><div class="field-error">${errors.nomeRazaoSocial}</div></c:if>
             </div>
 
             <div class="field">
-                <label for="telefones">Telefones</label>
-                <textarea id="telefones" name="telefones" placeholder="Um ou mais numeros, um por linha">${fornecedor.telefones}</textarea>
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" value="${fornecedor.email}" ${dis}>
+            </div>
+
+            <div class="contact-row">
+                <div class="field">
+                    <label for="contato1Nome">Contato 1 - nome</label>
+                    <input type="text" id="contato1Nome" name="contato1Nome" value="${fornecedor.contato1Nome}" ${dis}>
+                </div>
+                <div class="field">
+                    <label for="contato1Cargo">Cargo</label>
+                    <input type="text" id="contato1Cargo" name="contato1Cargo" value="${fornecedor.contato1Cargo}" ${dis}>
+                </div>
+                <div class="field">
+                    <label for="contato1Telefone">Telefone</label>
+                    <input type="text" id="contato1Telefone" name="contato1Telefone" value="${fornecedor.contato1Telefone}" ${dis}>
+                </div>
+            </div>
+
+            <div class="contact-row">
+                <div class="field">
+                    <label for="contato2Nome">Contato 2 - nome</label>
+                    <input type="text" id="contato2Nome" name="contato2Nome" value="${fornecedor.contato2Nome}" ${dis}>
+                </div>
+                <div class="field">
+                    <label for="contato2Cargo">Cargo</label>
+                    <input type="text" id="contato2Cargo" name="contato2Cargo" value="${fornecedor.contato2Cargo}" ${dis}>
+                </div>
+                <div class="field">
+                    <label for="contato2Telefone">Telefone</label>
+                    <input type="text" id="contato2Telefone" name="contato2Telefone" value="${fornecedor.contato2Telefone}" ${dis}>
+                </div>
+            </div>
+
+            <div class="contact-row">
+                <div class="field">
+                    <label for="contato3Nome">Contato 3 - nome</label>
+                    <input type="text" id="contato3Nome" name="contato3Nome" value="${fornecedor.contato3Nome}" ${dis}>
+                </div>
+                <div class="field">
+                    <label for="contato3Cargo">Cargo</label>
+                    <input type="text" id="contato3Cargo" name="contato3Cargo" value="${fornecedor.contato3Cargo}" ${dis}>
+                </div>
+                <div class="field">
+                    <label for="contato3Telefone">Telefone</label>
+                    <input type="text" id="contato3Telefone" name="contato3Telefone" value="${fornecedor.contato3Telefone}" ${dis}>
+                </div>
             </div>
 
             <div class="field">
-                <label for="contato1Nome">Contato 1 - nome</label>
-                <input type="text" id="contato1Nome" name="contato1Nome" value="${fornecedor.contato1Nome}">
-            </div>
-            <div class="field">
-                <label for="contato1Cargo">Contato 1 - cargo</label>
-                <input type="text" id="contato1Cargo" name="contato1Cargo" value="${fornecedor.contato1Cargo}">
-            </div>
-
-            <div class="field">
-                <label for="contato2Nome">Contato 2 - nome</label>
-                <input type="text" id="contato2Nome" name="contato2Nome" value="${fornecedor.contato2Nome}">
-            </div>
-            <div class="field">
-                <label for="contato2Cargo">Contato 2 - cargo</label>
-                <input type="text" id="contato2Cargo" name="contato2Cargo" value="${fornecedor.contato2Cargo}">
-            </div>
-
-            <div class="field">
-                <label for="contato3Nome">Contato 3 - nome</label>
-                <input type="text" id="contato3Nome" name="contato3Nome" value="${fornecedor.contato3Nome}">
-            </div>
-            <div class="field">
-                <label for="contato3Cargo">Contato 3 - cargo</label>
-                <input type="text" id="contato3Cargo" name="contato3Cargo" value="${fornecedor.contato3Cargo}">
-            </div>
-
-            <div class="field">
-                <label for="classificacao">Classificacao</label>
-                <select id="classificacao" name="classificacao" required>
+                <label for="classificacao">Classificação</label>
+                <select id="classificacao" name="classificacao" ${dis} required>
                     <option value="" disabled ${empty fornecedor.classificacao ? 'selected' : ''}>Selecione...</option>
                     <option value="muito_bom" ${fornecedor.classificacao == 'MUITO_BOM' ? 'selected' : ''}>Muito bom</option>
                     <option value="bom" ${fornecedor.classificacao == 'BOM' ? 'selected' : ''}>Bom</option>
-                    <option value="medio" ${fornecedor.classificacao == 'MEDIO' ? 'selected' : ''}>Medio</option>
+                    <option value="medio" ${fornecedor.classificacao == 'MEDIO' ? 'selected' : ''}>Médio</option>
                     <option value="ruim" ${fornecedor.classificacao == 'RUIM' ? 'selected' : ''}>Ruim</option>
                     <option value="muito_ruim" ${fornecedor.classificacao == 'MUITO_RUIM' ? 'selected' : ''}>Muito ruim</option>
                 </select>
@@ -82,7 +108,7 @@
                         <div class="row-list">
                             <c:forEach var="produto" items="${produtos}">
                                 <label class="row-item">
-                                    <input type="checkbox" name="produtoIds" value="${produto.id}"
+                                    <input type="checkbox" name="produtoIds" value="${produto.id}" ${dis}
                                            ${fornecedor.produtoIds.contains(produto.id) ? 'checked' : ''}>
                                     <span>${produto.descricao}</span>
                                 </label>
@@ -93,14 +119,24 @@
             </div>
 
             <div class="field">
-                <label for="observacao">Observacao</label>
-                <textarea id="observacao" name="observacao" style="min-height:160px;">${fornecedor.observacao}</textarea>
+                <label for="observacao">Observação</label>
+                <textarea id="observacao" name="observacao" style="min-height:160px;" ${dis}>${fornecedor.observacao}</textarea>
             </div>
 
-            <button type="submit" class="btn btn-primary">Salvar</button>
+            <c:if test="${!readOnly}">
+                <button type="submit" class="btn btn-primary">Salvar</button>
+            </c:if>
             <a class="btn btn-secondary" href="${pageContext.request.contextPath}/fornecedores">Cancelar</a>
             <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
         </form>
+
+        <c:if test="${!readOnly && not empty param.id}">
+            <form method="post" action="${pageContext.request.contextPath}/fornecedores/excluir"
+                  onsubmit="return confirm('Excluir este fornecedor?');">
+                <input type="hidden" name="id" value="${param.id}">
+                <button type="submit" class="btn btn-danger">Excluir</button>
+            </form>
+        </c:if>
     </div>
 </div>
 </body>

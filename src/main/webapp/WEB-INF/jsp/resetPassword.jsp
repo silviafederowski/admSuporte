@@ -11,16 +11,16 @@
 <body>
 <div class="page">
     <div class="card">
-        <h1 class="title">Digite o codigo</h1>
+        <h1 class="title">Digite o código</h1>
         <p class="subtitle">
-            Enviamos um codigo de 6 digitos (simulado) para
+            Enviamos um código de 6 dígitos (simulado) para
             ${sessionScope.resetMethod == 'sms' ? 'o telefone' : 'o e-mail'} ${sessionScope.resetDestination}
         </p>
 
         <div class="simulated-code">
-            Como este app ainda nao tem um provedor real de SMS/e-mail conectado,<br>
-            o codigo gerado e mostrado aqui mesmo: <strong>${sessionScope.simulatedCode}</strong><br>
-            Valido por 10 minutos.
+            Como este app ainda não tem um provedor real de SMS/e-mail conectado,<br>
+            o código gerado é mostrado aqui mesmo: <strong>${sessionScope.simulatedCode}</strong><br>
+            Válido por 10 minutos.
         </div>
 
         <c:if test="${not empty resentMessage}">
@@ -32,13 +32,13 @@
 
         <form method="post" action="${pageContext.request.contextPath}/reset-password">
             <div class="field">
-                <label for="code">Codigo de verificacao</label>
+                <label for="code">Código de verificação</label>
                 <input type="text" id="code" name="code" placeholder="000000" maxlength="6" inputmode="numeric" required>
                 <c:if test="${not empty errors.code}"><div class="field-error">${errors.code}</div></c:if>
             </div>
             <div class="field">
                 <label for="password">Nova senha</label>
-                <input type="password" id="password" name="password" placeholder="Minimo 6 caracteres" required>
+                <input type="password" id="password" name="password" placeholder="Mínimo 6 caracteres" required>
                 <c:if test="${not empty errors.password}"><div class="field-error">${errors.password}</div></c:if>
             </div>
             <div class="field">
@@ -52,7 +52,7 @@
 
         <form method="post" action="${pageContext.request.contextPath}/reset-password">
             <input type="hidden" name="resend" value="1">
-            <button type="submit" class="btn btn-secondary">Reenviar codigo</button>
+            <button type="submit" class="btn btn-secondary">Reenviar código</button>
         </form>
     </div>
 </div>

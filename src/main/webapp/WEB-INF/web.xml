@@ -16,6 +16,20 @@
         <listener-class>br.com.silsys.admsuporte.listener.AppInitListener</listener-class>
     </listener>
 
+    <!--
+      Precisa ser o primeiro filtro: forca UTF-8 na leitura dos parametros antes de
+      qualquer request.getParameter(...), senao o container decodifica como ISO-8859-1
+      e corrompe acentos.
+    -->
+    <filter>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.CharacterEncodingFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <filter>
         <filter-name>DomainRestrictionFilter</filter-name>
         <filter-class>br.com.silsys.admsuporte.filter.DomainRestrictionFilter</filter-class>
@@ -141,38 +155,48 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>AdminOrZeladorFilter</filter-name>
+        <url-pattern>/operacoes</url-pattern>
+    </filter-mapping>
+
+    <!--
+      Telas de formulario dos cadastros (prestadores/fornecedores/servicos/produtos):
+      qualquer usuario logado pode consultar (GET); so administrador/zelador (nivel <= 9)
+      pode gravar (POST, salvar ou excluir).
+    -->
+    <filter>
+        <filter-name>EscritaRestritaFilter</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.EscritaRestritaFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>EscritaRestritaFilter</filter-name>
         <url-pattern>/prestadores/form</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>AdminOrZeladorFilter</filter-name>
+        <filter-name>EscritaRestritaFilter</filter-name>
         <url-pattern>/prestadores/excluir</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>AdminOrZeladorFilter</filter-name>
+        <filter-name>EscritaRestritaFilter</filter-name>
         <url-pattern>/servicos/form</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>AdminOrZeladorFilter</filter-name>
+        <filter-name>EscritaRestritaFilter</filter-name>
         <url-pattern>/servicos/excluir</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>AdminOrZeladorFilter</filter-name>
-        <url-pattern>/operacoes</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>AdminOrZeladorFilter</filter-name>
+        <filter-name>EscritaRestritaFilter</filter-name>
         <url-pattern>/fornecedores/form</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>AdminOrZeladorFilter</filter-name>
+        <filter-name>EscritaRestritaFilter</filter-name>
         <url-pattern>/fornecedores/excluir</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>AdminOrZeladorFilter</filter-name>
+        <filter-name>EscritaRestritaFilter</filter-name>
         <url-pattern>/produtos/form</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>AdminOrZeladorFilter</filter-name>
+        <filter-name>EscritaRestritaFilter</filter-name>
         <url-pattern>/produtos/excluir</url-pattern>
     </filter-mapping>
 

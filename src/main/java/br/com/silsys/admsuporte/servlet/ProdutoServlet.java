@@ -29,7 +29,7 @@ public class ProdutoServlet extends HttpServlet {
         } else if (request.getParameter("atualizado") != null) {
             request.setAttribute("infoMessage", "Produto atualizado com sucesso.");
         } else if (request.getParameter("excluido") != null) {
-            request.setAttribute("infoMessage", "Produto excluido com sucesso.");
+            request.setAttribute("infoMessage", "Produto excluído com sucesso.");
         }
 
         try {
@@ -37,7 +37,7 @@ public class ProdutoServlet extends HttpServlet {
             request.setAttribute("produtos", produtos);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao listar produtos.", e);
-            request.setAttribute("formError", "Nao foi possivel carregar os produtos: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível carregar os produtos: " + ErrorMessages.describe(e));
         }
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/produtoList.jsp");

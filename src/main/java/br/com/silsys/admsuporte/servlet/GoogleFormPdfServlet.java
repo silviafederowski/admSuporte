@@ -84,7 +84,7 @@ public class GoogleFormPdfServlet extends HttpServlet {
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Falha ao gerar o PDF do condominio.", e);
             request.setAttribute("rows", allRows);
-            request.setAttribute("error", "Nao foi possivel gerar o PDF: " + ErrorMessages.describe(e));
+            request.setAttribute("error", "Não foi possível gerar o PDF: " + ErrorMessages.describe(e));
             RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/googleFormSelect.jsp");
             dispatcher.forward(request, response);
         }

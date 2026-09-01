@@ -302,6 +302,35 @@ textarea:focus {
     min-width: 220px;
 }
 
+.contact-row {
+    display: grid;
+    grid-template-columns: 2fr 1.4fr 1.2fr;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.contact-row .field {
+    margin-bottom: 0;
+}
+
+.contact-row label {
+    font-size: 11px;
+}
+
+@media (max-width: 560px) {
+    .contact-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover {
+    background: var(--background);
+}
+
 .table-wrap {
     width: 100%;
     overflow-x: auto;

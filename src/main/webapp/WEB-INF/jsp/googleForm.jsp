@@ -5,17 +5,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Formulario Google - admSuporte</title>
+    <title>Formulário Google - admSuporte</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
 <div class="page">
     <div class="card menu-page">
         <img class="logo" src="${pageContext.request.contextPath}/logo" alt="Logotipo">
-        <h1 class="title">Formulario Google</h1>
+        <h1 class="title">Formulário Google</h1>
         <p class="subtitle">
-            Selecione uma planilha (.xlsx). As linhas serao ordenadas pela
-            coluna D e exibidas para voce escolher quais entram no PDF.
+            Selecione uma planilha (.xlsx). As linhas serão ordenadas pela
+            coluna D e exibidas para você escolher quais entram no PDF.
         </p>
 
         <c:if test="${not empty error}">

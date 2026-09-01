@@ -58,41 +58,47 @@ public class FornecedorFormServlet extends HttpServlet {
             throws ServletException, IOException {
         String idParam = request.getParameter("id");
         String nomeRazaoSocial = request.getParameter("nomeRazaoSocial");
-        String telefones = request.getParameter("telefones");
+        String email = request.getParameter("email");
         String contato1Nome = request.getParameter("contato1Nome");
         String contato1Cargo = request.getParameter("contato1Cargo");
+        String contato1Telefone = request.getParameter("contato1Telefone");
         String contato2Nome = request.getParameter("contato2Nome");
         String contato2Cargo = request.getParameter("contato2Cargo");
+        String contato2Telefone = request.getParameter("contato2Telefone");
         String contato3Nome = request.getParameter("contato3Nome");
         String contato3Cargo = request.getParameter("contato3Cargo");
+        String contato3Telefone = request.getParameter("contato3Telefone");
         String classificacaoParam = request.getParameter("classificacao");
         String observacao = request.getParameter("observacao");
         String[] produtoIdParams = request.getParameterValues("produtoIds");
 
         Map<String, String> errors = new HashMap<>();
         if (ValidationUtil.isBlank(nomeRazaoSocial)) {
-            errors.put("nomeRazaoSocial", "Informe o nome ou razao social.");
+            errors.put("nomeRazaoSocial", "Informe o nome ou razão social.");
         }
         Classificacao classificacao = null;
         if (ValidationUtil.isBlank(classificacaoParam)) {
-            errors.put("classificacao", "Selecione a classificacao.");
+            errors.put("classificacao", "Selecione a classificação.");
         } else {
             try {
                 classificacao = Classificacao.fromDbValue(classificacaoParam);
             } catch (IllegalArgumentException e) {
-                errors.put("classificacao", "Classificacao invalida.");
+                errors.put("classificacao", "Classificação inválida.");
             }
         }
 
         Fornecedor fornecedor = new Fornecedor();
         fornecedor.setNomeRazaoSocial(nomeRazaoSocial);
-        fornecedor.setTelefones(telefones);
+        fornecedor.setEmail(email);
         fornecedor.setContato1Nome(contato1Nome);
         fornecedor.setContato1Cargo(contato1Cargo);
+        fornecedor.setContato1Telefone(contato1Telefone);
         fornecedor.setContato2Nome(contato2Nome);
         fornecedor.setContato2Cargo(contato2Cargo);
+        fornecedor.setContato2Telefone(contato2Telefone);
         fornecedor.setContato3Nome(contato3Nome);
         fornecedor.setContato3Cargo(contato3Cargo);
+        fornecedor.setContato3Telefone(contato3Telefone);
         fornecedor.setClassificacao(classificacao);
         fornecedor.setObservacao(observacao);
         fornecedor.setProdutoIds(parseProdutoIds(produtoIdParams));
@@ -104,7 +110,7 @@ public class FornecedorFormServlet extends HttpServlet {
                 id = Integer.parseInt(idParam);
                 fornecedor.setId(id);
             } catch (NumberFormatException e) {
-                errors.put("form", "Identificador invalido.");
+                errors.put("form", "Identificador inválido.");
             }
         }
 
@@ -125,7 +131,7 @@ public class FornecedorFormServlet extends HttpServlet {
                 return;
             } catch (SQLException e) {
                 LOGGER.log(Level.SEVERE, "Falha ao salvar fornecedor.", e);
-                errors.put("form", "Nao foi possivel salvar o fornecedor: " + ErrorMessages.describe(e));
+                errors.put("form", "Não foi possível salvar o fornecedor: " + ErrorMessages.describe(e));
             }
         }
 

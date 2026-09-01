@@ -29,7 +29,7 @@ public class OperacoesLogServlet extends HttpServlet {
             request.setAttribute("operacoes", operacoes);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao listar operacoes.", e);
-            request.setAttribute("formError", "Nao foi possivel carregar o log de operacoes: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível carregar o log de operações: " + ErrorMessages.describe(e));
         }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/operacoesLog.jsp");
         dispatcher.forward(request, response);

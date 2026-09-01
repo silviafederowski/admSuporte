@@ -11,7 +11,7 @@
 <div class="page">
     <div class="card menu-page">
         <h1 class="title">${title}</h1>
-        <p class="subtitle">Em construcao.</p>
+        <p class="subtitle">Em construção.</p>
         <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
     </div>
 </div>

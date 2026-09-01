@@ -12,7 +12,7 @@
 <div class="page">
     <div class="card">
         <h1 class="title">Esqueci minha senha</h1>
-        <p class="subtitle">Escolha como deseja receber o codigo de verificacao</p>
+        <p class="subtitle">Escolha como deseja receber o código de verificação</p>
 
         <c:set var="currentMethod" value="${empty method ? 'email' : method}" />
 
@@ -37,12 +37,12 @@
                     </c:when>
                     <c:otherwise>
                         <label for="destination">E-mail</label>
-                        <input type="email" id="destination" name="destination" placeholder="voce@exemplo.com" value="${destination}" required>
+                        <input type="email" id="destination" name="destination" placeholder="você@exemplo.com" value="${destination}" required>
                     </c:otherwise>
                 </c:choose>
             </div>
 
-            <button type="submit" class="btn btn-primary">Enviar codigo</button>
+            <button type="submit" class="btn btn-primary">Enviar código</button>
             <a class="btn btn-secondary" href="${pageContext.request.contextPath}/login">Voltar para o login</a>
         </form>
     </div>

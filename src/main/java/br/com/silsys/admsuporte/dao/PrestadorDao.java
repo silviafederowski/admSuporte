@@ -2,6 +2,8 @@ package br.com.silsys.admsuporte.dao;
 
 import br.com.silsys.admsuporte.model.Classificacao;
 import br.com.silsys.admsuporte.model.Prestador;
+import br.com.silsys.admsuporte.model.TipoContratacao;
+import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -16,10 +18,12 @@ public class PrestadorDao {
         try (Connection conn = ConnectionProvider.getConnection()) {
             int id;
             try (PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO prestadores (nome_razao_social, telefones, " +
-                    "contato1_nome, contato1_cargo, contato2_nome, contato2_cargo, " +
-                    "contato3_nome, contato3_cargo, classificacao, observacao) " +
-                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO prestadores (nome_razao_social, email, " +
+                    "contato1_nome, contato1_cargo, contato1_telefone, " +
+                    "contato2_nome, contato2_cargo, contato2_telefone, " +
+                    "contato3_nome, contato3_cargo, contato3_telefone, " +
+                    "classificacao, regular_ou_contratado, observacao) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS)) {
                 bindParams(stmt, p);
                 stmt.executeUpdate();
@@ -37,9 +41,11 @@ public class PrestadorDao {
     public void update(Prestador p) throws SQLException {
         try (Connection conn = ConnectionProvider.getConnection()) {
             try (PreparedStatement stmt = conn.prepareStatement(
-                    "UPDATE prestadores SET nome_razao_social = ?, telefones = ?, " +
-                    "contato1_nome = ?, contato1_cargo = ?, contato2_nome = ?, contato2_cargo = ?, " +
-                    "contato3_nome = ?, contato3_cargo = ?, classificacao = ?, observacao = ? " +
+                    "UPDATE prestadores SET nome_razao_social = ?, email = ?, " +
+                    "contato1_nome = ?, contato1_cargo = ?, contato1_telefone = ?, " +
+                    "contato2_nome = ?, contato2_cargo = ?, contato2_telefone = ?, " +
+                    "contato3_nome = ?, contato3_cargo = ?, contato3_telefone = ?, " +
+                    "classificacao = ?, regular_ou_contratado = ?, observacao = ? " +
                     "WHERE id = ?")) {
                 int nextIndex = bindParams(stmt, p);
                 stmt.setInt(nextIndex, p.getId());
@@ -138,17 +144,21 @@ public class PrestadorDao {
     }
 
     private int bindParams(PreparedStatement stmt, Prestador p) throws SQLException {
-        stmt.setString(1, p.getNomeRazaoSocial().trim());
-        stmt.setString(2, blankToNull(p.getTelefones()));
-        stmt.setString(3, blankToNull(p.getContato1Nome()));
-        stmt.setString(4, blankToNull(p.getContato1Cargo()));
-        stmt.setString(5, blankToNull(p.getContato2Nome()));
-        stmt.setString(6, blankToNull(p.getContato2Cargo()));
-        stmt.setString(7, blankToNull(p.getContato3Nome()));
-        stmt.setString(8, blankToNull(p.getContato3Cargo()));
-        stmt.setString(9, p.getClassificacao().dbValue());
-        stmt.setString(10, blankToNull(p.getObservacao()));
-        return 11;
+        stmt.setString(1, ValidationUtil.toUpperOrNull(p.getNomeRazaoSocial()));
+        stmt.setString(2, blankToNull(p.getEmail()));
+        stmt.setString(3, ValidationUtil.toUpperOrNull(p.getContato1Nome()));
+        stmt.setString(4, ValidationUtil.toUpperOrNull(p.getContato1Cargo()));
+        stmt.setString(5, blankToNull(p.getContato1Telefone()));
+        stmt.setString(6, ValidationUtil.toUpperOrNull(p.getContato2Nome()));
+        stmt.setString(7, ValidationUtil.toUpperOrNull(p.getContato2Cargo()));
+        stmt.setString(8, blankToNull(p.getContato2Telefone()));
+        stmt.setString(9, ValidationUtil.toUpperOrNull(p.getContato3Nome()));
+        stmt.setString(10, ValidationUtil.toUpperOrNull(p.getContato3Cargo()));
+        stmt.setString(11, blankToNull(p.getContato3Telefone()));
+        stmt.setString(12, p.getClassificacao().dbValue());
+        stmt.setString(13, p.getRegularOuContratado().dbValue());
+        stmt.setString(14, ValidationUtil.toUpperOrNull(p.getObservacao()));
+        return 15;
     }
 
     private String blankToNull(String value) {
@@ -163,14 +173,18 @@ public class PrestadorDao {
         Prestador p = new Prestador();
         p.setId(rs.getInt("id"));
         p.setNomeRazaoSocial(rs.getString("nome_razao_social"));
-        p.setTelefones(rs.getString("telefones"));
+        p.setEmail(rs.getString("email"));
         p.setContato1Nome(rs.getString("contato1_nome"));
         p.setContato1Cargo(rs.getString("contato1_cargo"));
+        p.setContato1Telefone(rs.getString("contato1_telefone"));
         p.setContato2Nome(rs.getString("contato2_nome"));
         p.setContato2Cargo(rs.getString("contato2_cargo"));
+        p.setContato2Telefone(rs.getString("contato2_telefone"));
         p.setContato3Nome(rs.getString("contato3_nome"));
         p.setContato3Cargo(rs.getString("contato3_cargo"));
+        p.setContato3Telefone(rs.getString("contato3_telefone"));
         p.setClassificacao(Classificacao.fromDbValue(rs.getString("classificacao")));
+        p.setRegularOuContratado(TipoContratacao.fromDbValue(rs.getString("regular_ou_contratado")));
         p.setObservacao(rs.getString("observacao"));
         return p;
     }

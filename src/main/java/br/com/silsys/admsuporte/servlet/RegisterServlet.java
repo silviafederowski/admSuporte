@@ -53,14 +53,14 @@ public class RegisterServlet extends HttpServlet {
                 int userTypeId = Integer.parseInt(userTypeIdParam);
                 userDao.createUser(name, email, phone, password, userTypeId);
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
-                operacaoLogDao.registrar(usuarioLogado, "Criar conta", "Criar usuario: " + name.trim());
+                operacaoLogDao.registrar(usuarioLogado, "Criar conta", "Criar usuário: " + name.trim());
                 response.sendRedirect(request.getContextPath() + "/menu?registered=1");
                 return;
             } catch (AppException e) {
                 errors.put("form", e.getMessage());
             } catch (SQLException e) {
                 LOGGER.log(Level.SEVERE, "Falha ao cadastrar usuario.", e);
-                errors.put("form", "Nao foi possivel criar a conta: " + ErrorMessages.describe(e));
+                errors.put("form", "Não foi possível criar a conta: " + ErrorMessages.describe(e));
             }
         }
 
@@ -79,24 +79,24 @@ public class RegisterServlet extends HttpServlet {
             errors.put("name", "Informe seu nome.");
         }
         if (!ValidationUtil.isValidEmail(email)) {
-            errors.put("email", "Informe um e-mail valido.");
+            errors.put("email", "Informe um e-mail válido.");
         }
         if (!ValidationUtil.isValidPhone(phone)) {
-            errors.put("phone", "Informe um telefone valido (com DDD).");
+            errors.put("phone", "Informe um telefone válido (com DDD).");
         }
         if (password == null || password.length() < 6) {
             errors.put("password", "A senha deve ter ao menos 6 caracteres.");
         }
         if (confirmPassword == null || !confirmPassword.equals(password)) {
-            errors.put("confirmPassword", "As senhas nao coincidem.");
+            errors.put("confirmPassword", "As senhas não coincidem.");
         }
         if (ValidationUtil.isBlank(userTypeIdParam)) {
-            errors.put("userTypeId", "Selecione o tipo de usuario.");
+            errors.put("userTypeId", "Selecione o tipo de usuário.");
         } else {
             try {
                 Integer.parseInt(userTypeIdParam);
             } catch (NumberFormatException e) {
-                errors.put("userTypeId", "Selecione o tipo de usuario.");
+                errors.put("userTypeId", "Selecione o tipo de usuário.");
             }
         }
         return errors;

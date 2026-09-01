@@ -5,14 +5,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Servicos atrasados - admSuporte</title>
+    <title>Serviços atrasados - admSuporte</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
 <div class="page">
     <div class="card">
-        <h1 class="title">Atencao</h1>
-        <p class="subtitle">Existe(m) servico(s) de manutencao atrasado(s)</p>
+        <h1 class="title">Atenção</h1>
+        <p class="subtitle">Existe(m) serviço(s) de manutenção atrasado(s)</p>
 
         <div class="row-list">
             <c:forEach var="s" items="${servicosAtrasados}">
@@ -21,7 +21,7 @@
                         ${s.descricao} -
                         <c:choose>
                             <c:when test="${empty s.ultimaExecucao}">nunca executado</c:when>
-                            <c:otherwise>atrasado ha ${-1 * s.diasFaltantes} dia(s)</c:otherwise>
+                            <c:otherwise>atrasado há ${-1 * s.diasFaltantes} dia(s)</c:otherwise>
                         </c:choose>
                     </span>
                 </div>

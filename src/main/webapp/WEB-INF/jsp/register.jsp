@@ -12,7 +12,7 @@
 <div class="page">
     <div class="card">
         <h1 class="title">Criar conta</h1>
-        <p class="subtitle">Preencha seus dados para comecar</p>
+        <p class="subtitle">Preencha seus dados para começar</p>
 
         <c:if test="${not empty errors.form}">
             <p class="form-error">${errors.form}</p>
@@ -26,7 +26,7 @@
             </div>
             <div class="field">
                 <label for="email">E-mail</label>
-                <input type="email" id="email" name="email" placeholder="voce@exemplo.com" value="${email}" required>
+                <input type="email" id="email" name="email" placeholder="você@exemplo.com" value="${email}" required>
                 <c:if test="${not empty errors.email}"><div class="field-error">${errors.email}</div></c:if>
             </div>
             <div class="field">
@@ -36,7 +36,7 @@
             </div>
             <div class="field">
                 <label for="password">Senha</label>
-                <input type="password" id="password" name="password" placeholder="Minimo 6 caracteres" required>
+                <input type="password" id="password" name="password" placeholder="Mínimo 6 caracteres" required>
                 <c:if test="${not empty errors.password}"><div class="field-error">${errors.password}</div></c:if>
             </div>
             <div class="field">
@@ -45,7 +45,7 @@
                 <c:if test="${not empty errors.confirmPassword}"><div class="field-error">${errors.confirmPassword}</div></c:if>
             </div>
             <div class="field">
-                <label for="userTypeId">Tipo de usuario</label>
+                <label for="userTypeId">Tipo de usuário</label>
                 <select id="userTypeId" name="userTypeId" required>
                     <option value="" disabled ${empty userTypeId ? 'selected' : ''}>Selecione...</option>
                     <c:forEach var="type" items="${userTypes}">

@@ -21,9 +21,9 @@
         </div>
 
         <form method="get" action="${pageContext.request.contextPath}/prestadores" class="filter-bar">
-            <label for="servicoIdFiltro">Filtrar por servico</label>
+            <label for="servicoIdFiltro">Filtrar por serviço</label>
             <select id="servicoIdFiltro" name="servicoId" onchange="this.form.submit()">
-                <option value="" ${empty servicoIdFiltro ? 'selected' : ''}>Todos os servicos</option>
+                <option value="" ${empty servicoIdFiltro ? 'selected' : ''}>Todos os serviços</option>
                 <c:forEach var="s" items="${servicosFiltro}">
                     <option value="${s.id}" ${servicoIdFiltro == s.id ? 'selected' : ''}>${s.descricao}</option>
                 </c:forEach>
@@ -44,7 +44,7 @@
             <c:when test="${empty prestadores}">
                 <p class="empty-state">
                     <c:choose>
-                        <c:when test="${not empty servicoIdFiltro}">Nenhum prestador presta esse servico.</c:when>
+                        <c:when test="${not empty servicoIdFiltro}">Nenhum prestador presta esse serviço.</c:when>
                         <c:otherwise>Nenhum prestador cadastrado ainda.</c:otherwise>
                     </c:choose>
                 </p>
@@ -54,36 +54,26 @@
                     <table class="data-table" data-sortable>
                         <thead>
                         <tr>
-                            <th>Nome / Razao social</th>
-                            <th>Telefones</th>
+                            <th>Nome / Razão social</th>
+                            <th>Email</th>
                             <th>Contatos</th>
-                            <th>Classificacao</th>
-                            <th data-no-sort>Acoes</th>
+                            <th>Classificação</th>
+                            <th>Regular/Contratado</th>
                         </tr>
                         </thead>
                         <tbody>
                         <c:forEach var="p" items="${prestadores}">
-                            <tr>
+                            <tr class="clickable-row"
+                                onclick="window.location='${pageContext.request.contextPath}/prestadores/form?id=${p.id}'">
                                 <td>${p.nomeRazaoSocial}</td>
-                                <td>${p.telefones}</td>
+                                <td>${p.email}</td>
                                 <td>
-                                    <c:if test="${not empty p.contato1Nome}">${p.contato1Nome} (${p.contato1Cargo})<br></c:if>
-                                    <c:if test="${not empty p.contato2Nome}">${p.contato2Nome} (${p.contato2Cargo})<br></c:if>
-                                    <c:if test="${not empty p.contato3Nome}">${p.contato3Nome} (${p.contato3Cargo})</c:if>
+                                    <c:if test="${not empty p.contato1Nome}">${p.contato1Nome} (${p.contato1Cargo}) - ${p.contato1Telefone}<br></c:if>
+                                    <c:if test="${not empty p.contato2Nome}">${p.contato2Nome} (${p.contato2Cargo}) - ${p.contato2Telefone}<br></c:if>
+                                    <c:if test="${not empty p.contato3Nome}">${p.contato3Nome} (${p.contato3Cargo}) - ${p.contato3Telefone}</c:if>
                                 </td>
                                 <td><span class="badge badge-${p.classificacao.dbValue}">${p.classificacao.label}</span></td>
-                                <td>
-                                    <c:if test="${sessionScope.userNivel <= 9}">
-                                        <div class="table-actions">
-                                            <a class="btn btn-secondary btn-small" href="${pageContext.request.contextPath}/prestadores/form?id=${p.id}">Editar</a>
-                                            <form method="post" action="${pageContext.request.contextPath}/prestadores/excluir"
-                                                  onsubmit="return confirm('Excluir este prestador?');">
-                                                <input type="hidden" name="id" value="${p.id}">
-                                                <button type="submit" class="btn btn-danger btn-small">Excluir</button>
-                                            </form>
-                                        </div>
-                                    </c:if>
-                                </td>
+                                <td>${p.regularOuContratado.label}</td>
                             </tr>
                         </c:forEach>
                         </tbody>

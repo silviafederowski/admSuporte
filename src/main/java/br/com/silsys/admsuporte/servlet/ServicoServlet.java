@@ -25,11 +25,11 @@ public class ServicoServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         if (request.getParameter("criado") != null) {
-            request.setAttribute("infoMessage", "Servico cadastrado com sucesso.");
+            request.setAttribute("infoMessage", "Serviço cadastrado com sucesso.");
         } else if (request.getParameter("atualizado") != null) {
-            request.setAttribute("infoMessage", "Servico atualizado com sucesso.");
+            request.setAttribute("infoMessage", "Serviço atualizado com sucesso.");
         } else if (request.getParameter("excluido") != null) {
-            request.setAttribute("infoMessage", "Servico excluido com sucesso.");
+            request.setAttribute("infoMessage", "Serviço excluído com sucesso.");
         }
 
         try {
@@ -37,7 +37,7 @@ public class ServicoServlet extends HttpServlet {
             request.setAttribute("servicos", servicos);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao listar servicos.", e);
-            request.setAttribute("formError", "Nao foi possivel carregar os servicos: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível carregar os serviços: " + ErrorMessages.describe(e));
         }
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/servicoList.jsp");

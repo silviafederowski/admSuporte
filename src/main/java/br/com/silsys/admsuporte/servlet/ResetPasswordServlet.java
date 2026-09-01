@@ -65,7 +65,7 @@ public class ResetPasswordServlet extends HttpServlet {
             try {
                 boolean ok = passwordResetDao.redeemPasswordReset(userId, code.trim(), password);
                 if (!ok) {
-                    errors.put("code", "Codigo invalido ou expirado.");
+                    errors.put("code", "Código inválido ou expirado.");
                 } else {
                     session.removeAttribute("resetUserId");
                     session.removeAttribute("resetMethod");
@@ -76,7 +76,7 @@ public class ResetPasswordServlet extends HttpServlet {
                 }
             } catch (SQLException e) {
                 LOGGER.log(Level.SEVERE, "Falha ao redefinir senha.", e);
-                errors.put("form", "Nao foi possivel redefinir a senha: " + ErrorMessages.describe(e));
+                errors.put("form", "Não foi possível redefinir a senha: " + ErrorMessages.describe(e));
             }
         }
 
@@ -92,11 +92,11 @@ public class ResetPasswordServlet extends HttpServlet {
         try {
             String newCode = passwordResetDao.createPasswordReset(userId, method, destination);
             session.setAttribute("simulatedCode", newCode);
-            request.setAttribute("resentMessage", "Novo codigo gerado (simulado) para " + destination + ".");
+            request.setAttribute("resentMessage", "Novo código gerado (simulado) para " + destination + ".");
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao reenviar codigo de recuperacao.", e);
             request.setAttribute("errors", java.util.Collections.singletonMap(
-                    "form", "Nao foi possivel gerar um novo codigo: " + ErrorMessages.describe(e)));
+                    "form", "Não foi possível gerar um novo código: " + ErrorMessages.describe(e)));
         }
         forward(request, response);
     }
@@ -104,13 +104,13 @@ public class ResetPasswordServlet extends HttpServlet {
     private Map<String, String> validate(String code, String password, String confirmPassword) {
         Map<String, String> errors = new HashMap<>();
         if (code == null || code.trim().length() != 6) {
-            errors.put("code", "O codigo tem 6 digitos.");
+            errors.put("code", "O código tem 6 dígitos.");
         }
         if (password == null || password.length() < 6) {
             errors.put("password", "A senha deve ter ao menos 6 caracteres.");
         }
         if (confirmPassword == null || !confirmPassword.equals(password)) {
-            errors.put("confirmPassword", "As senhas nao coincidem.");
+            errors.put("confirmPassword", "As senhas não coincidem.");
         }
         return errors;
     }

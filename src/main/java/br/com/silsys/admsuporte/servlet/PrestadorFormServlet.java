@@ -5,6 +5,7 @@ import br.com.silsys.admsuporte.dao.PrestadorDao;
 import br.com.silsys.admsuporte.dao.ServicoDao;
 import br.com.silsys.admsuporte.model.Classificacao;
 import br.com.silsys.admsuporte.model.Prestador;
+import br.com.silsys.admsuporte.model.TipoContratacao;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -58,42 +59,60 @@ public class PrestadorFormServlet extends HttpServlet {
             throws ServletException, IOException {
         String idParam = request.getParameter("id");
         String nomeRazaoSocial = request.getParameter("nomeRazaoSocial");
-        String telefones = request.getParameter("telefones");
+        String email = request.getParameter("email");
         String contato1Nome = request.getParameter("contato1Nome");
         String contato1Cargo = request.getParameter("contato1Cargo");
+        String contato1Telefone = request.getParameter("contato1Telefone");
         String contato2Nome = request.getParameter("contato2Nome");
         String contato2Cargo = request.getParameter("contato2Cargo");
+        String contato2Telefone = request.getParameter("contato2Telefone");
         String contato3Nome = request.getParameter("contato3Nome");
         String contato3Cargo = request.getParameter("contato3Cargo");
+        String contato3Telefone = request.getParameter("contato3Telefone");
         String classificacaoParam = request.getParameter("classificacao");
+        String regularOuContratadoParam = request.getParameter("regularOuContratado");
         String observacao = request.getParameter("observacao");
         String[] servicoIdParams = request.getParameterValues("servicoIds");
 
         Map<String, String> errors = new HashMap<>();
         if (ValidationUtil.isBlank(nomeRazaoSocial)) {
-            errors.put("nomeRazaoSocial", "Informe o nome ou razao social.");
+            errors.put("nomeRazaoSocial", "Informe o nome ou razão social.");
         }
         Classificacao classificacao = null;
         if (ValidationUtil.isBlank(classificacaoParam)) {
-            errors.put("classificacao", "Selecione a classificacao.");
+            errors.put("classificacao", "Selecione a classificação.");
         } else {
             try {
                 classificacao = Classificacao.fromDbValue(classificacaoParam);
             } catch (IllegalArgumentException e) {
-                errors.put("classificacao", "Classificacao invalida.");
+                errors.put("classificacao", "Classificação inválida.");
+            }
+        }
+        TipoContratacao regularOuContratado = null;
+        if (ValidationUtil.isBlank(regularOuContratadoParam)) {
+            errors.put("regularOuContratado", "Selecione regular ou contratado.");
+        } else {
+            try {
+                regularOuContratado = TipoContratacao.fromDbValue(regularOuContratadoParam);
+            } catch (IllegalArgumentException e) {
+                errors.put("regularOuContratado", "Valor inválido.");
             }
         }
 
         Prestador prestador = new Prestador();
         prestador.setNomeRazaoSocial(nomeRazaoSocial);
-        prestador.setTelefones(telefones);
+        prestador.setEmail(email);
         prestador.setContato1Nome(contato1Nome);
         prestador.setContato1Cargo(contato1Cargo);
+        prestador.setContato1Telefone(contato1Telefone);
         prestador.setContato2Nome(contato2Nome);
         prestador.setContato2Cargo(contato2Cargo);
+        prestador.setContato2Telefone(contato2Telefone);
         prestador.setContato3Nome(contato3Nome);
         prestador.setContato3Cargo(contato3Cargo);
+        prestador.setContato3Telefone(contato3Telefone);
         prestador.setClassificacao(classificacao);
+        prestador.setRegularOuContratado(regularOuContratado);
         prestador.setObservacao(observacao);
         prestador.setServicoIds(parseServicoIds(servicoIdParams));
 
@@ -104,7 +123,7 @@ public class PrestadorFormServlet extends HttpServlet {
                 id = Integer.parseInt(idParam);
                 prestador.setId(id);
             } catch (NumberFormatException e) {
-                errors.put("form", "Identificador invalido.");
+                errors.put("form", "Identificador inválido.");
             }
         }
 
@@ -125,7 +144,7 @@ public class PrestadorFormServlet extends HttpServlet {
                 return;
             } catch (SQLException e) {
                 LOGGER.log(Level.SEVERE, "Falha ao salvar prestador.", e);
-                errors.put("form", "Nao foi possivel salvar o prestador: " + ErrorMessages.describe(e));
+                errors.put("form", "Não foi possível salvar o prestador: " + ErrorMessages.describe(e));
             }
         }
 

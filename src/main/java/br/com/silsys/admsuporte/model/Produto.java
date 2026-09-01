@@ -13,7 +13,7 @@ public class Produto implements Serializable {
 
     private int id;
     private String descricao;
-    private int periodicidade;
+    private Integer periodicidade;
     private PeriodicidadeUnidade unidadePeriodicidade;
     private LocalDate ultimaExecucao;
     private Integer ultimoFornecedorId;
@@ -47,11 +47,11 @@ public class Produto implements Serializable {
         this.descricao = descricao;
     }
 
-    public int getPeriodicidade() {
+    public Integer getPeriodicidade() {
         return periodicidade;
     }
 
-    public void setPeriodicidade(int periodicidade) {
+    public void setPeriodicidade(Integer periodicidade) {
         this.periodicidade = periodicidade;
     }
 
@@ -137,7 +137,7 @@ public class Produto implements Serializable {
 
     /** Calculado em tela: data prevista da proxima execucao (ultima execucao + periodicidade). Null se nunca executado. */
     public LocalDate getProximaExecucao() {
-        if (ultimaExecucao == null || unidadePeriodicidade == null) {
+        if (ultimaExecucao == null || unidadePeriodicidade == null || periodicidade == null) {
             return null;
         }
         switch (unidadePeriodicidade) {
@@ -147,6 +147,7 @@ public class Produto implements Serializable {
                 return ultimaExecucao.plusMonths(periodicidade);
             case ANO:
                 return ultimaExecucao.plusYears(periodicidade);
+            case POR_DEMANDA:
             default:
                 return null;
         }
@@ -163,6 +164,9 @@ public class Produto implements Serializable {
 
     /** Calculado em tela: nunca executado ou proxima execucao ja passou. */
     public boolean isAtrasado() {
+        if (unidadePeriodicidade == PeriodicidadeUnidade.POR_DEMANDA) {
+            return false;
+        }
         if (ultimaExecucao == null) {
             return true;
         }

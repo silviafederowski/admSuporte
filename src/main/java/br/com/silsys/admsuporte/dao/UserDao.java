@@ -28,10 +28,10 @@ public class UserDao {
 
         try (Connection conn = ConnectionProvider.getConnection()) {
             if (findByEmail(conn, normalizedEmail) != null) {
-                throw new AppException("Ja existe uma conta com este e-mail.");
+                throw new AppException("Já existe uma conta com este e-mail.");
             }
             if (findByPhone(conn, normalizedPhone) != null) {
-                throw new AppException("Ja existe uma conta com este telefone.");
+                throw new AppException("Já existe uma conta com este telefone.");
             }
 
             int effectiveTypeId = userTypeId;

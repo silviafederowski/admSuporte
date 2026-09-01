@@ -37,7 +37,7 @@ public class GoogleFormUploadServlet extends HttpServlet {
             filePart = request.getPart("file");
         } catch (ServletException e) {
             LOGGER.log(Level.WARNING, "Falha ao ler upload multipart.", e);
-            request.setAttribute("error", "Nao foi possivel ler o arquivo enviado: " + ErrorMessages.describe(e));
+            request.setAttribute("error", "Não foi possível ler o arquivo enviado: " + ErrorMessages.describe(e));
             forwardUpload(request, response);
             return;
         }
@@ -58,7 +58,7 @@ public class GoogleFormUploadServlet extends HttpServlet {
             forwardUpload(request, response);
         } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Falha ao ler a planilha enviada.", e);
-            request.setAttribute("error", "Nao foi possivel ler a planilha selecionada: " + ErrorMessages.describe(e));
+            request.setAttribute("error", "Não foi possível ler a planilha selecionada: " + ErrorMessages.describe(e));
             forwardUpload(request, response);
         }
     }

@@ -25,7 +25,7 @@ public class LoginServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         if (request.getParameter("reset") != null) {
-            request.setAttribute("infoMessage", "Sua senha foi atualizada. Faca login novamente.");
+            request.setAttribute("infoMessage", "Sua senha foi atualizada. Faça login novamente.");
         }
         forward(request, response);
     }
@@ -46,7 +46,7 @@ public class LoginServlet extends HttpServlet {
         try {
             User user = userDao.verifyLogin(identifier, password);
             if (user == null) {
-                request.setAttribute("formError", "E-mail/telefone ou senha invalidos.");
+                request.setAttribute("formError", "E-mail/telefone ou senha inválidos.");
                 request.setAttribute("identifier", identifier);
                 forward(request, response);
                 return;
@@ -60,7 +60,7 @@ public class LoginServlet extends HttpServlet {
             response.sendRedirect(request.getContextPath() + "/alerta-servicos");
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao autenticar usuario.", e);
-            request.setAttribute("formError", "Nao foi possivel entrar: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível entrar: " + ErrorMessages.describe(e));
             request.setAttribute("identifier", identifier);
             forward(request, response);
         }

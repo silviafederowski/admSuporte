@@ -36,36 +36,24 @@
                     <table class="data-table" data-sortable>
                         <thead>
                         <tr>
-                            <th>Nome / Razao social</th>
-                            <th>Telefones</th>
+                            <th>Nome / Razão social</th>
+                            <th>Email</th>
                             <th>Contatos</th>
-                            <th>Classificacao</th>
-                            <th data-no-sort>Acoes</th>
+                            <th>Classificação</th>
                         </tr>
                         </thead>
                         <tbody>
                         <c:forEach var="f" items="${fornecedores}">
-                            <tr>
+                            <tr class="clickable-row"
+                                onclick="window.location='${pageContext.request.contextPath}/fornecedores/form?id=${f.id}'">
                                 <td>${f.nomeRazaoSocial}</td>
-                                <td>${f.telefones}</td>
+                                <td>${f.email}</td>
                                 <td>
-                                    <c:if test="${not empty f.contato1Nome}">${f.contato1Nome} (${f.contato1Cargo})<br></c:if>
-                                    <c:if test="${not empty f.contato2Nome}">${f.contato2Nome} (${f.contato2Cargo})<br></c:if>
-                                    <c:if test="${not empty f.contato3Nome}">${f.contato3Nome} (${f.contato3Cargo})</c:if>
+                                    <c:if test="${not empty f.contato1Nome}">${f.contato1Nome} (${f.contato1Cargo}) - ${f.contato1Telefone}<br></c:if>
+                                    <c:if test="${not empty f.contato2Nome}">${f.contato2Nome} (${f.contato2Cargo}) - ${f.contato2Telefone}<br></c:if>
+                                    <c:if test="${not empty f.contato3Nome}">${f.contato3Nome} (${f.contato3Cargo}) - ${f.contato3Telefone}</c:if>
                                 </td>
                                 <td><span class="badge badge-${f.classificacao.dbValue}">${f.classificacao.label}</span></td>
-                                <td>
-                                    <c:if test="${sessionScope.userNivel <= 9}">
-                                        <div class="table-actions">
-                                            <a class="btn btn-secondary btn-small" href="${pageContext.request.contextPath}/fornecedores/form?id=${f.id}">Editar</a>
-                                            <form method="post" action="${pageContext.request.contextPath}/fornecedores/excluir"
-                                                  onsubmit="return confirm('Excluir este fornecedor?');">
-                                                <input type="hidden" name="id" value="${f.id}">
-                                                <button type="submit" class="btn btn-danger btn-small">Excluir</button>
-                                            </form>
-                                        </div>
-                                    </c:if>
-                                </td>
                             </tr>
                         </c:forEach>
                         </tbody>

@@ -42,7 +42,7 @@ public final class SpreadsheetParser {
     public static List<SpreadsheetRow> parseFormSheet(InputStream in) throws IOException, AppException {
         try (Workbook workbook = WorkbookFactory.create(in)) {
             if (workbook.getNumberOfSheets() == 0) {
-                throw new AppException("A planilha enviada nao tem nenhuma aba com dados.");
+                throw new AppException("A planilha enviada não tem nenhuma aba com dados.");
             }
 
             Sheet sheet = workbook.getSheetAt(0);
@@ -77,7 +77,7 @@ public final class SpreadsheetParser {
             }
 
             if (rows.isEmpty()) {
-                throw new AppException("As colunas D e E da planilha enviada estao vazias.");
+                throw new AppException("As colunas D e E da planilha enviada estão vazias.");
             }
 
             rows.sort((a, b) -> compareAscending(sortKey(a), sortKey(b)));

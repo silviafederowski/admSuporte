@@ -69,21 +69,7 @@ public class ServicoFormServlet extends HttpServlet {
 
         Map<String, String> errors = new HashMap<>();
         if (ValidationUtil.isBlank(descricao)) {
-            errors.put("descricao", "Informe a descricao.");
-        }
-
-        Integer periodicidade = null;
-        if (ValidationUtil.isBlank(periodicidadeParam)) {
-            errors.put("periodicidade", "Informe a periodicidade.");
-        } else {
-            try {
-                periodicidade = Integer.parseInt(periodicidadeParam.trim());
-                if (periodicidade <= 0) {
-                    errors.put("periodicidade", "A periodicidade deve ser maior que zero.");
-                }
-            } catch (NumberFormatException e) {
-                errors.put("periodicidade", "Informe um numero valido.");
-            }
+            errors.put("descricao", "Informe a descrição.");
         }
 
         PeriodicidadeUnidade unidade = null;
@@ -93,7 +79,24 @@ public class ServicoFormServlet extends HttpServlet {
             try {
                 unidade = PeriodicidadeUnidade.fromDbValue(unidadeParam);
             } catch (IllegalArgumentException e) {
-                errors.put("unidadePeriodicidade", "Unidade invalida.");
+                errors.put("unidadePeriodicidade", "Unidade inválida.");
+            }
+        }
+
+        Integer periodicidade = null;
+        boolean porDemanda = unidade == PeriodicidadeUnidade.POR_DEMANDA;
+        if (!porDemanda) {
+            if (ValidationUtil.isBlank(periodicidadeParam)) {
+                errors.put("periodicidade", "Informe a periodicidade.");
+            } else {
+                try {
+                    periodicidade = Integer.parseInt(periodicidadeParam.trim());
+                    if (periodicidade <= 0) {
+                        errors.put("periodicidade", "A periodicidade deve ser maior que zero.");
+                    }
+                } catch (NumberFormatException e) {
+                    errors.put("periodicidade", "Informe um número válido.");
+                }
             }
         }
 
@@ -102,7 +105,7 @@ public class ServicoFormServlet extends HttpServlet {
             try {
                 ultimaExecucao = LocalDate.parse(ultimaExecucaoParam.trim());
             } catch (DateTimeParseException e) {
-                errors.put("ultimaExecucao", "Data invalida.");
+                errors.put("ultimaExecucao", "Data inválida.");
             }
         }
 
@@ -111,7 +114,7 @@ public class ServicoFormServlet extends HttpServlet {
             try {
                 ultimoPrestadorId = Integer.parseInt(ultimoPrestadorIdParam.trim());
             } catch (NumberFormatException e) {
-                errors.put("ultimoPrestadorId", "Prestador invalido.");
+                errors.put("ultimoPrestadorId", "Prestador inválido.");
             }
         }
 
@@ -120,7 +123,7 @@ public class ServicoFormServlet extends HttpServlet {
             try {
                 valorPagoUltimaExecucao = new BigDecimal(valorPagoUltimaExecucaoParam.trim());
             } catch (NumberFormatException e) {
-                errors.put("valorPagoUltimaExecucao", "Valor invalido.");
+                errors.put("valorPagoUltimaExecucao", "Valor inválido.");
             }
         }
 
@@ -138,7 +141,7 @@ public class ServicoFormServlet extends HttpServlet {
             try {
                 prestadorProximaExecucaoId = Integer.parseInt(prestadorProximaExecucaoIdParam.trim());
             } catch (NumberFormatException e) {
-                errors.put("prestadorProximaExecucaoId", "Prestador invalido.");
+                errors.put("prestadorProximaExecucaoId", "Prestador inválido.");
             }
         }
 
@@ -147,15 +150,13 @@ public class ServicoFormServlet extends HttpServlet {
             try {
                 valorOrcadoProximaExecucao = new BigDecimal(valorOrcadoProximaExecucaoParam.trim());
             } catch (NumberFormatException e) {
-                errors.put("valorOrcadoProximaExecucao", "Valor invalido.");
+                errors.put("valorOrcadoProximaExecucao", "Valor inválido.");
             }
         }
 
         Servico servico = new Servico();
         servico.setDescricao(descricao);
-        if (periodicidade != null) {
-            servico.setPeriodicidade(periodicidade);
-        }
+        servico.setPeriodicidade(periodicidade);
         servico.setUnidadePeriodicidade(unidade);
         servico.setUltimaExecucao(ultimaExecucao);
         servico.setUltimoPrestadorId(ultimoPrestadorId);
@@ -169,7 +170,7 @@ public class ServicoFormServlet extends HttpServlet {
             try {
                 servico.setId(Integer.parseInt(idParam));
             } catch (NumberFormatException e) {
-                errors.put("form", "Identificador invalido.");
+                errors.put("form", "Identificador inválido.");
             }
         }
 
@@ -178,19 +179,19 @@ public class ServicoFormServlet extends HttpServlet {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 if (isEdit) {
                     servicoDao.update(servico);
-                    operacaoLogDao.registrar(usuarioLogado, "Servicos de manutencao",
-                            "Editar servico: " + servico.getDescricao());
+                    operacaoLogDao.registrar(usuarioLogado, "Serviços de manutenção",
+                            "Editar serviço: " + servico.getDescricao());
                     response.sendRedirect(request.getContextPath() + "/servicos?atualizado=1");
                 } else {
                     servicoDao.create(servico);
-                    operacaoLogDao.registrar(usuarioLogado, "Servicos de manutencao",
-                            "Criar servico: " + servico.getDescricao());
+                    operacaoLogDao.registrar(usuarioLogado, "Serviços de manutenção",
+                            "Criar serviço: " + servico.getDescricao());
                     response.sendRedirect(request.getContextPath() + "/servicos?criado=1");
                 }
                 return;
             } catch (SQLException e) {
                 LOGGER.log(Level.SEVERE, "Falha ao salvar servico.", e);
-                errors.put("form", "Nao foi possivel salvar o servico: " + ErrorMessages.describe(e));
+                errors.put("form", "Não foi possível salvar o serviço: " + ErrorMessages.describe(e));
             }
         }
 

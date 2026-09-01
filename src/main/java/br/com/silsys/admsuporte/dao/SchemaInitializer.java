@@ -46,6 +46,9 @@ public final class SchemaInitializer {
             ensureServicoUltimoPrestadorColumn(conn);
             ensureServicoProximaExecucaoColumns(conn);
             ensureAppAssetsDataColumn(conn);
+            ensurePrestadorFornecedorContatoColumns(conn);
+            ensurePeriodicidadePorDemanda(conn, "servicos");
+            ensurePeriodicidadePorDemanda(conn, "produtos");
             seedLogo(conn);
         }
     }
@@ -97,33 +100,39 @@ public final class SchemaInitializer {
                 "CREATE TABLE IF NOT EXISTS servicos (" +
                 "  id INT PRIMARY KEY AUTO_INCREMENT," +
                 "  descricao VARCHAR(255) NOT NULL," +
-                "  periodicidade INT NOT NULL," +
-                "  unidade_periodicidade VARCHAR(10) NOT NULL," +
+                "  periodicidade INT NULL," +
+                "  unidade_periodicidade VARCHAR(15) NOT NULL," +
                 "  ultima_execucao DATE NULL," +
                 "  ultimo_prestador_id INT NULL," +
                 "  valor_pago_ultima_execucao DECIMAL(10,2) NULL," +
                 "  data_agendada_proxima_execucao DATE NULL," +
                 "  prestador_proxima_execucao_id INT NULL," +
                 "  valor_orcado_proxima_execucao DECIMAL(10,2) NULL," +
-                "  CONSTRAINT chk_servicos_unidade_periodicidade " +
-                "    CHECK (unidade_periodicidade IN ('dia', 'mes', 'ano'))" +
+                "  CONSTRAINT chk_servicos_unidade_periodicidade_v2 " +
+                "    CHECK (unidade_periodicidade IN ('dia', 'mes', 'ano', 'por_demanda'))" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
             stmt.executeUpdate(
                 "CREATE TABLE IF NOT EXISTS prestadores (" +
                 "  id INT PRIMARY KEY AUTO_INCREMENT," +
                 "  nome_razao_social VARCHAR(255) NOT NULL," +
-                "  telefones TEXT NULL," +
+                "  email VARCHAR(255) NULL," +
                 "  contato1_nome VARCHAR(255) NULL," +
                 "  contato1_cargo VARCHAR(100) NULL," +
+                "  contato1_telefone VARCHAR(30) NULL," +
                 "  contato2_nome VARCHAR(255) NULL," +
                 "  contato2_cargo VARCHAR(100) NULL," +
+                "  contato2_telefone VARCHAR(30) NULL," +
                 "  contato3_nome VARCHAR(255) NULL," +
                 "  contato3_cargo VARCHAR(100) NULL," +
+                "  contato3_telefone VARCHAR(30) NULL," +
                 "  classificacao VARCHAR(15) NOT NULL," +
+                "  regular_ou_contratado VARCHAR(15) NOT NULL DEFAULT 'regular'," +
                 "  observacao LONGTEXT NULL," +
                 "  CONSTRAINT chk_prestadores_classificacao " +
-                "    CHECK (classificacao IN ('muito_bom', 'bom', 'medio', 'ruim', 'muito_ruim'))" +
+                "    CHECK (classificacao IN ('muito_bom', 'bom', 'medio', 'ruim', 'muito_ruim'))," +
+                "  CONSTRAINT chk_prestadores_regular_ou_contratado " +
+                "    CHECK (regular_ou_contratado IN ('regular', 'contratado'))" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
             stmt.executeUpdate(
@@ -151,13 +160,16 @@ public final class SchemaInitializer {
                 "CREATE TABLE IF NOT EXISTS fornecedores (" +
                 "  id INT PRIMARY KEY AUTO_INCREMENT," +
                 "  nome_razao_social VARCHAR(255) NOT NULL," +
-                "  telefones TEXT NULL," +
+                "  email VARCHAR(255) NULL," +
                 "  contato1_nome VARCHAR(255) NULL," +
                 "  contato1_cargo VARCHAR(100) NULL," +
+                "  contato1_telefone VARCHAR(30) NULL," +
                 "  contato2_nome VARCHAR(255) NULL," +
                 "  contato2_cargo VARCHAR(100) NULL," +
+                "  contato2_telefone VARCHAR(30) NULL," +
                 "  contato3_nome VARCHAR(255) NULL," +
                 "  contato3_cargo VARCHAR(100) NULL," +
+                "  contato3_telefone VARCHAR(30) NULL," +
                 "  classificacao VARCHAR(15) NOT NULL," +
                 "  observacao LONGTEXT NULL," +
                 "  CONSTRAINT chk_fornecedores_classificacao " +
@@ -168,16 +180,16 @@ public final class SchemaInitializer {
                 "CREATE TABLE IF NOT EXISTS produtos (" +
                 "  id INT PRIMARY KEY AUTO_INCREMENT," +
                 "  descricao VARCHAR(255) NOT NULL," +
-                "  periodicidade INT NOT NULL," +
-                "  unidade_periodicidade VARCHAR(10) NOT NULL," +
+                "  periodicidade INT NULL," +
+                "  unidade_periodicidade VARCHAR(15) NOT NULL," +
                 "  ultima_execucao DATE NULL," +
                 "  ultimo_fornecedor_id INT NULL," +
                 "  valor_pago_ultima_execucao DECIMAL(10,2) NULL," +
                 "  data_agendada_proxima_execucao DATE NULL," +
                 "  fornecedor_proxima_execucao_id INT NULL," +
                 "  valor_orcado_proxima_execucao DECIMAL(10,2) NULL," +
-                "  CONSTRAINT chk_produtos_unidade_periodicidade " +
-                "    CHECK (unidade_periodicidade IN ('dia', 'mes', 'ano'))," +
+                "  CONSTRAINT chk_produtos_unidade_periodicidade_v2 " +
+                "    CHECK (unidade_periodicidade IN ('dia', 'mes', 'ano', 'por_demanda'))," +
                 "  CONSTRAINT fk_produtos_ultimo_fornecedor FOREIGN KEY (ultimo_fornecedor_id) " +
                 "    REFERENCES fornecedores(id) ON DELETE SET NULL," +
                 "  CONSTRAINT fk_produtos_fornecedor_proxima_execucao FOREIGN KEY (fornecedor_proxima_execucao_id) " +
@@ -266,6 +278,84 @@ public final class SchemaInitializer {
                     "ALTER TABLE servicos ADD CONSTRAINT fk_servicos_prestador_proxima_execucao " +
                     "FOREIGN KEY (prestador_proxima_execucao_id) REFERENCES prestadores(id) ON DELETE SET NULL");
             }
+        }
+    }
+
+    /**
+     * Substitui o campo unico "telefones" por email (no nivel do prestador/fornecedor) e um
+     * telefone proprio para cada um dos 3 contatos. Tambem inclui "regular_ou_contratado" em
+     * prestadores. Idempotente, aplicavel tanto a bancos novos quanto a bancos ja existentes.
+     */
+    private static void ensurePrestadorFornecedorContatoColumns(Connection conn) throws SQLException {
+        migrarTelefoneParaContatos(conn, "prestadores");
+        migrarTelefoneParaContatos(conn, "fornecedores");
+
+        if (!columnExists(conn, "prestadores", "regular_ou_contratado")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE prestadores ADD COLUMN regular_ou_contratado VARCHAR(15) NOT NULL DEFAULT 'regular'");
+            }
+        }
+        if (!constraintExists(conn, "prestadores", "chk_prestadores_regular_ou_contratado")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE prestadores ADD CONSTRAINT chk_prestadores_regular_ou_contratado " +
+                    "CHECK (regular_ou_contratado IN ('regular', 'contratado'))");
+            }
+        }
+    }
+
+    private static void migrarTelefoneParaContatos(Connection conn, String table) throws SQLException {
+        if (!columnExists(conn, table, "email")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE " + table + " ADD COLUMN email VARCHAR(255) NULL AFTER nome_razao_social");
+            }
+        }
+        if (!columnExists(conn, table, "contato1_telefone")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE " + table + " ADD COLUMN contato1_telefone VARCHAR(30) NULL AFTER contato1_cargo");
+            }
+        }
+        if (!columnExists(conn, table, "contato2_telefone")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE " + table + " ADD COLUMN contato2_telefone VARCHAR(30) NULL AFTER contato2_cargo");
+            }
+        }
+        if (!columnExists(conn, table, "contato3_telefone")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE " + table + " ADD COLUMN contato3_telefone VARCHAR(30) NULL AFTER contato3_cargo");
+            }
+        }
+        if (columnExists(conn, table, "telefones")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE " + table + " DROP COLUMN telefones");
+            }
+        }
+    }
+
+    /**
+     * Adiciona a opcao "por demanda" a unidade_periodicidade (sem exigir quantidade) em
+     * servicos/produtos: amplia a coluna, torna periodicidade opcional e atualiza o CHECK.
+     * Usa um nome de constraint versionado (_v2) para ficar idempotente sem precisar
+     * inspecionar o texto do CHECK antigo.
+     */
+    private static void ensurePeriodicidadePorDemanda(Connection conn, String table) throws SQLException {
+        String newConstraint = "chk_" + table + "_unidade_periodicidade_v2";
+        if (constraintExists(conn, table, newConstraint)) {
+            return;
+        }
+        String oldConstraint = "chk_" + table + "_unidade_periodicidade";
+        if (constraintExists(conn, table, oldConstraint)) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE " + table + " DROP CONSTRAINT " + oldConstraint);
+            }
+        }
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("ALTER TABLE " + table + " MODIFY COLUMN unidade_periodicidade VARCHAR(15) NOT NULL");
+            stmt.executeUpdate("ALTER TABLE " + table + " MODIFY COLUMN periodicidade INT NULL");
+            stmt.executeUpdate(
+                "ALTER TABLE " + table + " ADD CONSTRAINT " + newConstraint +
+                " CHECK (unidade_periodicidade IN ('dia', 'mes', 'ano', 'por_demanda'))");
         }
     }
 

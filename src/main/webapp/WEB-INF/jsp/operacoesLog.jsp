@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Log de operacoes - admSuporte</title>
+    <title>Log de operações - admSuporte</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
@@ -13,7 +13,7 @@
     <div class="card card-wide">
         <div class="toolbar">
             <div>
-                <h1 class="title" style="text-align:left;margin:0;">Log de operacoes</h1>
+                <h1 class="title" style="text-align:left;margin:0;">Log de operações</h1>
             </div>
         </div>
 
@@ -23,16 +23,16 @@
 
         <c:choose>
             <c:when test="${empty operacoes}">
-                <p class="empty-state">Nenhuma operacao registrada ainda.</p>
+                <p class="empty-state">Nenhuma operação registrada ainda.</p>
             </c:when>
             <c:otherwise>
                 <div class="table-wrap">
                     <table class="data-table" data-sortable>
                         <thead>
                         <tr>
-                            <th>Usuario</th>
+                            <th>Usuário</th>
                             <th>Tela</th>
-                            <th>Operacao</th>
+                            <th>Operação</th>
                             <th>Data/hora</th>
                         </tr>
                         </thead>

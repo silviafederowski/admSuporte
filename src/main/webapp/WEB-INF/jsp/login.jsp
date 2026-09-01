@@ -25,7 +25,7 @@
         <form method="post" action="${pageContext.request.contextPath}/login" autocomplete="off">
             <div class="field">
                 <label for="identifier">E-mail ou telefone</label>
-                <input type="text" id="identifier" name="identifier" placeholder="voce@exemplo.com"
+                <input type="text" id="identifier" name="identifier" placeholder="você@exemplo.com"
                        value="${identifier}" autocomplete="off" required>
             </div>
             <div class="field">

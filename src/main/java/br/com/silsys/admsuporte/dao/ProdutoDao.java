@@ -3,6 +3,7 @@ package br.com.silsys.admsuporte.dao;
 import br.com.silsys.admsuporte.model.Fornecedor;
 import br.com.silsys.admsuporte.model.PeriodicidadeUnidade;
 import br.com.silsys.admsuporte.model.Produto;
+import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.Date;
@@ -114,8 +115,8 @@ public class ProdutoDao {
     }
 
     private int bindParams(PreparedStatement stmt, Produto p) throws SQLException {
-        stmt.setString(1, p.getDescricao().trim());
-        stmt.setInt(2, p.getPeriodicidade());
+        stmt.setString(1, ValidationUtil.toUpperOrNull(p.getDescricao()));
+        setNullableInt(stmt, 2, p.getPeriodicidade());
         stmt.setString(3, p.getUnidadePeriodicidade().dbValue());
         setNullableDate(stmt, 4, p.getUltimaExecucao());
         setNullableInt(stmt, 5, p.getUltimoFornecedorId());
@@ -154,7 +155,8 @@ public class ProdutoDao {
         Produto p = new Produto();
         p.setId(rs.getInt("id"));
         p.setDescricao(rs.getString("descricao"));
-        p.setPeriodicidade(rs.getInt("periodicidade"));
+        int periodicidade = rs.getInt("periodicidade");
+        p.setPeriodicidade(rs.wasNull() ? null : periodicidade);
         p.setUnidadePeriodicidade(PeriodicidadeUnidade.fromDbValue(rs.getString("unidade_periodicidade")));
         Date ultimaExecucao = rs.getDate("ultima_execucao");
         p.setUltimaExecucao(ultimaExecucao != null ? ultimaExecucao.toLocalDate() : null);

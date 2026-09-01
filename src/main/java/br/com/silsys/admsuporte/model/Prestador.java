@@ -10,14 +10,18 @@ public class Prestador implements Serializable {
 
     private int id;
     private String nomeRazaoSocial;
-    private String telefones;
+    private String email;
     private String contato1Nome;
     private String contato1Cargo;
+    private String contato1Telefone;
     private String contato2Nome;
     private String contato2Cargo;
+    private String contato2Telefone;
     private String contato3Nome;
     private String contato3Cargo;
+    private String contato3Telefone;
     private Classificacao classificacao;
+    private TipoContratacao regularOuContratado;
     private String observacao;
     private List<Integer> servicoIds = new ArrayList<>();
 
@@ -37,12 +41,12 @@ public class Prestador implements Serializable {
         this.nomeRazaoSocial = nomeRazaoSocial;
     }
 
-    public String getTelefones() {
-        return telefones;
+    public String getEmail() {
+        return email;
     }
 
-    public void setTelefones(String telefones) {
-        this.telefones = telefones;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getContato1Nome() {
@@ -61,6 +65,14 @@ public class Prestador implements Serializable {
         this.contato1Cargo = contato1Cargo;
     }
 
+    public String getContato1Telefone() {
+        return contato1Telefone;
+    }
+
+    public void setContato1Telefone(String contato1Telefone) {
+        this.contato1Telefone = contato1Telefone;
+    }
+
     public String getContato2Nome() {
         return contato2Nome;
     }
@@ -75,6 +87,14 @@ public class Prestador implements Serializable {
 
     public void setContato2Cargo(String contato2Cargo) {
         this.contato2Cargo = contato2Cargo;
+    }
+
+    public String getContato2Telefone() {
+        return contato2Telefone;
+    }
+
+    public void setContato2Telefone(String contato2Telefone) {
+        this.contato2Telefone = contato2Telefone;
     }
 
     public String getContato3Nome() {
@@ -93,12 +113,28 @@ public class Prestador implements Serializable {
         this.contato3Cargo = contato3Cargo;
     }
 
+    public String getContato3Telefone() {
+        return contato3Telefone;
+    }
+
+    public void setContato3Telefone(String contato3Telefone) {
+        this.contato3Telefone = contato3Telefone;
+    }
+
     public Classificacao getClassificacao() {
         return classificacao;
     }
 
     public void setClassificacao(Classificacao classificacao) {
         this.classificacao = classificacao;
+    }
+
+    public TipoContratacao getRegularOuContratado() {
+        return regularOuContratado;
+    }
+
+    public void setRegularOuContratado(TipoContratacao regularOuContratado) {
+        this.regularOuContratado = regularOuContratado;
     }
 
     public String getObservacao() {

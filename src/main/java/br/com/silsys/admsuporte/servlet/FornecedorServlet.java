@@ -29,7 +29,7 @@ public class FornecedorServlet extends HttpServlet {
         } else if (request.getParameter("atualizado") != null) {
             request.setAttribute("infoMessage", "Fornecedor atualizado com sucesso.");
         } else if (request.getParameter("excluido") != null) {
-            request.setAttribute("infoMessage", "Fornecedor excluido com sucesso.");
+            request.setAttribute("infoMessage", "Fornecedor excluído com sucesso.");
         }
 
         try {
@@ -37,7 +37,7 @@ public class FornecedorServlet extends HttpServlet {
             request.setAttribute("fornecedores", fornecedores);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao listar fornecedores.", e);
-            request.setAttribute("formError", "Nao foi possivel carregar os fornecedores: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível carregar os fornecedores: " + ErrorMessages.describe(e));
         }
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/fornecedorList.jsp");

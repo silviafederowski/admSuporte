@@ -57,7 +57,7 @@ public enum Classificacao {
             case BOM:
                 return "Bom";
             case MEDIO:
-                return "Medio";
+                return "Médio";
             case RUIM:
                 return "Ruim";
             case MUITO_RUIM:

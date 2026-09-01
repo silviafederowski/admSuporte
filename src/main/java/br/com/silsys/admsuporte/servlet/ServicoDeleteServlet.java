@@ -31,7 +31,7 @@ public class ServicoDeleteServlet extends HttpServlet {
             servicoDao.delete(id);
             String descricao = servico != null ? servico.getDescricao() : ("id " + id);
             String usuarioLogado = (String) request.getSession().getAttribute("userName");
-            operacaoLogDao.registrar(usuarioLogado, "Servicos de manutencao", "Excluir servico: " + descricao);
+            operacaoLogDao.registrar(usuarioLogado, "Serviços de manutenção", "Excluir serviço: " + descricao);
         } catch (NumberFormatException | SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao excluir servico.", e);
         }
