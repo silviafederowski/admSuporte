@@ -1,6 +1,8 @@
 package br.com.silsys.admsuporte.servlet;
 
 import br.com.silsys.admsuporte.dao.FornecedorDao;
+import br.com.silsys.admsuporte.dao.ProdutoDao;
+import br.com.silsys.admsuporte.model.Fornecedor;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -13,13 +15,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Lista de fornecedores. Acesso liberado a qualquer usuario logado (ver AuthFilter/AdminOrZeladorFilter). */
+/** Lista de fornecedores, com filtro opcional por produto. Acesso liberado a qualquer usuario logado (ver AuthFilter/AdminOrZeladorFilter). */
 public class FornecedorServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(FornecedorServlet.class.getName());
 
     private final FornecedorDao fornecedorDao = new FornecedorDao();
+    private final ProdutoDao produtoDao = new ProdutoDao();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -32,9 +35,23 @@ public class FornecedorServlet extends HttpServlet {
             request.setAttribute("infoMessage", "Fornecedor excluído com sucesso.");
         }
 
+        String produtoIdParam = request.getParameter("produtoId");
+        Integer produtoIdFiltro = null;
+        if (produtoIdParam != null && !produtoIdParam.trim().isEmpty()) {
+            try {
+                produtoIdFiltro = Integer.parseInt(produtoIdParam.trim());
+            } catch (NumberFormatException e) {
+                produtoIdFiltro = null;
+            }
+        }
+
         try {
-            List<?> fornecedores = fornecedorDao.listAll();
+            List<Fornecedor> fornecedores = produtoIdFiltro != null
+                    ? fornecedorDao.listByProduto(produtoIdFiltro)
+                    : fornecedorDao.listAll();
             request.setAttribute("fornecedores", fornecedores);
+            request.setAttribute("produtosFiltro", produtoDao.listAll());
+            request.setAttribute("produtoIdFiltro", produtoIdFiltro);
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Falha ao listar fornecedores.", e);
             request.setAttribute("formError", "Não foi possível carregar os fornecedores: " + ErrorMessages.describe(e));

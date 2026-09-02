@@ -17,6 +17,7 @@ public class User implements Serializable {
     private int userTypeId;
     private String userTypeName;
     private int userTypeNivel;
+    private boolean ativo = true;
 
     public int getId() {
         return id;
@@ -96,5 +97,13 @@ public class User implements Serializable {
 
     public void setUserTypeNivel(int userTypeNivel) {
         this.userTypeNivel = userTypeNivel;
+    }
+
+    public boolean isAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(boolean ativo) {
+        this.ativo = ativo;
     }
 }

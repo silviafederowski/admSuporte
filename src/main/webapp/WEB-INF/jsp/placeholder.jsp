@@ -10,7 +10,10 @@
 <body>
 <div class="page">
     <div class="card menu-page">
-        <h1 class="title">${title}</h1>
+        <div class="toolbar">
+            <h1 class="title" style="text-align:left;margin:0;">${title}</h1>
+            <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+        </div>
         <p class="subtitle">Em construção.</p>
         <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
     </div>

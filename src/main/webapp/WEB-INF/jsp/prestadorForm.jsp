@@ -13,13 +13,16 @@
 <body>
 <div class="page">
     <div class="card card-wide">
-        <h1 class="title">
-            <c:choose>
-                <c:when test="${readOnly}">Consultar prestador</c:when>
-                <c:when test="${empty param.id}">Novo prestador</c:when>
-                <c:otherwise>Editar prestador</c:otherwise>
-            </c:choose>
-        </h1>
+        <div class="toolbar">
+            <h1 class="title" style="text-align:left;margin:0;">
+                <c:choose>
+                    <c:when test="${readOnly}">Consultar prestador</c:when>
+                    <c:when test="${empty param.id}">Novo prestador</c:when>
+                    <c:otherwise>Editar prestador</c:otherwise>
+                </c:choose>
+            </h1>
+            <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+        </div>
         <p class="subtitle">Dados do prestador de serviço</p>
 
         <c:if test="${not empty errors.form}">
@@ -37,7 +40,7 @@
 
             <div class="field">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" value="${prestador.email}" ${dis}>
+                <textarea id="email" name="email" placeholder="Um ou mais e-mails, um por linha" ${dis}>${prestador.email}</textarea>
             </div>
 
             <div class="contact-row">
@@ -88,7 +91,7 @@
             <div class="field">
                 <label for="classificacao">Classificação</label>
                 <select id="classificacao" name="classificacao" ${dis} required>
-                    <option value="" disabled ${empty prestador.classificacao ? 'selected' : ''}>Selecione...</option>
+                    <option value="nao_avaliado" ${empty prestador.classificacao || prestador.classificacao == 'NAO_AVALIADO' ? 'selected' : ''}>Não avaliado</option>
                     <option value="muito_bom" ${prestador.classificacao == 'MUITO_BOM' ? 'selected' : ''}>Muito bom</option>
                     <option value="bom" ${prestador.classificacao == 'BOM' ? 'selected' : ''}>Bom</option>
                     <option value="medio" ${prestador.classificacao == 'MEDIO' ? 'selected' : ''}>Médio</option>
@@ -99,13 +102,13 @@
             </div>
 
             <div class="field">
-                <label for="regularOuContratado">Regular ou contratado</label>
-                <select id="regularOuContratado" name="regularOuContratado" ${dis} required>
-                    <option value="" disabled ${empty prestador.regularOuContratado ? 'selected' : ''}>Selecione...</option>
-                    <option value="regular" ${prestador.regularOuContratado == 'REGULAR' ? 'selected' : ''}>Regular</option>
-                    <option value="contratado" ${prestador.regularOuContratado == 'CONTRATADO' ? 'selected' : ''}>Contratado</option>
+                <label for="tipo">Tipo</label>
+                <select id="tipo" name="tipo" ${dis} required>
+                    <option value="" disabled ${empty prestador.tipo ? 'selected' : ''}>Selecione...</option>
+                    <option value="contratado" ${prestador.tipo == 'CONTRATADO' ? 'selected' : ''}>Contratado</option>
+                    <option value="solicitar" ${prestador.tipo == 'SOLICITAR' ? 'selected' : ''}>Solicitar</option>
                 </select>
-                <c:if test="${not empty errors.regularOuContratado}"><div class="field-error">${errors.regularOuContratado}</div></c:if>
+                <c:if test="${not empty errors.tipo}"><div class="field-error">${errors.tipo}</div></c:if>
             </div>
 
             <div class="field">

@@ -15,9 +15,12 @@
             <div>
                 <h1 class="title" style="text-align:left;margin:0;">Cadastro de produtos</h1>
             </div>
-            <c:if test="${sessionScope.userNivel <= 9}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/produtos/form">Novo produto</a>
-            </c:if>
+            <div class="toolbar-actions">
+                <c:if test="${sessionScope.userNivel <= 9}">
+                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/produtos/form">Novo produto</a>
+                </c:if>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            </div>
         </div>
 
         <c:if test="${not empty infoMessage}">

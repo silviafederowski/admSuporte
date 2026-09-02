@@ -15,6 +15,7 @@ public class Servico implements Serializable {
     private String descricao;
     private Integer periodicidade;
     private PeriodicidadeUnidade unidadePeriodicidade;
+    private TipoServico tipo;
     private LocalDate ultimaExecucao;
     private Integer ultimoPrestadorId;
     private BigDecimal valorPagoUltimaExecucao;
@@ -61,6 +62,14 @@ public class Servico implements Serializable {
 
     public void setUnidadePeriodicidade(PeriodicidadeUnidade unidadePeriodicidade) {
         this.unidadePeriodicidade = unidadePeriodicidade;
+    }
+
+    public TipoServico getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(TipoServico tipo) {
+        this.tipo = tipo;
     }
 
     public LocalDate getUltimaExecucao() {

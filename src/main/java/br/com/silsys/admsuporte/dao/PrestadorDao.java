@@ -2,7 +2,7 @@ package br.com.silsys.admsuporte.dao;
 
 import br.com.silsys.admsuporte.model.Classificacao;
 import br.com.silsys.admsuporte.model.Prestador;
-import br.com.silsys.admsuporte.model.TipoContratacao;
+import br.com.silsys.admsuporte.model.TipoServico;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,7 +22,7 @@ public class PrestadorDao {
                     "contato1_nome, contato1_cargo, contato1_telefone, " +
                     "contato2_nome, contato2_cargo, contato2_telefone, " +
                     "contato3_nome, contato3_cargo, contato3_telefone, " +
-                    "classificacao, regular_ou_contratado, observacao) " +
+                    "classificacao, tipo, observacao) " +
                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS)) {
                 bindParams(stmt, p);
@@ -45,7 +45,7 @@ public class PrestadorDao {
                     "contato1_nome = ?, contato1_cargo = ?, contato1_telefone = ?, " +
                     "contato2_nome = ?, contato2_cargo = ?, contato2_telefone = ?, " +
                     "contato3_nome = ?, contato3_cargo = ?, contato3_telefone = ?, " +
-                    "classificacao = ?, regular_ou_contratado = ?, observacao = ? " +
+                    "classificacao = ?, tipo = ?, observacao = ? " +
                     "WHERE id = ?")) {
                 int nextIndex = bindParams(stmt, p);
                 stmt.setInt(nextIndex, p.getId());
@@ -156,7 +156,7 @@ public class PrestadorDao {
         stmt.setString(10, ValidationUtil.toUpperOrNull(p.getContato3Cargo()));
         stmt.setString(11, blankToNull(p.getContato3Telefone()));
         stmt.setString(12, p.getClassificacao().dbValue());
-        stmt.setString(13, p.getRegularOuContratado().dbValue());
+        stmt.setString(13, p.getTipo().dbValue());
         stmt.setString(14, ValidationUtil.toUpperOrNull(p.getObservacao()));
         return 15;
     }
@@ -184,7 +184,7 @@ public class PrestadorDao {
         p.setContato3Cargo(rs.getString("contato3_cargo"));
         p.setContato3Telefone(rs.getString("contato3_telefone"));
         p.setClassificacao(Classificacao.fromDbValue(rs.getString("classificacao")));
-        p.setRegularOuContratado(TipoContratacao.fromDbValue(rs.getString("regular_ou_contratado")));
+        p.setTipo(TipoServico.fromDbValue(rs.getString("tipo")));
         p.setObservacao(rs.getString("observacao"));
         return p;
     }

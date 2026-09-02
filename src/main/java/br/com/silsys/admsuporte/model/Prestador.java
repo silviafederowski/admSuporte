@@ -21,7 +21,7 @@ public class Prestador implements Serializable {
     private String contato3Cargo;
     private String contato3Telefone;
     private Classificacao classificacao;
-    private TipoContratacao regularOuContratado;
+    private TipoServico tipo;
     private String observacao;
     private List<Integer> servicoIds = new ArrayList<>();
 
@@ -129,12 +129,12 @@ public class Prestador implements Serializable {
         this.classificacao = classificacao;
     }
 
-    public TipoContratacao getRegularOuContratado() {
-        return regularOuContratado;
+    public TipoServico getTipo() {
+        return tipo;
     }
 
-    public void setRegularOuContratado(TipoContratacao regularOuContratado) {
-        this.regularOuContratado = regularOuContratado;
+    public void setTipo(TipoServico tipo) {
+        this.tipo = tipo;
     }
 
     public String getObservacao() {

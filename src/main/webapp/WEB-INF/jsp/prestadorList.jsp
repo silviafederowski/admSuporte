@@ -15,9 +15,12 @@
             <div>
                 <h1 class="title" style="text-align:left;margin:0;">Cadastro de prestadores</h1>
             </div>
-            <c:if test="${sessionScope.userNivel <= 9}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/prestadores/form">Novo prestador</a>
-            </c:if>
+            <div class="toolbar-actions">
+                <c:if test="${sessionScope.userNivel <= 9}">
+                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/prestadores/form">Novo prestador</a>
+                </c:if>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            </div>
         </div>
 
         <form method="get" action="${pageContext.request.contextPath}/prestadores" class="filter-bar">
@@ -58,7 +61,7 @@
                             <th>Email</th>
                             <th>Contatos</th>
                             <th>Classificação</th>
-                            <th>Regular/Contratado</th>
+                            <th>Tipo</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -73,7 +76,7 @@
                                     <c:if test="${not empty p.contato3Nome}">${p.contato3Nome} (${p.contato3Cargo}) - ${p.contato3Telefone}</c:if>
                                 </td>
                                 <td><span class="badge badge-${p.classificacao.dbValue}">${p.classificacao.label}</span></td>
-                                <td>${p.regularOuContratado.label}</td>
+                                <td>${p.tipo.label}</td>
                             </tr>
                         </c:forEach>
                         </tbody>

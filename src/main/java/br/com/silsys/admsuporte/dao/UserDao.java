@@ -28,10 +28,10 @@ public class UserDao {
 
         try (Connection conn = ConnectionProvider.getConnection()) {
             if (findByEmail(conn, normalizedEmail) != null) {
-                throw new AppException("Já existe uma conta com este e-mail.");
+                throw new AppException("Já existe um usuário com este e-mail.");
             }
             if (findByPhone(conn, normalizedPhone) != null) {
-                throw new AppException("Já existe uma conta com este telefone.");
+                throw new AppException("Já existe um usuário com este telefone.");
             }
 
             int effectiveTypeId = userTypeId;
@@ -46,7 +46,7 @@ public class UserDao {
             String passwordHash = PasswordUtil.hashPassword(password, salt);
 
             try (PreparedStatement stmt = conn.prepareStatement(
-                    "INSERT INTO users (name, email, phone, password_hash, password_salt, user_type_id, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    "INSERT INTO users (name, email, phone, password_hash, password_salt, user_type_id, ativo, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                     Statement.RETURN_GENERATED_KEYS)) {
                 stmt.setString(1, name.trim());
                 stmt.setString(2, normalizedEmail);
@@ -54,7 +54,8 @@ public class UserDao {
                 stmt.setString(4, passwordHash);
                 stmt.setString(5, salt);
                 stmt.setInt(6, effectiveTypeId);
-                stmt.setTimestamp(7, Timestamp.valueOf(LocalDateTime.now()));
+                stmt.setString(7, "S");
+                stmt.setTimestamp(8, Timestamp.valueOf(LocalDateTime.now()));
                 stmt.executeUpdate();
 
                 try (ResultSet keys = stmt.getGeneratedKeys()) {
@@ -98,6 +99,70 @@ public class UserDao {
                 return findByEmail(conn, destination.trim().toLowerCase());
             }
             return findByPhone(conn, destination.trim());
+        }
+    }
+
+    public User findById(int id) throws SQLException {
+        try (Connection conn = ConnectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT u.*, t.name AS user_type_name, t.nivel AS user_type_nivel FROM users u " +
+                     "LEFT JOIN user_types t ON u.user_type_id = t.id " +
+                     "WHERE u.id = ?")) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next() ? mapUser(rs) : null;
+            }
+        }
+    }
+
+    public java.util.List<User> listAll() throws SQLException {
+        java.util.List<User> result = new java.util.ArrayList<>();
+        try (Connection conn = ConnectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT u.*, t.name AS user_type_name, t.nivel AS user_type_nivel FROM users u " +
+                     "LEFT JOIN user_types t ON u.user_type_id = t.id " +
+                     "ORDER BY u.name");
+             ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                result.add(mapUser(rs));
+            }
+        }
+        return result;
+    }
+
+    public void updateUser(int id, String name, String email, String phone, int userTypeId, boolean ativo)
+            throws SQLException, AppException {
+        String normalizedEmail = email.trim().toLowerCase();
+        String normalizedPhone = phone.trim();
+
+        try (Connection conn = ConnectionProvider.getConnection()) {
+            User existingByEmail = findByEmail(conn, normalizedEmail);
+            if (existingByEmail != null && existingByEmail.getId() != id) {
+                throw new AppException("Já existe um usuário com este e-mail.");
+            }
+            User existingByPhone = findByPhone(conn, normalizedPhone);
+            if (existingByPhone != null && existingByPhone.getId() != id) {
+                throw new AppException("Já existe um usuário com este telefone.");
+            }
+
+            int effectiveTypeId = userTypeId;
+            if (BUILTIN_ADMIN_EMAIL.equals(normalizedEmail)) {
+                UserType adminType = userTypeDao.findByName(conn, UserType.ADMINISTRADOR);
+                if (adminType != null) {
+                    effectiveTypeId = adminType.getId();
+                }
+            }
+
+            try (PreparedStatement stmt = conn.prepareStatement(
+                    "UPDATE users SET name = ?, email = ?, phone = ?, user_type_id = ?, ativo = ? WHERE id = ?")) {
+                stmt.setString(1, name.trim());
+                stmt.setString(2, normalizedEmail);
+                stmt.setString(3, normalizedPhone);
+                stmt.setInt(4, effectiveTypeId);
+                stmt.setString(5, ativo ? "S" : "N");
+                stmt.setInt(6, id);
+                stmt.executeUpdate();
+            }
         }
     }
 
@@ -150,6 +215,7 @@ public class UserDao {
         user.setUserTypeName(rs.getString("user_type_name"));
         int userTypeNivel = rs.getInt("user_type_nivel");
         user.setUserTypeNivel(rs.wasNull() ? UserType.NIVEL_MAXIMO_ESCRITA + 1 : userTypeNivel);
+        user.setAtivo("S".equalsIgnoreCase(rs.getString("ativo")));
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {
             user.setCreatedAt(createdAt.toLocalDateTime());

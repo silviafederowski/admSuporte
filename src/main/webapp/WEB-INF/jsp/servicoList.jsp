@@ -15,9 +15,12 @@
             <div>
                 <h1 class="title" style="text-align:left;margin:0;">Serviços de manutenção</h1>
             </div>
-            <c:if test="${sessionScope.userNivel <= 9}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/servicos/form">Novo serviço</a>
-            </c:if>
+            <div class="toolbar-actions">
+                <c:if test="${sessionScope.userNivel <= 9}">
+                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/servicos/form">Novo serviço</a>
+                </c:if>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            </div>
         </div>
 
         <c:if test="${not empty infoMessage}">
@@ -38,6 +41,7 @@
                         <tr>
                             <th>Descrição</th>
                             <th>Periodicidade</th>
+                            <th>Tipo</th>
                             <th>Última execução</th>
                             <th>Prestador da última atualização</th>
                             <th>Valor pago</th>
@@ -60,6 +64,7 @@
                                         <c:otherwise>A cada ${s.periodicidade} ${s.unidadePeriodicidade.label}</c:otherwise>
                                     </c:choose>
                                 </td>
+                                <td>${s.tipo.label}</td>
                                 <td>${empty s.ultimaExecucao ? '-' : s.ultimaExecucao}</td>
                                 <td>${empty s.ultimoPrestadorNome ? '-' : s.ultimoPrestadorNome}</td>
                                 <td><c:choose><c:when test="${empty s.valorPagoUltimaExecucao}">-</c:when><c:otherwise>R$ ${s.valorPagoUltimaExecucao}</c:otherwise></c:choose></td>

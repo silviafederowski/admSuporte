@@ -5,6 +5,7 @@ import br.com.silsys.admsuporte.dao.PrestadorDao;
 import br.com.silsys.admsuporte.dao.ServicoDao;
 import br.com.silsys.admsuporte.model.PeriodicidadeUnidade;
 import br.com.silsys.admsuporte.model.Servico;
+import br.com.silsys.admsuporte.model.TipoServico;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -60,6 +61,7 @@ public class ServicoFormServlet extends HttpServlet {
         String descricao = request.getParameter("descricao");
         String periodicidadeParam = request.getParameter("periodicidade");
         String unidadeParam = request.getParameter("unidadePeriodicidade");
+        String tipoParam = request.getParameter("tipo");
         String ultimaExecucaoParam = request.getParameter("ultimaExecucao");
         String ultimoPrestadorIdParam = request.getParameter("ultimoPrestadorId");
         String valorPagoUltimaExecucaoParam = request.getParameter("valorPagoUltimaExecucao");
@@ -97,6 +99,17 @@ public class ServicoFormServlet extends HttpServlet {
                 } catch (NumberFormatException e) {
                     errors.put("periodicidade", "Informe um número válido.");
                 }
+            }
+        }
+
+        TipoServico tipo = null;
+        if (ValidationUtil.isBlank(tipoParam)) {
+            errors.put("tipo", "Selecione contratado ou solicitar.");
+        } else {
+            try {
+                tipo = TipoServico.fromDbValue(tipoParam);
+            } catch (IllegalArgumentException e) {
+                errors.put("tipo", "Valor inválido.");
             }
         }
 
@@ -158,6 +171,7 @@ public class ServicoFormServlet extends HttpServlet {
         servico.setDescricao(descricao);
         servico.setPeriodicidade(periodicidade);
         servico.setUnidadePeriodicidade(unidade);
+        servico.setTipo(tipo);
         servico.setUltimaExecucao(ultimaExecucao);
         servico.setUltimoPrestadorId(ultimoPrestadorId);
         servico.setValorPagoUltimaExecucao(valorPagoUltimaExecucao);

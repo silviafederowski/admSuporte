@@ -15,6 +15,9 @@
             <div>
                 <h1 class="title" style="text-align:left;margin:0;">Log de operações</h1>
             </div>
+            <div class="toolbar-actions">
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            </div>
         </div>
 
         <c:if test="${not empty formError}">

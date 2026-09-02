@@ -63,7 +63,7 @@ public class ForgotPasswordServlet extends HttpServlet {
         try {
             User user = userDao.findForReset(method, destination);
             if (user == null) {
-                request.setAttribute("error", "Nenhuma conta encontrada com esse dado.");
+                request.setAttribute("error", "Nenhum usuário encontrado com esse dado.");
                 request.setAttribute("method", method.paramValue());
                 request.setAttribute("destination", destination);
                 forward(request, response);

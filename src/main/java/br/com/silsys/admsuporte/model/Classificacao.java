@@ -2,6 +2,7 @@ package br.com.silsys.admsuporte.model;
 
 /** Classificacao de um prestador (coluna prestadores.classificacao). */
 public enum Classificacao {
+    NAO_AVALIADO,
     MUITO_BOM,
     BOM,
     MEDIO,
@@ -13,6 +14,8 @@ public enum Classificacao {
             return null;
         }
         switch (value.trim().toLowerCase()) {
+            case "nao_avaliado":
+                return NAO_AVALIADO;
             case "muito_bom":
                 return MUITO_BOM;
             case "bom":
@@ -30,6 +33,8 @@ public enum Classificacao {
 
     public String dbValue() {
         switch (this) {
+            case NAO_AVALIADO:
+                return "nao_avaliado";
             case MUITO_BOM:
                 return "muito_bom";
             case BOM:
@@ -52,6 +57,8 @@ public enum Classificacao {
 
     public String getLabel() {
         switch (this) {
+            case NAO_AVALIADO:
+                return "Não avaliado";
             case MUITO_BOM:
                 return "Muito bom";
             case BOM:

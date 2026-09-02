@@ -5,7 +5,7 @@ import br.com.silsys.admsuporte.dao.PrestadorDao;
 import br.com.silsys.admsuporte.dao.ServicoDao;
 import br.com.silsys.admsuporte.model.Classificacao;
 import br.com.silsys.admsuporte.model.Prestador;
-import br.com.silsys.admsuporte.model.TipoContratacao;
+import br.com.silsys.admsuporte.model.TipoServico;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -70,7 +70,7 @@ public class PrestadorFormServlet extends HttpServlet {
         String contato3Cargo = request.getParameter("contato3Cargo");
         String contato3Telefone = request.getParameter("contato3Telefone");
         String classificacaoParam = request.getParameter("classificacao");
-        String regularOuContratadoParam = request.getParameter("regularOuContratado");
+        String tipoParam = request.getParameter("tipo");
         String observacao = request.getParameter("observacao");
         String[] servicoIdParams = request.getParameterValues("servicoIds");
 
@@ -88,14 +88,14 @@ public class PrestadorFormServlet extends HttpServlet {
                 errors.put("classificacao", "Classificação inválida.");
             }
         }
-        TipoContratacao regularOuContratado = null;
-        if (ValidationUtil.isBlank(regularOuContratadoParam)) {
-            errors.put("regularOuContratado", "Selecione regular ou contratado.");
+        TipoServico tipo = null;
+        if (ValidationUtil.isBlank(tipoParam)) {
+            errors.put("tipo", "Selecione o tipo.");
         } else {
             try {
-                regularOuContratado = TipoContratacao.fromDbValue(regularOuContratadoParam);
+                tipo = TipoServico.fromDbValue(tipoParam);
             } catch (IllegalArgumentException e) {
-                errors.put("regularOuContratado", "Valor inválido.");
+                errors.put("tipo", "Valor inválido.");
             }
         }
 
@@ -112,7 +112,7 @@ public class PrestadorFormServlet extends HttpServlet {
         prestador.setContato3Cargo(contato3Cargo);
         prestador.setContato3Telefone(contato3Telefone);
         prestador.setClassificacao(classificacao);
-        prestador.setRegularOuContratado(regularOuContratado);
+        prestador.setTipo(tipo);
         prestador.setObservacao(observacao);
         prestador.setServicoIds(parseServicoIds(servicoIdParams));
 

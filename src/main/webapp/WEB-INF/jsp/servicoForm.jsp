@@ -13,13 +13,16 @@
 <body>
 <div class="page">
     <div class="card card-wide">
-        <h1 class="title">
-            <c:choose>
-                <c:when test="${readOnly}">Consultar serviço</c:when>
-                <c:when test="${empty param.id}">Novo serviço</c:when>
-                <c:otherwise>Editar serviço</c:otherwise>
-            </c:choose>
-        </h1>
+        <div class="toolbar">
+            <h1 class="title" style="text-align:left;margin:0;">
+                <c:choose>
+                    <c:when test="${readOnly}">Consultar serviço</c:when>
+                    <c:when test="${empty param.id}">Novo serviço</c:when>
+                    <c:otherwise>Editar serviço</c:otherwise>
+                </c:choose>
+            </h1>
+            <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+        </div>
         <p class="subtitle">Dados do serviço de manutenção</p>
 
         <c:if test="${not empty errors.form}">
@@ -35,24 +38,36 @@
                 <c:if test="${not empty errors.descricao}"><div class="field-error">${errors.descricao}</div></c:if>
             </div>
 
-            <div class="field">
-                <label for="unidadePeriodicidade">Unidade da periodicidade</label>
-                <select id="unidadePeriodicidade" name="unidadePeriodicidade" ${dis} required
-                        onchange="atualizarCampoPeriodicidade()">
-                    <option value="" disabled ${empty servico.unidadePeriodicidade ? 'selected' : ''}>Selecione...</option>
-                    <option value="dia" ${servico.unidadePeriodicidade == 'DIA' ? 'selected' : ''}>Dias</option>
-                    <option value="mes" ${servico.unidadePeriodicidade == 'MES' ? 'selected' : ''}>Meses</option>
-                    <option value="ano" ${servico.unidadePeriodicidade == 'ANO' ? 'selected' : ''}>Anos</option>
-                    <option value="por_demanda" ${servico.unidadePeriodicidade == 'POR_DEMANDA' ? 'selected' : ''}>Por demanda</option>
-                </select>
-                <c:if test="${not empty errors.unidadePeriodicidade}"><div class="field-error">${errors.unidadePeriodicidade}</div></c:if>
-            </div>
+            <div class="field-row">
+                <div class="field">
+                    <label for="unidadePeriodicidade">Unidade da periodicidade</label>
+                    <select id="unidadePeriodicidade" name="unidadePeriodicidade" ${dis} required
+                            onchange="atualizarCampoPeriodicidade()">
+                        <option value="" disabled ${empty servico.unidadePeriodicidade ? 'selected' : ''}>Selecione...</option>
+                        <option value="dia" ${servico.unidadePeriodicidade == 'DIA' ? 'selected' : ''}>Dias</option>
+                        <option value="mes" ${servico.unidadePeriodicidade == 'MES' ? 'selected' : ''}>Meses</option>
+                        <option value="ano" ${servico.unidadePeriodicidade == 'ANO' ? 'selected' : ''}>Anos</option>
+                        <option value="por_demanda" ${servico.unidadePeriodicidade == 'POR_DEMANDA' ? 'selected' : ''}>Por demanda</option>
+                    </select>
+                    <c:if test="${not empty errors.unidadePeriodicidade}"><div class="field-error">${errors.unidadePeriodicidade}</div></c:if>
+                </div>
 
-            <div class="field" id="periodicidadeField">
-                <label for="periodicidade">Periodicidade</label>
-                <input type="number" id="periodicidade" name="periodicidade" min="1" ${dis}
-                       value="${not empty param.periodicidade ? param.periodicidade : servico.periodicidade}">
-                <c:if test="${not empty errors.periodicidade}"><div class="field-error">${errors.periodicidade}</div></c:if>
+                <div class="field" id="periodicidadeField">
+                    <label for="periodicidade">Periodicidade</label>
+                    <input type="number" id="periodicidade" name="periodicidade" min="1" ${dis}
+                           value="${not empty param.periodicidade ? param.periodicidade : servico.periodicidade}">
+                    <c:if test="${not empty errors.periodicidade}"><div class="field-error">${errors.periodicidade}</div></c:if>
+                </div>
+
+                <div class="field">
+                    <label for="tipo">Tipo</label>
+                    <select id="tipo" name="tipo" ${dis} required>
+                        <option value="" disabled ${empty servico.tipo ? 'selected' : ''}>Selecione...</option>
+                        <option value="contratado" ${servico.tipo == 'CONTRATADO' ? 'selected' : ''}>Contratado</option>
+                        <option value="solicitar" ${servico.tipo == 'SOLICITAR' ? 'selected' : ''}>Solicitar</option>
+                    </select>
+                    <c:if test="${not empty errors.tipo}"><div class="field-error">${errors.tipo}</div></c:if>
+                </div>
             </div>
 
             <script>

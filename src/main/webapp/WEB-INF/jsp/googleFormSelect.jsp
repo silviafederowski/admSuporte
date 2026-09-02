@@ -11,7 +11,10 @@
 <body>
 <div class="page">
     <div class="card">
-        <h1 class="title">Formulário Google</h1>
+        <div class="toolbar">
+            <h1 class="title" style="text-align:left;margin:0;">Formulário Google</h1>
+            <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+        </div>
         <p class="subtitle">Selecione uma ou mais unidades para gerar o PDF</p>
 
         <c:if test="${not empty error}">

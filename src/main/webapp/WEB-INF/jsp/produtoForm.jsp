@@ -13,13 +13,16 @@
 <body>
 <div class="page">
     <div class="card card-wide">
-        <h1 class="title">
-            <c:choose>
-                <c:when test="${readOnly}">Consultar produto</c:when>
-                <c:when test="${empty param.id}">Novo produto</c:when>
-                <c:otherwise>Editar produto</c:otherwise>
-            </c:choose>
-        </h1>
+        <div class="toolbar">
+            <h1 class="title" style="text-align:left;margin:0;">
+                <c:choose>
+                    <c:when test="${readOnly}">Consultar produto</c:when>
+                    <c:when test="${empty param.id}">Novo produto</c:when>
+                    <c:otherwise>Editar produto</c:otherwise>
+                </c:choose>
+            </h1>
+            <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+        </div>
         <p class="subtitle">Dados do produto</p>
 
         <c:if test="${not empty errors.form}">

@@ -13,13 +13,16 @@
 <body>
 <div class="page">
     <div class="card card-wide">
-        <h1 class="title">
-            <c:choose>
-                <c:when test="${readOnly}">Consultar fornecedor</c:when>
-                <c:when test="${empty param.id}">Novo fornecedor</c:when>
-                <c:otherwise>Editar fornecedor</c:otherwise>
-            </c:choose>
-        </h1>
+        <div class="toolbar">
+            <h1 class="title" style="text-align:left;margin:0;">
+                <c:choose>
+                    <c:when test="${readOnly}">Consultar fornecedor</c:when>
+                    <c:when test="${empty param.id}">Novo fornecedor</c:when>
+                    <c:otherwise>Editar fornecedor</c:otherwise>
+                </c:choose>
+            </h1>
+            <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+        </div>
         <p class="subtitle">Dados do fornecedor</p>
 
         <c:if test="${not empty errors.form}">
@@ -37,7 +40,7 @@
 
             <div class="field">
                 <label for="email">Email</label>
-                <input type="email" id="email" name="email" value="${fornecedor.email}" ${dis}>
+                <textarea id="email" name="email" placeholder="Um ou mais e-mails, um por linha" ${dis}>${fornecedor.email}</textarea>
             </div>
 
             <div class="contact-row">
@@ -88,7 +91,7 @@
             <div class="field">
                 <label for="classificacao">Classificação</label>
                 <select id="classificacao" name="classificacao" ${dis} required>
-                    <option value="" disabled ${empty fornecedor.classificacao ? 'selected' : ''}>Selecione...</option>
+                    <option value="nao_avaliado" ${empty fornecedor.classificacao || fornecedor.classificacao == 'NAO_AVALIADO' ? 'selected' : ''}>Não avaliado</option>
                     <option value="muito_bom" ${fornecedor.classificacao == 'MUITO_BOM' ? 'selected' : ''}>Muito bom</option>
                     <option value="bom" ${fornecedor.classificacao == 'BOM' ? 'selected' : ''}>Bom</option>
                     <option value="medio" ${fornecedor.classificacao == 'MEDIO' ? 'selected' : ''}>Médio</option>

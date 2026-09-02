@@ -73,10 +73,6 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
-        <url-pattern>/register</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>AuthFilter</filter-name>
         <url-pattern>/prestadores</url-pattern>
     </filter-mapping>
     <filter-mapping>
@@ -127,6 +123,52 @@
         <filter-name>AuthFilter</filter-name>
         <url-pattern>/produtos/excluir</url-pattern>
     </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/usuarios</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/usuarios/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/procedimentos</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/procedimentos/ver</url-pattern>
+    </filter-mapping>
+
+    <!-- Condomino (nivel 15) nao pode nem consultar o cadastro de usuarios. -->
+    <filter>
+        <filter-name>SemCondominoFilter</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.SemCondominoFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>SemCondominoFilter</filter-name>
+        <url-pattern>/usuarios</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>SemCondominoFilter</filter-name>
+        <url-pattern>/usuarios/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/vagas</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/imagem-pavimento</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/veiculos</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/veiculos/form</url-pattern>
+    </filter-mapping>
 
     <!--
       Restringe acoes de escrita (criar/editar/excluir) a administrador/zelador (nivel <= 9).
@@ -137,10 +179,6 @@
         <filter-name>AdminOrZeladorFilter</filter-name>
         <filter-class>br.com.silsys.admsuporte.filter.AdminOrZeladorFilter</filter-class>
     </filter>
-    <filter-mapping>
-        <filter-name>AdminOrZeladorFilter</filter-name>
-        <url-pattern>/register</url-pattern>
-    </filter-mapping>
     <filter-mapping>
         <filter-name>AdminOrZeladorFilter</filter-name>
         <url-pattern>/google-form</url-pattern>
@@ -157,7 +195,6 @@
         <filter-name>AdminOrZeladorFilter</filter-name>
         <url-pattern>/operacoes</url-pattern>
     </filter-mapping>
-
     <!--
       Telas de formulario dos cadastros (prestadores/fornecedores/servicos/produtos):
       qualquer usuario logado pode consultar (GET); so administrador/zelador (nivel <= 9)
@@ -199,6 +236,10 @@
         <filter-name>EscritaRestritaFilter</filter-name>
         <url-pattern>/produtos/excluir</url-pattern>
     </filter-mapping>
+    <filter-mapping>
+        <filter-name>EscritaRestritaFilter</filter-name>
+        <url-pattern>/usuarios/form</url-pattern>
+    </filter-mapping>
 
     <servlet>
         <servlet-name>LoginServlet</servlet-name>
@@ -216,15 +257,6 @@
     <servlet-mapping>
         <servlet-name>LogoutServlet</servlet-name>
         <url-pattern>/logout</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>RegisterServlet</servlet-name>
-        <servlet-class>br.com.silsys.admsuporte.servlet.RegisterServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>RegisterServlet</servlet-name>
-        <url-pattern>/register</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -291,6 +323,60 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>VagaServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.VagaServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>VagaServlet</servlet-name>
+        <url-pattern>/vagas</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>PavimentoImagemServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.PavimentoImagemServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PavimentoImagemServlet</servlet-name>
+        <url-pattern>/imagem-pavimento</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>VeiculoServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.VeiculoServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>VeiculoServlet</servlet-name>
+        <url-pattern>/veiculos</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>VeiculoFormServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.VeiculoFormServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>VeiculoFormServlet</servlet-name>
+        <url-pattern>/veiculos/form</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ProcedimentosServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.ProcedimentosServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProcedimentosServlet</servlet-name>
+        <url-pattern>/procedimentos</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ProcedimentoVisualizarServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.ProcedimentoVisualizarServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ProcedimentoVisualizarServlet</servlet-name>
+        <url-pattern>/procedimentos/ver</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>FornecedorServlet</servlet-name>
         <servlet-class>br.com.silsys.admsuporte.servlet.FornecedorServlet</servlet-class>
     </servlet>
@@ -342,6 +428,24 @@
     <servlet-mapping>
         <servlet-name>ProdutoDeleteServlet</servlet-name>
         <url-pattern>/produtos/excluir</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>UsuarioServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.UsuarioServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UsuarioServlet</servlet-name>
+        <url-pattern>/usuarios</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>UsuarioFormServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.UsuarioFormServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UsuarioFormServlet</servlet-name>
+        <url-pattern>/usuarios/form</url-pattern>
     </servlet-mapping>
 
     <servlet>

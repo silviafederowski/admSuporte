@@ -46,7 +46,15 @@ public class LoginServlet extends HttpServlet {
         try {
             User user = userDao.verifyLogin(identifier, password);
             if (user == null) {
-                request.setAttribute("formError", "E-mail/telefone ou senha inválidos.");
+                boolean pareceEmail = identifier.contains("@");
+                request.setAttribute("formError",
+                        (pareceEmail ? "E-mail" : "Telefone") + " ou senha inválidos.");
+                request.setAttribute("identifier", identifier);
+                forward(request, response);
+                return;
+            }
+            if (!user.isAtivo()) {
+                request.setAttribute("formError", "Este usuário está desativado. Fale com um administrador.");
                 request.setAttribute("identifier", identifier);
                 forward(request, response);
                 return;

@@ -91,6 +91,23 @@ public class FornecedorDao {
         return result;
     }
 
+    public List<Fornecedor> listByProduto(int produtoId) throws SQLException {
+        List<Fornecedor> result = new ArrayList<>();
+        try (Connection conn = ConnectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT f.* FROM fornecedores f " +
+                     "JOIN fornecedor_produtos fp ON fp.fornecedor_id = f.id " +
+                     "WHERE fp.produto_id = ? ORDER BY f.nome_razao_social")) {
+            stmt.setInt(1, produtoId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapRow(rs));
+                }
+            }
+        }
+        return result;
+    }
+
     private void saveProdutoLinks(Connection conn, int fornecedorId, List<Integer> produtoIds) throws SQLException {
         try (PreparedStatement del = conn.prepareStatement("DELETE FROM fornecedor_produtos WHERE fornecedor_id = ?")) {
             del.setInt(1, fornecedorId);

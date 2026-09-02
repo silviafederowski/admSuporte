@@ -19,15 +19,23 @@
             <p class="form-info">${infoMessage}</p>
         </c:if>
 
-        <c:if test="${sessionScope.userNivel <= 9}">
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/google-form">Formulário Google</a>
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/register">Criar conta</a>
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/operacoes">Log de operações</a>
-        </c:if>
-        <a class="btn btn-primary" href="${pageContext.request.contextPath}/prestadores">Prestadores</a>
-        <a class="btn btn-primary" href="${pageContext.request.contextPath}/servicos">Serviços de manutenção</a>
-        <a class="btn btn-primary" href="${pageContext.request.contextPath}/fornecedores">Fornecedores</a>
+        <a class="btn btn-primary" href="${pageContext.request.contextPath}/procedimentos">Documentos</a>
+        <a class="btn btn-primary" href="${pageContext.request.contextPath}/vagas">Vagas</a>
+        <a class="btn btn-primary" href="${pageContext.request.contextPath}/veiculos">Veículos</a>
+
+        <a class="btn btn-primary" href="${pageContext.request.contextPath}/servicos">Serviços</a>
         <a class="btn btn-primary" href="${pageContext.request.contextPath}/produtos">Produtos</a>
+        <a class="btn btn-primary" href="${pageContext.request.contextPath}/prestadores">Prestadores</a>
+        <a class="btn btn-primary" href="${pageContext.request.contextPath}/fornecedores">Fornecedores</a>
+
+        <c:if test="${sessionScope.userNivel <= 10}">
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/usuarios">Usuários</a>
+        </c:if>
+
+        <c:if test="${sessionScope.userNivel <= 9}">
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/operacoes">Log de operações</a>
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/google-form">Formulário Google</a>
+        </c:if>
 
         <a class="btn btn-secondary" href="${pageContext.request.contextPath}/logout">Sair</a>
     </div>

@@ -14,8 +14,12 @@ public class UserType implements Serializable {
     /** Acima deste nivel, o usuario so pode consultar telas; escrita (criar/editar/excluir) fica bloqueada. */
     public static final int NIVEL_MAXIMO_ESCRITA = 9;
 
-    /** Ate este nivel (inclusive), o usuario recebe o alerta de servicos atrasados ao logar. */
-    public static final int NIVEL_MAXIMO_ALERTA_ATRASO = 15;
+    /** Acima deste nivel (ou seja, condomino = 15), o acesso e bloqueado: usado onde o condomino
+     *  nao deve nem consultar a tela (alerta de atraso, cadastro de usuarios). */
+    public static final int NIVEL_MAXIMO_SEM_CONDOMINO = 10;
+
+    /** Ate este nivel (inclusive), o usuario recebe o alerta de servicos atrasados ao logar. Condomino (15) fica de fora. */
+    public static final int NIVEL_MAXIMO_ALERTA_ATRASO = NIVEL_MAXIMO_SEM_CONDOMINO;
 
     private int id;
     private String name;

@@ -12,7 +12,10 @@
 <div class="page">
     <div class="card menu-page">
         <img class="logo" src="${pageContext.request.contextPath}/logo" alt="Logotipo">
-        <h1 class="title">Formulário Google</h1>
+        <div class="toolbar">
+            <h1 class="title" style="text-align:left;margin:0;">Formulário Google</h1>
+            <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+        </div>
         <p class="subtitle">
             Selecione uma planilha (.xlsx). As linhas serão ordenadas pela
             coluna D e exibidas para você escolher quais entram no PDF.

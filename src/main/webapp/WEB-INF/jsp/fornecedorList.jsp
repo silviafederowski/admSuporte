@@ -15,10 +15,26 @@
             <div>
                 <h1 class="title" style="text-align:left;margin:0;">Cadastro de fornecedores</h1>
             </div>
-            <c:if test="${sessionScope.userNivel <= 9}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/fornecedores/form">Novo fornecedor</a>
-            </c:if>
+            <div class="toolbar-actions">
+                <c:if test="${sessionScope.userNivel <= 9}">
+                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/fornecedores/form">Novo fornecedor</a>
+                </c:if>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            </div>
         </div>
+
+        <form method="get" action="${pageContext.request.contextPath}/fornecedores" class="filter-bar">
+            <label for="produtoIdFiltro">Filtrar por produto</label>
+            <select id="produtoIdFiltro" name="produtoId" onchange="this.form.submit()">
+                <option value="" ${empty produtoIdFiltro ? 'selected' : ''}>Todos os produtos</option>
+                <c:forEach var="p" items="${produtosFiltro}">
+                    <option value="${p.id}" ${produtoIdFiltro == p.id ? 'selected' : ''}>${p.descricao}</option>
+                </c:forEach>
+            </select>
+            <c:if test="${not empty produtoIdFiltro}">
+                <a class="link" href="${pageContext.request.contextPath}/fornecedores">Limpar filtro</a>
+            </c:if>
+        </form>
 
         <c:if test="${not empty infoMessage}">
             <p class="form-info">${infoMessage}</p>
@@ -29,7 +45,12 @@
 
         <c:choose>
             <c:when test="${empty fornecedores}">
-                <p class="empty-state">Nenhum fornecedor cadastrado ainda.</p>
+                <p class="empty-state">
+                    <c:choose>
+                        <c:when test="${not empty produtoIdFiltro}">Nenhum fornecedor fornece esse produto.</c:when>
+                        <c:otherwise>Nenhum fornecedor cadastrado ainda.</c:otherwise>
+                    </c:choose>
+                </p>
             </c:when>
             <c:otherwise>
                 <div class="table-wrap">
