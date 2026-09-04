@@ -41,7 +41,44 @@ public class GoogleDriveClient {
     private static final SSLSocketFactory TRUSTED_SOCKET_FACTORY = buildTrustedSocketFactory();
 
     public List<DriveArquivo> listarArquivosDaPasta() throws IOException {
+        return listarArquivosDaPasta(FOLDER_ID);
+    }
+
+    /**
+     * Lista os arquivos de uma subpasta de "ParaWeb" pelo nome (ex.: "procedimentos"), usada
+     * para liberar conteudo extra a administrador/zelador na tela de Documentos. Resolve o id
+     * da subpasta a cada chamada (sem cache: baixo volume de uso, e assim nao quebra se a
+     * pasta for recriada no Drive). Se a subpasta nao existir, devolve lista vazia.
+     */
+    public List<DriveArquivo> listarArquivosDaSubpasta(String nomeSubpasta) throws IOException {
+        String subpastaId = buscarIdSubpasta(nomeSubpasta);
+        if (subpastaId == null) {
+            return new ArrayList<>();
+        }
+        return listarArquivosDaPasta(subpastaId);
+    }
+
+    private String buscarIdSubpasta(String nome) throws IOException {
+        String nomeEscapado = nome.replace("\\", "\\\\").replace("'", "\\'");
         String query = "'" + FOLDER_ID + "' in parents and trashed = false "
+                + "and mimeType = 'application/vnd.google-apps.folder' and name = '" + nomeEscapado + "'";
+        String url = "https://www.googleapis.com/drive/v3/files"
+                + "?q=" + URLEncoder.encode(query, "UTF-8")
+                + "&fields=" + URLEncoder.encode("files(id)", "UTF-8")
+                + "&key=" + API_KEY;
+
+        String body = fetch(url);
+        try (JsonReader reader = Json.createReader(new java.io.StringReader(body))) {
+            JsonArray files = reader.readObject().getJsonArray("files");
+            if (files != null && !files.isEmpty()) {
+                return files.getJsonObject(0).getString("id");
+            }
+        }
+        return null;
+    }
+
+    private List<DriveArquivo> listarArquivosDaPasta(String folderId) throws IOException {
+        String query = "'" + folderId + "' in parents and trashed = false "
                 + "and mimeType != 'application/vnd.google-apps.folder'";
         String url = "https://www.googleapis.com/drive/v3/files"
                 + "?q=" + URLEncoder.encode(query, "UTF-8")

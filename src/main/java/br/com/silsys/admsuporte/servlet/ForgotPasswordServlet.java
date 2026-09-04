@@ -8,7 +8,6 @@ import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -80,8 +79,8 @@ public class ForgotPasswordServlet extends HttpServlet {
 
             response.sendRedirect(request.getContextPath() + "/reset-password");
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao gerar codigo de recuperacao.", e);
-            request.setAttribute("error", "Não foi possível gerar o código: " + ErrorMessages.describe(e));
+            request.setAttribute("error", "Não foi possível gerar o código: "
+                    + ErrorMessages.friendly(LOGGER, "forgot-password", "Gerar código de recuperação", e));
             request.setAttribute("method", method.paramValue());
             request.setAttribute("destination", destination);
             forward(request, response);

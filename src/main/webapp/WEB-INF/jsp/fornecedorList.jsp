@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fornecedores - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
 </head>
 <body>
 <div class="page">
@@ -16,7 +16,7 @@
                 <h1 class="title" style="text-align:left;margin:0;">Cadastro de fornecedores</h1>
             </div>
             <div class="toolbar-actions">
-                <c:if test="${sessionScope.userNivel <= 9}">
+                <c:if test="${!readOnly}">
                     <a class="btn btn-primary" href="${pageContext.request.contextPath}/fornecedores/form">Novo fornecedor</a>
                 </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
@@ -24,7 +24,7 @@
         </div>
 
         <form method="get" action="${pageContext.request.contextPath}/fornecedores" class="filter-bar">
-            <label for="produtoIdFiltro">Filtrar por produto</label>
+            <label for="produtoIdFiltro" title="Filtrar por produto"><span class="filter-icon" aria-hidden="true"></span> por produto</label>
             <select id="produtoIdFiltro" name="produtoId" onchange="this.form.submit()">
                 <option value="" ${empty produtoIdFiltro ? 'selected' : ''}>Todos os produtos</option>
                 <c:forEach var="p" items="${produtosFiltro}">
@@ -86,6 +86,6 @@
         <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
     </div>
 </div>
-<script src="${pageContext.request.contextPath}/js/dataTable.js"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=5"></script>
 </body>
 </html>

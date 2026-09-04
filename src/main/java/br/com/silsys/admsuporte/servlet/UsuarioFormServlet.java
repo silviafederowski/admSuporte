@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -21,8 +20,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 /**
- * Formulario de criacao/edicao de usuario. Qualquer usuario logado pode consultar (GET);
- * so administrador/zelador (nivel <= 9) pode gravar (ver EscritaRestritaFilter).
+ * Formulario de criacao/edicao de usuario. Acesso (consulta/edicao/nenhum) controlado pela
+ * tabela autorizacoes_menu, tela "usuarios" (ver MenuAutorizacaoFilter).
  */
 public class UsuarioFormServlet extends HttpServlet {
 
@@ -48,7 +47,7 @@ public class UsuarioFormServlet extends HttpServlet {
                 }
                 usuario = found;
             } catch (NumberFormatException | SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao carregar usuario para edicao.", e);
+                ErrorMessages.logErro(LOGGER, "usuarios", "Carregar usuário para edição", e);
                 response.sendRedirect(request.getContextPath() + "/usuarios");
                 return;
             }
@@ -119,8 +118,8 @@ public class UsuarioFormServlet extends HttpServlet {
             } catch (AppException e) {
                 errors.put("form", e.getMessage());
             } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao salvar usuario.", e);
-                errors.put("form", "Não foi possível salvar o usuário: " + ErrorMessages.describe(e));
+                errors.put("form", "Não foi possível salvar o usuário: "
+                        + ErrorMessages.friendly(LOGGER, "usuarios", "Salvar usuário", e));
             }
         }
 
@@ -169,7 +168,7 @@ public class UsuarioFormServlet extends HttpServlet {
         try {
             request.setAttribute("userTypes", userTypeDao.listAll());
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao carregar tipos de usuario.", e);
+            ErrorMessages.logErro(LOGGER, "usuarios", "Carregar tipos de usuário para formulário", e);
             request.setAttribute("userTypes", java.util.Collections.emptyList());
         }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/usuarioForm.jsp");

@@ -1,5 +1,6 @@
 package br.com.silsys.admsuporte.dao;
 
+import br.com.silsys.admsuporte.model.Classificacao;
 import br.com.silsys.admsuporte.model.PeriodicidadeUnidade;
 import br.com.silsys.admsuporte.model.Prestador;
 import br.com.silsys.admsuporte.model.Servico;
@@ -20,6 +21,7 @@ public class ServicoDao {
 
     private static final String SELECT_BASE =
             "SELECT s.*, up.nome_razao_social AS ultimo_prestador_nome, " +
+            "up.classificacao AS ultimo_prestador_classificacao, " +
             "pp.nome_razao_social AS prestador_proxima_execucao_nome FROM servicos s " +
             "LEFT JOIN prestadores up ON s.ultimo_prestador_id = up.id " +
             "LEFT JOIN prestadores pp ON s.prestador_proxima_execucao_id = pp.id ";
@@ -29,8 +31,9 @@ public class ServicoDao {
              PreparedStatement stmt = conn.prepareStatement(
                      "INSERT INTO servicos (descricao, periodicidade, unidade_periodicidade, " +
                      "tipo, ultima_execucao, ultimo_prestador_id, valor_pago_ultima_execucao, " +
-                     "data_agendada_proxima_execucao, prestador_proxima_execucao_id, valor_orcado_proxima_execucao) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     "data_agendada_proxima_execucao, prestador_proxima_execucao_id, valor_orcado_proxima_execucao, " +
+                     "observacao) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                      Statement.RETURN_GENERATED_KEYS)) {
             bindParams(stmt, s);
             stmt.executeUpdate();
@@ -49,7 +52,8 @@ public class ServicoDao {
                      "UPDATE servicos SET descricao = ?, periodicidade = ?, unidade_periodicidade = ?, " +
                      "tipo = ?, ultima_execucao = ?, ultimo_prestador_id = ?, " +
                      "valor_pago_ultima_execucao = ?, data_agendada_proxima_execucao = ?, " +
-                     "prestador_proxima_execucao_id = ?, valor_orcado_proxima_execucao = ? WHERE id = ?")) {
+                     "prestador_proxima_execucao_id = ?, valor_orcado_proxima_execucao = ?, " +
+                     "observacao = ? WHERE id = ?")) {
             int nextIndex = bindParams(stmt, s);
             stmt.setInt(nextIndex, s.getId());
             stmt.executeUpdate();
@@ -126,7 +130,8 @@ public class ServicoDao {
         setNullableDate(stmt, 8, s.getDataAgendadaProximaExecucao());
         setNullableInt(stmt, 9, s.getPrestadorProximaExecucaoId());
         setNullableDecimal(stmt, 10, s.getValorOrcadoProximaExecucao());
-        return 11;
+        stmt.setString(11, ValidationUtil.toUpperOrNull(s.getObservacao()));
+        return 12;
     }
 
     private void setNullableDate(PreparedStatement stmt, int index, java.time.LocalDate value) throws SQLException {
@@ -166,6 +171,7 @@ public class ServicoDao {
         int ultimoPrestadorId = rs.getInt("ultimo_prestador_id");
         s.setUltimoPrestadorId(rs.wasNull() ? null : ultimoPrestadorId);
         s.setUltimoPrestadorNome(rs.getString("ultimo_prestador_nome"));
+        s.setUltimoPrestadorClassificacao(Classificacao.fromDbValue(rs.getString("ultimo_prestador_classificacao")));
         s.setValorPagoUltimaExecucao(rs.getBigDecimal("valor_pago_ultima_execucao"));
         Date dataAgendada = rs.getDate("data_agendada_proxima_execucao");
         s.setDataAgendadaProximaExecucao(dataAgendada != null ? dataAgendada.toLocalDate() : null);
@@ -173,6 +179,7 @@ public class ServicoDao {
         s.setPrestadorProximaExecucaoId(rs.wasNull() ? null : prestadorProximaExecucaoId);
         s.setPrestadorProximaExecucaoNome(rs.getString("prestador_proxima_execucao_nome"));
         s.setValorOrcadoProximaExecucao(rs.getBigDecimal("valor_orcado_proxima_execucao"));
+        s.setObservacao(rs.getString("observacao"));
         return s;
     }
 }

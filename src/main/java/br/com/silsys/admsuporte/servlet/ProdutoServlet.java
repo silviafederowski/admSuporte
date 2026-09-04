@@ -5,7 +5,6 @@ import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -13,7 +12,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Lista de produtos. Acesso liberado a qualquer usuario logado (ver AuthFilter/AdminOrZeladorFilter). */
+/** Lista de produtos. Acesso controlado pela tabela autorizacoes_menu, tela "produtos" (ver MenuAutorizacaoFilter). */
 public class ProdutoServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -36,8 +35,8 @@ public class ProdutoServlet extends HttpServlet {
             List<?> produtos = produtoDao.listAll();
             request.setAttribute("produtos", produtos);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao listar produtos.", e);
-            request.setAttribute("formError", "Não foi possível carregar os produtos: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível carregar os produtos: "
+                    + ErrorMessages.friendly(LOGGER, "produtos", "Listar produtos", e));
         }
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/produtoList.jsp");

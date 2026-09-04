@@ -3,9 +3,9 @@ package br.com.silsys.admsuporte.servlet;
 import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.ProdutoDao;
 import br.com.silsys.admsuporte.model.Produto;
+import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -33,7 +33,7 @@ public class ProdutoDeleteServlet extends HttpServlet {
             String usuarioLogado = (String) request.getSession().getAttribute("userName");
             operacaoLogDao.registrar(usuarioLogado, "Produtos", "Excluir produto: " + descricao);
         } catch (NumberFormatException | SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao excluir produto.", e);
+            ErrorMessages.logErro(LOGGER, "produtos", "Excluir produto", e);
         }
         response.sendRedirect(request.getContextPath() + "/produtos?excluido=1");
     }

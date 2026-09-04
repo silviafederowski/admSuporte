@@ -5,7 +5,6 @@ import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -36,8 +35,8 @@ public class VeiculoServlet extends HttpServlet {
             List<?> veiculos = veiculoDao.listAllComDetalhes();
             request.setAttribute("veiculos", veiculos);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao listar veiculos.", e);
-            request.setAttribute("formError", "Não foi possível carregar os veículos: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível carregar os veículos: "
+                    + ErrorMessages.friendly(LOGGER, "veiculos", "Listar veículos", e));
         }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/veiculoList.jsp");
         dispatcher.forward(request, response);

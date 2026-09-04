@@ -3,11 +3,11 @@ package br.com.silsys.admsuporte.servlet;
 import br.com.silsys.admsuporte.dao.ServicoDao;
 import br.com.silsys.admsuporte.model.Servico;
 import br.com.silsys.admsuporte.model.UserType;
+import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -18,8 +18,9 @@ import javax.servlet.http.HttpSession;
 
 /**
  * Exibido logo apos o login, antes do menu: avisa sobre servicos de manutencao atrasados
- * para usuarios com nivel <= NIVEL_MAXIMO_ALERTA_ATRASO. Se nao houver nenhum atrasado
- * (ou o nivel do usuario nao se aplicar), passa direto para o menu.
+ * (nivel <= NIVEL_MAXIMO_ALERTA_ATRASO) e sobre servicos agendados para hoje (nivel <=
+ * NIVEL_MAXIMO_ALERTA_AGENDADO, mais restrito: so administrador/zelador). Se nao houver nada
+ * para mostrar (ou o nivel do usuario nao se aplicar a nenhum dos dois), passa direto para o menu.
  */
 public class AlertaServicosServlet extends HttpServlet {
 
@@ -33,27 +34,35 @@ public class AlertaServicosServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         Object nivelAttr = session != null ? session.getAttribute("userNivel") : null;
-        int nivel = nivelAttr instanceof Integer ? (Integer) nivelAttr : UserType.NIVEL_MAXIMO_ALERTA_ATRASO + 1;
+        int nivel = nivelAttr instanceof Integer ? (Integer) nivelAttr : Integer.MAX_VALUE;
+
+        boolean verificaAtrasados = nivel <= UserType.NIVEL_MAXIMO_ALERTA_ATRASO;
+        boolean verificaAgendados = nivel <= UserType.NIVEL_MAXIMO_ALERTA_AGENDADO;
 
         List<Servico> servicosAtrasados = new ArrayList<>();
-        if (nivel <= UserType.NIVEL_MAXIMO_ALERTA_ATRASO) {
+        List<Servico> servicosAgendadosHoje = new ArrayList<>();
+        if (verificaAtrasados || verificaAgendados) {
             try {
                 for (Servico servico : servicoDao.listAll()) {
-                    if (servico.isAtrasado()) {
+                    if (verificaAtrasados && servico.isAtrasado()) {
                         servicosAtrasados.add(servico);
+                    }
+                    if (verificaAgendados && servico.isAgendadoParaHoje()) {
+                        servicosAgendadosHoje.add(servico);
                     }
                 }
             } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao verificar servicos atrasados.", e);
+                ErrorMessages.logErro(LOGGER, "alerta-servicos", "Verificar serviços atrasados/agendados", e);
             }
         }
 
-        if (servicosAtrasados.isEmpty()) {
+        if (servicosAtrasados.isEmpty() && servicosAgendadosHoje.isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/menu");
             return;
         }
 
         request.setAttribute("servicosAtrasados", servicosAtrasados);
+        request.setAttribute("servicosAgendadosHoje", servicosAgendadosHoje);
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/alertaServicos.jsp");
         dispatcher.forward(request, response);
     }

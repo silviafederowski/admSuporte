@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<c:set var="readOnly" value="${sessionScope.userNivel > 9}" />
+<%-- readOnly vem de request (definido pelo MenuAutorizacaoFilter, tela "servicos") --%>
 <c:set var="dis" value="${readOnly ? 'disabled' : ''}" />
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Serviço de manutenção - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
 </head>
 <body>
 <div class="page">
@@ -21,7 +21,13 @@
                     <c:otherwise>Editar serviço</c:otherwise>
                 </c:choose>
             </h1>
-            <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            <div class="toolbar-actions">
+                <c:if test="${not empty param.id}">
+                    <a class="menu-icon-link" title="Histórico deste serviço" aria-label="Histórico deste serviço"
+                       href="${pageContext.request.contextPath}/pendencias-servico?servicoId=${param.id}">📋</a>
+                </c:if>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            </div>
         </div>
         <p class="subtitle">Dados do serviço de manutenção</p>
 
@@ -129,6 +135,11 @@
                 <input type="number" id="valorOrcadoProximaExecucao" name="valorOrcadoProximaExecucao" step="0.01" min="0" ${dis}
                        value="${servico.valorOrcadoProximaExecucao}">
                 <c:if test="${not empty errors.valorOrcadoProximaExecucao}"><div class="field-error">${errors.valorOrcadoProximaExecucao}</div></c:if>
+            </div>
+
+            <div class="field">
+                <label for="observacao">Observação</label>
+                <textarea id="observacao" name="observacao" style="min-height:160px;" ${dis}>${servico.observacao}</textarea>
             </div>
 
             <c:if test="${!readOnly}">

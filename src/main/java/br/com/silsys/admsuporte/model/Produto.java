@@ -1,5 +1,6 @@
 package br.com.silsys.admsuporte.model;
 
+import br.com.silsys.admsuporte.util.DateFormatUtil;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -71,6 +72,11 @@ public class Produto implements Serializable {
         this.ultimaExecucao = ultimaExecucao;
     }
 
+    /** Formatada dd/mm/aa, para exibicao em tela. */
+    public String getUltimaExecucaoFormatada() {
+        return DateFormatUtil.formatar(ultimaExecucao);
+    }
+
     public Integer getUltimoFornecedorId() {
         return ultimoFornecedorId;
     }
@@ -101,6 +107,11 @@ public class Produto implements Serializable {
 
     public void setDataAgendadaProximaExecucao(LocalDate dataAgendadaProximaExecucao) {
         this.dataAgendadaProximaExecucao = dataAgendadaProximaExecucao;
+    }
+
+    /** Formatada dd/mm/aa, para exibicao em tela. */
+    public String getDataAgendadaProximaExecucaoFormatada() {
+        return DateFormatUtil.formatar(dataAgendadaProximaExecucao);
     }
 
     public Integer getFornecedorProximaExecucaoId() {
@@ -151,6 +162,11 @@ public class Produto implements Serializable {
             default:
                 return null;
         }
+    }
+
+    /** Formatada dd/mm/aa, para exibicao em tela. */
+    public String getProximaExecucaoFormatada() {
+        return DateFormatUtil.formatar(getProximaExecucao());
     }
 
     /** Calculado em tela: dias entre hoje e a proxima execucao (negativo se atrasado). Null se nunca executado. */

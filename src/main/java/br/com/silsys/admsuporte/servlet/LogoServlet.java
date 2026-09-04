@@ -1,9 +1,9 @@
 package br.com.silsys.admsuporte.servlet;
 
 import br.com.silsys.admsuporte.dao.AppAssetDao;
+import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -35,7 +35,7 @@ public class LogoServlet extends HttpServlet {
             response.setHeader("Cache-Control", "public, max-age=3600");
             response.getOutputStream().write(asset.data);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao carregar o logotipo do banco.", e);
+            ErrorMessages.logErro(LOGGER, "logo", "Carregar logotipo do banco", e);
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         }
     }

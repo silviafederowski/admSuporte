@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Prestadores - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
 </head>
 <body>
 <div class="page">
@@ -16,7 +16,7 @@
                 <h1 class="title" style="text-align:left;margin:0;">Cadastro de prestadores</h1>
             </div>
             <div class="toolbar-actions">
-                <c:if test="${sessionScope.userNivel <= 9}">
+                <c:if test="${!readOnly}">
                     <a class="btn btn-primary" href="${pageContext.request.contextPath}/prestadores/form">Novo prestador</a>
                 </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
@@ -24,7 +24,7 @@
         </div>
 
         <form method="get" action="${pageContext.request.contextPath}/prestadores" class="filter-bar">
-            <label for="servicoIdFiltro">Filtrar por serviço</label>
+            <label for="servicoIdFiltro" title="Filtrar por serviço"><span class="filter-icon" aria-hidden="true"></span> por serviço</label>
             <select id="servicoIdFiltro" name="servicoId" onchange="this.form.submit()">
                 <option value="" ${empty servicoIdFiltro ? 'selected' : ''}>Todos os serviços</option>
                 <c:forEach var="s" items="${servicosFiltro}">
@@ -88,6 +88,6 @@
         <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
     </div>
 </div>
-<script src="${pageContext.request.contextPath}/js/dataTable.js"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=5"></script>
 </body>
 </html>

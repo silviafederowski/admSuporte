@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Produtos - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
 </head>
 <body>
 <div class="page">
@@ -16,7 +16,7 @@
                 <h1 class="title" style="text-align:left;margin:0;">Cadastro de produtos</h1>
             </div>
             <div class="toolbar-actions">
-                <c:if test="${sessionScope.userNivel <= 9}">
+                <c:if test="${!readOnly}">
                     <a class="btn btn-primary" href="${pageContext.request.contextPath}/produtos/form">Novo produto</a>
                 </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
@@ -63,7 +63,7 @@
                                         <c:otherwise>A cada ${p.periodicidade} ${p.unidadePeriodicidade.label}</c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td>${empty p.ultimaExecucao ? '-' : p.ultimaExecucao}</td>
+                                <td>${empty p.ultimaExecucao ? '-' : p.ultimaExecucaoFormatada}</td>
                                 <td>${empty p.ultimoFornecedorNome ? '-' : p.ultimoFornecedorNome}</td>
                                 <td><c:choose><c:when test="${empty p.valorPagoUltimaExecucao}">-</c:when><c:otherwise>R$ ${p.valorPagoUltimaExecucao}</c:otherwise></c:choose></td>
                                 <td>
@@ -80,7 +80,7 @@
                                     <c:choose>
                                         <c:when test="${p.unidadePeriodicidade == 'POR_DEMANDA'}">Por demanda</c:when>
                                         <c:when test="${empty p.proximaExecucao}">Nunca executado</c:when>
-                                        <c:otherwise>${p.proximaExecucao}</c:otherwise>
+                                        <c:otherwise>${p.proximaExecucaoFormatada}</c:otherwise>
                                     </c:choose>
                                 </td>
                                 <td class="${p.atrasado ? 'atrasado' : ''}">
@@ -91,7 +91,7 @@
                                         <c:otherwise>${p.diasFaltantes} dia(s)</c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td>${empty p.dataAgendadaProximaExecucao ? '-' : p.dataAgendadaProximaExecucao}</td>
+                                <td>${empty p.dataAgendadaProximaExecucao ? '-' : p.dataAgendadaProximaExecucaoFormatada}</td>
                                 <td>${empty p.fornecedorProximaExecucaoNome ? '-' : p.fornecedorProximaExecucaoNome}</td>
                                 <td><c:choose><c:when test="${empty p.valorOrcadoProximaExecucao}">-</c:when><c:otherwise>R$ ${p.valorOrcadoProximaExecucao}</c:otherwise></c:choose></td>
                             </tr>
@@ -105,6 +105,6 @@
         <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
     </div>
 </div>
-<script src="${pageContext.request.contextPath}/js/dataTable.js"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=5"></script>
 </body>
 </html>

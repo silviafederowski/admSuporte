@@ -15,7 +15,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -46,7 +45,7 @@ public class ServicoFormServlet extends HttpServlet {
                 }
                 request.setAttribute("servico", servico);
             } catch (NumberFormatException | SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao carregar servico para edicao.", e);
+                ErrorMessages.logErro(LOGGER, "servicos", "Carregar serviço para edição", e);
                 response.sendRedirect(request.getContextPath() + "/servicos");
                 return;
             }
@@ -68,6 +67,7 @@ public class ServicoFormServlet extends HttpServlet {
         String dataAgendadaProximaExecucaoParam = request.getParameter("dataAgendadaProximaExecucao");
         String prestadorProximaExecucaoIdParam = request.getParameter("prestadorProximaExecucaoId");
         String valorOrcadoProximaExecucaoParam = request.getParameter("valorOrcadoProximaExecucao");
+        String observacao = request.getParameter("observacao");
 
         Map<String, String> errors = new HashMap<>();
         if (ValidationUtil.isBlank(descricao)) {
@@ -178,6 +178,7 @@ public class ServicoFormServlet extends HttpServlet {
         servico.setDataAgendadaProximaExecucao(dataAgendadaProximaExecucao);
         servico.setPrestadorProximaExecucaoId(prestadorProximaExecucaoId);
         servico.setValorOrcadoProximaExecucao(valorOrcadoProximaExecucao);
+        servico.setObservacao(observacao);
 
         boolean isEdit = idParam != null && !idParam.trim().isEmpty();
         if (isEdit) {
@@ -204,8 +205,8 @@ public class ServicoFormServlet extends HttpServlet {
                 }
                 return;
             } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao salvar servico.", e);
-                errors.put("form", "Não foi possível salvar o serviço: " + ErrorMessages.describe(e));
+                errors.put("form", "Não foi possível salvar o serviço: "
+                        + ErrorMessages.friendly(LOGGER, "servicos", "Salvar serviço", e));
             }
         }
 
@@ -219,7 +220,7 @@ public class ServicoFormServlet extends HttpServlet {
         try {
             request.setAttribute("prestadores", prestadorDao.listAll());
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao carregar prestadores.", e);
+            ErrorMessages.logErro(LOGGER, "servicos", "Carregar prestadores para formulário", e);
             request.setAttribute("prestadores", java.util.Collections.emptyList());
         }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/servicoForm.jsp");

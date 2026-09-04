@@ -44,7 +44,7 @@ public class FornecedorFormServlet extends HttpServlet {
                     return;
                 }
             } catch (NumberFormatException | SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao carregar fornecedor para edicao.", e);
+                ErrorMessages.logErro(LOGGER, "fornecedores", "Carregar fornecedor para edição", e);
                 response.sendRedirect(request.getContextPath() + "/fornecedores");
                 return;
             }
@@ -130,8 +130,8 @@ public class FornecedorFormServlet extends HttpServlet {
                 }
                 return;
             } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao salvar fornecedor.", e);
-                errors.put("form", "Não foi possível salvar o fornecedor: " + ErrorMessages.describe(e));
+                errors.put("form", "Não foi possível salvar o fornecedor: "
+                        + ErrorMessages.friendly(LOGGER, "fornecedores", "Salvar fornecedor", e));
             }
         }
 
@@ -160,7 +160,7 @@ public class FornecedorFormServlet extends HttpServlet {
         try {
             request.setAttribute("produtos", produtoDao.listAll());
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao carregar produtos.", e);
+            ErrorMessages.logErro(LOGGER, "fornecedores", "Carregar produtos para formulário", e);
             request.setAttribute("produtos", java.util.Collections.emptyList());
         }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/fornecedorForm.jsp");

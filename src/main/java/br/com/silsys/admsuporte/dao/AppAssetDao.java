@@ -31,4 +31,17 @@ public class AppAssetDao {
             }
         }
     }
+
+    /** Cria ou substitui o asset da chave informada (upsert). */
+    public void salvar(String key, String mimeType, byte[] data) throws SQLException {
+        try (Connection conn = ConnectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "INSERT INTO app_assets (asset_key, mime_type, data) VALUES (?, ?, ?) " +
+                     "ON DUPLICATE KEY UPDATE mime_type = VALUES(mime_type), data = VALUES(data)")) {
+            stmt.setString(1, key);
+            stmt.setString(2, mimeType);
+            stmt.setBytes(3, data);
+            stmt.executeUpdate();
+        }
+    }
 }

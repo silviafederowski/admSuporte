@@ -7,7 +7,6 @@ import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -15,7 +14,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Lista de prestadores, com filtro opcional por servico. Acesso restrito por AdminOrZeladorFilter/AuthFilter. */
+/** Lista de prestadores, com filtro opcional por servico. Acesso controlado pela tabela autorizacoes_menu, tela "prestadores" (ver MenuAutorizacaoFilter). */
 public class PrestadorServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -53,8 +52,8 @@ public class PrestadorServlet extends HttpServlet {
             request.setAttribute("servicosFiltro", servicoDao.listAll());
             request.setAttribute("servicoIdFiltro", servicoIdFiltro);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao listar prestadores.", e);
-            request.setAttribute("formError", "Não foi possível carregar os prestadores: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível carregar os prestadores: "
+                    + ErrorMessages.friendly(LOGGER, "prestadores", "Listar prestadores", e));
         }
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/prestadorList.jsp");

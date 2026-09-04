@@ -3,9 +3,9 @@ package br.com.silsys.admsuporte.servlet;
 import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.ServicoDao;
 import br.com.silsys.admsuporte.model.Servico;
+import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -33,7 +33,7 @@ public class ServicoDeleteServlet extends HttpServlet {
             String usuarioLogado = (String) request.getSession().getAttribute("userName");
             operacaoLogDao.registrar(usuarioLogado, "Serviços de manutenção", "Excluir serviço: " + descricao);
         } catch (NumberFormatException | SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao excluir servico.", e);
+            ErrorMessages.logErro(LOGGER, "servicos", "Excluir serviço", e);
         }
         response.sendRedirect(request.getContextPath() + "/servicos?excluido=1");
     }

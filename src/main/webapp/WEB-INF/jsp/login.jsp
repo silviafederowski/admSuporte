@@ -6,14 +6,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Entrar - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
 </head>
 <body>
 <div class="page">
     <div class="card">
         <img class="logo" src="${pageContext.request.contextPath}/logo" alt="Logotipo">
         <h1 class="title">Bem-vindo de volta</h1>
-        <p class="subtitle">Entre para continuar</p>
 
         <c:if test="${not empty infoMessage}">
             <p class="form-info">${infoMessage}</p>

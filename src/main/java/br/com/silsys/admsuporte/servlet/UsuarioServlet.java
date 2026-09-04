@@ -5,7 +5,6 @@ import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -13,7 +12,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Lista de usuarios. Consulta liberada a qualquer usuario logado (ver EscritaRestritaFilter). */
+/** Lista de usuarios. Acesso controlado pela tabela autorizacoes_menu, tela "usuarios" (ver MenuAutorizacaoFilter). */
 public class UsuarioServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -34,8 +33,8 @@ public class UsuarioServlet extends HttpServlet {
             List<?> usuarios = userDao.listAll();
             request.setAttribute("usuarios", usuarios);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao listar usuarios.", e);
-            request.setAttribute("formError", "Não foi possível carregar os usuários: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível carregar os usuários: "
+                    + ErrorMessages.friendly(LOGGER, "usuarios", "Listar usuários", e));
         }
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/usuarioList.jsp");

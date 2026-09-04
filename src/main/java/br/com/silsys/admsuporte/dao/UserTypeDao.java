@@ -5,6 +5,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,6 +46,47 @@ public class UserTypeDao {
             try (ResultSet rs = stmt.executeQuery()) {
                 return rs.next() ? mapRow(rs) : null;
             }
+        }
+    }
+
+    public int create(UserType t) throws SQLException {
+        try (Connection conn = ConnectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "INSERT INTO user_types (name, nivel) VALUES (?, ?)",
+                     Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setString(1, normalizeName(t.getName()));
+            stmt.setInt(2, t.getNivel());
+            stmt.executeUpdate();
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                return keys.next() ? keys.getInt(1) : -1;
+            }
+        }
+    }
+
+    public void update(UserType t) throws SQLException {
+        try (Connection conn = ConnectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "UPDATE user_types SET name = ?, nivel = ? WHERE id = ?")) {
+            stmt.setString(1, normalizeName(t.getName()));
+            stmt.setInt(2, t.getNivel());
+            stmt.setInt(3, t.getId());
+            stmt.executeUpdate();
+        }
+    }
+
+    /**
+     * O nome e uma chave tecnica comparada em codigo (UserType.ADMINISTRADOR etc., sempre
+     * minusculo) - nunca maiuscula, so normaliza para minusculo/trim.
+     */
+    private String normalizeName(String name) {
+        return name == null ? null : name.trim().toLowerCase();
+    }
+
+    public void delete(int id) throws SQLException {
+        try (Connection conn = ConnectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement("DELETE FROM user_types WHERE id = ?")) {
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
         }
     }
 

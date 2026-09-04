@@ -5,7 +5,6 @@ import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -28,8 +27,8 @@ public class OperacoesLogServlet extends HttpServlet {
             List<?> operacoes = operacaoLogDao.listAll();
             request.setAttribute("operacoes", operacoes);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao listar operacoes.", e);
-            request.setAttribute("formError", "Não foi possível carregar o log de operações: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível carregar o log de operações: "
+                    + ErrorMessages.friendly(LOGGER, "operacoes", "Listar log de operações", e));
         }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/operacoesLog.jsp");
         dispatcher.forward(request, response);

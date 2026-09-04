@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vagas - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
 </head>
 <body>
 <div class="page">
@@ -86,7 +86,7 @@
     <div id="pavimentoPopupResize" class="image-popup-resize-handle" title="Arraste para redimensionar"></div>
 </div>
 
-<script src="${pageContext.request.contextPath}/js/dataTable.js"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=5"></script>
 <script>
     (function () {
         var contextPath = '${pageContext.request.contextPath}';

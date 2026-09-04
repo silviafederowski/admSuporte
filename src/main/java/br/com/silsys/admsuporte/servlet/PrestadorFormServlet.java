@@ -45,7 +45,7 @@ public class PrestadorFormServlet extends HttpServlet {
                     return;
                 }
             } catch (NumberFormatException | SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao carregar prestador para edicao.", e);
+                ErrorMessages.logErro(LOGGER, "prestadores", "Carregar prestador para edição", e);
                 response.sendRedirect(request.getContextPath() + "/prestadores");
                 return;
             }
@@ -143,8 +143,8 @@ public class PrestadorFormServlet extends HttpServlet {
                 }
                 return;
             } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao salvar prestador.", e);
-                errors.put("form", "Não foi possível salvar o prestador: " + ErrorMessages.describe(e));
+                errors.put("form", "Não foi possível salvar o prestador: "
+                        + ErrorMessages.friendly(LOGGER, "prestadores", "Salvar prestador", e));
             }
         }
 
@@ -173,7 +173,7 @@ public class PrestadorFormServlet extends HttpServlet {
         try {
             request.setAttribute("servicos", servicoDao.listAll());
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao carregar servicos.", e);
+            ErrorMessages.logErro(LOGGER, "prestadores", "Carregar serviços para formulário", e);
             request.setAttribute("servicos", java.util.Collections.emptyList());
         }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/prestadorForm.jsp");

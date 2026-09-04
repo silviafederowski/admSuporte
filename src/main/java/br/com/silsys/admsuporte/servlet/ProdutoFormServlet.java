@@ -14,7 +14,6 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -45,7 +44,7 @@ public class ProdutoFormServlet extends HttpServlet {
                 }
                 request.setAttribute("produto", produto);
             } catch (NumberFormatException | SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao carregar produto para edicao.", e);
+                ErrorMessages.logErro(LOGGER, "produtos", "Carregar produto para edição", e);
                 response.sendRedirect(request.getContextPath() + "/produtos");
                 return;
             }
@@ -190,8 +189,8 @@ public class ProdutoFormServlet extends HttpServlet {
                 }
                 return;
             } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao salvar produto.", e);
-                errors.put("form", "Não foi possível salvar o produto: " + ErrorMessages.describe(e));
+                errors.put("form", "Não foi possível salvar o produto: "
+                        + ErrorMessages.friendly(LOGGER, "produtos", "Salvar produto", e));
             }
         }
 
@@ -205,7 +204,7 @@ public class ProdutoFormServlet extends HttpServlet {
         try {
             request.setAttribute("fornecedores", fornecedorDao.listAll());
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao carregar fornecedores.", e);
+            ErrorMessages.logErro(LOGGER, "produtos", "Carregar fornecedores para formulário", e);
             request.setAttribute("fornecedores", java.util.Collections.emptyList());
         }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/produtoForm.jsp");

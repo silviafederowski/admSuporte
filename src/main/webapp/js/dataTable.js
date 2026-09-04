@@ -31,11 +31,11 @@
         if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
             return new Date(trimmed).getTime();
         }
-        var brMatch = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+        var brMatch = trimmed.match(/^(\d{2})\/(\d{2})\/(\d{2}|\d{4})(?:\s+(\d{2}):(\d{2})(?::(\d{2}))?)?$/);
         if (brMatch) {
             var day = Number(brMatch[1]);
             var month = Number(brMatch[2]) - 1;
-            var year = Number(brMatch[3]);
+            var year = brMatch[3].length === 2 ? 2000 + Number(brMatch[3]) : Number(brMatch[3]);
             var hour = brMatch[4] ? Number(brMatch[4]) : 0;
             var minute = brMatch[5] ? Number(brMatch[5]) : 0;
             var second = brMatch[6] ? Number(brMatch[6]) : 0;
@@ -74,7 +74,8 @@
             if (!th.hasAttribute('data-no-sort')) {
                 var input = document.createElement('input');
                 input.type = 'text';
-                input.placeholder = 'Filtrar...';
+                input.placeholder = 'Filtrar';
+                input.setAttribute('aria-label', 'Filtrar esta coluna');
                 input.className = 'column-filter';
                 input.addEventListener('input', applyFilters);
                 filterCell.appendChild(input);
@@ -132,8 +133,68 @@
         }
     }
 
+    /**
+     * Barra de rolagem horizontal fixa no pe da tela (position:fixed;bottom:0), sincronizada com
+     * o scroll real da tabela. Sempre visivel enquanto a tabela tiver colunas escondidas, mesmo
+     * que a barra "de verdade" (embaixo da tabela) ja esteja visivel na tela - assim o usuario
+     * nunca precisa procurar a barra de rolagem em telas diferentes.
+     */
+    function initStickyScrollbar(tableWrap) {
+        var bar = document.createElement('div');
+        bar.className = 'sticky-hscroll';
+        var inner = document.createElement('div');
+        bar.appendChild(inner);
+        document.body.appendChild(bar);
+
+        var syncingFromBar = false;
+        var syncingFromTable = false;
+
+        function updateGeometry() {
+            var rect = tableWrap.getBoundingClientRect();
+            var hasOverflow = tableWrap.scrollWidth > tableWrap.clientWidth + 1;
+
+            bar.style.display = hasOverflow ? 'block' : 'none';
+            if (!hasOverflow) {
+                return;
+            }
+            bar.style.left = rect.left + 'px';
+            bar.style.width = rect.width + 'px';
+            inner.style.width = tableWrap.scrollWidth + 'px';
+            if (!syncingFromTable) {
+                syncingFromBar = true;
+                bar.scrollLeft = tableWrap.scrollLeft;
+                syncingFromBar = false;
+            }
+        }
+
+        tableWrap.addEventListener('scroll', function () {
+            if (syncingFromBar) {
+                return;
+            }
+            syncingFromTable = true;
+            bar.scrollLeft = tableWrap.scrollLeft;
+            syncingFromTable = false;
+        });
+
+        bar.addEventListener('scroll', function () {
+            if (syncingFromTable) {
+                return;
+            }
+            syncingFromBar = true;
+            tableWrap.scrollLeft = bar.scrollLeft;
+            syncingFromBar = false;
+        });
+
+        window.addEventListener('scroll', updateGeometry, { passive: true });
+        window.addEventListener('resize', updateGeometry);
+        updateGeometry();
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         var tables = document.querySelectorAll('table.data-table[data-sortable]');
         Array.prototype.forEach.call(tables, initDataTable);
+
+        var tableWraps = document.querySelectorAll('.table-wrap');
+        Array.prototype.forEach.call(tableWraps, initStickyScrollbar);
     });
 })();

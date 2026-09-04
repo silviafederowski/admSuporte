@@ -97,6 +97,18 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
+        <url-pattern>/pendencias-servico</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/pendencias-servico/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/pendencias-servico/excluir</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
         <url-pattern>/operacoes</url-pattern>
     </filter-mapping>
     <filter-mapping>
@@ -140,19 +152,6 @@
         <url-pattern>/procedimentos/ver</url-pattern>
     </filter-mapping>
 
-    <!-- Condomino (nivel 15) nao pode nem consultar o cadastro de usuarios. -->
-    <filter>
-        <filter-name>SemCondominoFilter</filter-name>
-        <filter-class>br.com.silsys.admsuporte.filter.SemCondominoFilter</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>SemCondominoFilter</filter-name>
-        <url-pattern>/usuarios</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>SemCondominoFilter</filter-name>
-        <url-pattern>/usuarios/form</url-pattern>
-    </filter-mapping>
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
         <url-pattern>/vagas</url-pattern>
@@ -169,76 +168,289 @@
         <filter-name>AuthFilter</filter-name>
         <url-pattern>/veiculos/form</url-pattern>
     </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/autorizacoes</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/autorizacoes/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/autorizacoes/excluir</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/documento-condominio</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/documento-condominio/arquivo</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/tipos-usuario</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/tipos-usuario/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/tipos-usuario/excluir</url-pattern>
+    </filter-mapping>
 
     <!--
-      Restringe acoes de escrita (criar/editar/excluir) a administrador/zelador (nivel <= 9).
-      As telas de consulta (/prestadores, /servicos) ficam liberadas a qualquer usuario logado,
-      protegidas so pelo AuthFilter.
+      Fonte unica de autorizacao das opcoes do menu: tabela autorizacoes_menu (tela de
+      Autorizacoes, /autorizacoes). Uma declaracao de filtro por tela (mesma classe
+      MenuAutorizacaoFilter, telaCodigo diferente via init-param) - sem linha para
+      (telaCodigo, nivel do usuario), a tela fica inacessivel mesmo por URL direta; com
+      "consulta", GET liberado e POST bloqueado; com "edicao", tudo liberado.
     -->
     <filter>
-        <filter-name>AdminOrZeladorFilter</filter-name>
-        <filter-class>br.com.silsys.admsuporte.filter.AdminOrZeladorFilter</filter-class>
+        <filter-name>Autorizacao_prestadores</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>prestadores</param-value>
+        </init-param>
     </filter>
     <filter-mapping>
-        <filter-name>AdminOrZeladorFilter</filter-name>
-        <url-pattern>/google-form</url-pattern>
+        <filter-name>Autorizacao_prestadores</filter-name>
+        <url-pattern>/prestadores</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>AdminOrZeladorFilter</filter-name>
-        <url-pattern>/google-form/upload</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>AdminOrZeladorFilter</filter-name>
-        <url-pattern>/google-form/pdf</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>AdminOrZeladorFilter</filter-name>
-        <url-pattern>/operacoes</url-pattern>
-    </filter-mapping>
-    <!--
-      Telas de formulario dos cadastros (prestadores/fornecedores/servicos/produtos):
-      qualquer usuario logado pode consultar (GET); so administrador/zelador (nivel <= 9)
-      pode gravar (POST, salvar ou excluir).
-    -->
-    <filter>
-        <filter-name>EscritaRestritaFilter</filter-name>
-        <filter-class>br.com.silsys.admsuporte.filter.EscritaRestritaFilter</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>EscritaRestritaFilter</filter-name>
+        <filter-name>Autorizacao_prestadores</filter-name>
         <url-pattern>/prestadores/form</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>EscritaRestritaFilter</filter-name>
+        <filter-name>Autorizacao_prestadores</filter-name>
         <url-pattern>/prestadores/excluir</url-pattern>
     </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_servicos</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>servicos</param-value>
+        </init-param>
+    </filter>
     <filter-mapping>
-        <filter-name>EscritaRestritaFilter</filter-name>
+        <filter-name>Autorizacao_servicos</filter-name>
+        <url-pattern>/servicos</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_servicos</filter-name>
         <url-pattern>/servicos/form</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>EscritaRestritaFilter</filter-name>
+        <filter-name>Autorizacao_servicos</filter-name>
         <url-pattern>/servicos/excluir</url-pattern>
     </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_pendenciasServico</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>pendencias-servico</param-value>
+        </init-param>
+    </filter>
     <filter-mapping>
-        <filter-name>EscritaRestritaFilter</filter-name>
-        <url-pattern>/fornecedores/form</url-pattern>
+        <filter-name>Autorizacao_pendenciasServico</filter-name>
+        <url-pattern>/pendencias-servico</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>EscritaRestritaFilter</filter-name>
-        <url-pattern>/fornecedores/excluir</url-pattern>
+        <filter-name>Autorizacao_pendenciasServico</filter-name>
+        <url-pattern>/pendencias-servico/form</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>EscritaRestritaFilter</filter-name>
+        <filter-name>Autorizacao_pendenciasServico</filter-name>
+        <url-pattern>/pendencias-servico/excluir</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_produtos</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>produtos</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>Autorizacao_produtos</filter-name>
+        <url-pattern>/produtos</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_produtos</filter-name>
         <url-pattern>/produtos/form</url-pattern>
     </filter-mapping>
     <filter-mapping>
-        <filter-name>EscritaRestritaFilter</filter-name>
+        <filter-name>Autorizacao_produtos</filter-name>
         <url-pattern>/produtos/excluir</url-pattern>
     </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_fornecedores</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>fornecedores</param-value>
+        </init-param>
+    </filter>
     <filter-mapping>
-        <filter-name>EscritaRestritaFilter</filter-name>
+        <filter-name>Autorizacao_fornecedores</filter-name>
+        <url-pattern>/fornecedores</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_fornecedores</filter-name>
+        <url-pattern>/fornecedores/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_fornecedores</filter-name>
+        <url-pattern>/fornecedores/excluir</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_usuarios</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>usuarios</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>Autorizacao_usuarios</filter-name>
+        <url-pattern>/usuarios</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_usuarios</filter-name>
         <url-pattern>/usuarios/form</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_vagas</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>vagas</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>Autorizacao_vagas</filter-name>
+        <url-pattern>/vagas</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_vagas</filter-name>
+        <url-pattern>/imagem-pavimento</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_veiculos</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>veiculos</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>Autorizacao_veiculos</filter-name>
+        <url-pattern>/veiculos</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_veiculos</filter-name>
+        <url-pattern>/veiculos/form</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_documentos</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>documentos</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>Autorizacao_documentos</filter-name>
+        <url-pattern>/procedimentos</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_documentos</filter-name>
+        <url-pattern>/procedimentos/ver</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_operacoes</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>operacoes</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>Autorizacao_operacoes</filter-name>
+        <url-pattern>/operacoes</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_googleForm</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>google-form</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>Autorizacao_googleForm</filter-name>
+        <url-pattern>/google-form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_googleForm</filter-name>
+        <url-pattern>/google-form/upload</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_googleForm</filter-name>
+        <url-pattern>/google-form/pdf</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_documentoCondominio</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>documento-condominio</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>Autorizacao_documentoCondominio</filter-name>
+        <url-pattern>/documento-condominio</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_documentoCondominio</filter-name>
+        <url-pattern>/documento-condominio/arquivo</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_tiposUsuario</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>tipos-usuario</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>Autorizacao_tiposUsuario</filter-name>
+        <url-pattern>/tipos-usuario</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_tiposUsuario</filter-name>
+        <url-pattern>/tipos-usuario/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_tiposUsuario</filter-name>
+        <url-pattern>/tipos-usuario/excluir</url-pattern>
     </filter-mapping>
 
     <servlet>
@@ -311,6 +523,33 @@
     <servlet-mapping>
         <servlet-name>ServicoDeleteServlet</servlet-name>
         <url-pattern>/servicos/excluir</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>PendenciaServicoServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.PendenciaServicoServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PendenciaServicoServlet</servlet-name>
+        <url-pattern>/pendencias-servico</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>PendenciaServicoFormServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.PendenciaServicoFormServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PendenciaServicoFormServlet</servlet-name>
+        <url-pattern>/pendencias-servico/form</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>PendenciaServicoDeleteServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.PendenciaServicoDeleteServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PendenciaServicoDeleteServlet</servlet-name>
+        <url-pattern>/pendencias-servico/excluir</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -446,6 +685,83 @@
     <servlet-mapping>
         <servlet-name>UsuarioFormServlet</servlet-name>
         <url-pattern>/usuarios/form</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AutorizacaoMenuServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.AutorizacaoMenuServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AutorizacaoMenuServlet</servlet-name>
+        <url-pattern>/autorizacoes</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AutorizacaoMenuFormServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.AutorizacaoMenuFormServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AutorizacaoMenuFormServlet</servlet-name>
+        <url-pattern>/autorizacoes/form</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AutorizacaoMenuDeleteServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.AutorizacaoMenuDeleteServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AutorizacaoMenuDeleteServlet</servlet-name>
+        <url-pattern>/autorizacoes/excluir</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>DocumentoCondominioServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.DocumentoCondominioServlet</servlet-class>
+        <multipart-config>
+            <max-file-size>20971520</max-file-size>
+            <max-request-size>26214400</max-request-size>
+            <file-size-threshold>1048576</file-size-threshold>
+        </multipart-config>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DocumentoCondominioServlet</servlet-name>
+        <url-pattern>/documento-condominio</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>DocumentoCondominioArquivoServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.DocumentoCondominioArquivoServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>DocumentoCondominioArquivoServlet</servlet-name>
+        <url-pattern>/documento-condominio/arquivo</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>TipoUsuarioServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.TipoUsuarioServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TipoUsuarioServlet</servlet-name>
+        <url-pattern>/tipos-usuario</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>TipoUsuarioFormServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.TipoUsuarioFormServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TipoUsuarioFormServlet</servlet-name>
+        <url-pattern>/tipos-usuario/form</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>TipoUsuarioDeleteServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.TipoUsuarioDeleteServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TipoUsuarioDeleteServlet</servlet-name>
+        <url-pattern>/tipos-usuario/excluir</url-pattern>
     </servlet-mapping>
 
     <servlet>

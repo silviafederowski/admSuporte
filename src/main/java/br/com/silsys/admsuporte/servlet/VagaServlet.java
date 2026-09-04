@@ -5,7 +5,6 @@ import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -15,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Consulta o cruzamento de unidades, vagas e historico de vagas (histvagas).
- * Acesso restrito a administrador/zelador (ver AdminOrZeladorFilter).
+ * Acesso controlado pela tabela autorizacoes_menu, tela "vagas" (ver MenuAutorizacaoFilter).
  */
 public class VagaServlet extends HttpServlet {
 
@@ -31,8 +30,8 @@ public class VagaServlet extends HttpServlet {
             List<?> historico = vagaDao.listHistorico();
             request.setAttribute("historico", historico);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao listar historico de vagas.", e);
-            request.setAttribute("formError", "Não foi possível carregar as vagas: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível carregar as vagas: "
+                    + ErrorMessages.friendly(LOGGER, "vagas", "Listar histórico de vagas", e));
         }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/vagaList.jsp");
         dispatcher.forward(request, response);

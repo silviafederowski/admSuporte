@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -61,7 +60,7 @@ public class VeiculoFormServlet extends HttpServlet {
             request.setAttribute("unidade", unidade);
             request.setAttribute("veiculos", padToFive(veiculoDao.listByUnidade(unidadeChave)));
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao carregar veiculos da unidade.", e);
+            ErrorMessages.logErro(LOGGER, "veiculos", "Carregar veículos da unidade", e);
             response.sendRedirect(request.getContextPath() + "/veiculos");
             return;
         }
@@ -81,7 +80,7 @@ public class VeiculoFormServlet extends HttpServlet {
         try {
             unidade = unidadeDao.findByChave(unidadeChave);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao carregar unidade.", e);
+            ErrorMessages.logErro(LOGGER, "veiculos", "Carregar unidade", e);
             response.sendRedirect(request.getContextPath() + "/veiculos");
             return;
         }
@@ -136,8 +135,8 @@ public class VeiculoFormServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/veiculos?atualizado=1");
                 return;
             } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao salvar veiculos.", e);
-                errors.put("form", "Não foi possível salvar os veículos: " + ErrorMessages.describe(e));
+                errors.put("form", "Não foi possível salvar os veículos: "
+                        + ErrorMessages.friendly(LOGGER, "veiculos", "Salvar veículos", e));
             }
         }
 
@@ -173,7 +172,7 @@ public class VeiculoFormServlet extends HttpServlet {
             request.setAttribute("marcas", marcaDao.listAll());
             request.setAttribute("modelos", modeloDao.listAll());
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao carregar cores/marcas/modelos.", e);
+            ErrorMessages.logErro(LOGGER, "veiculos", "Carregar cores/marcas/modelos para formulário", e);
             request.setAttribute("cores", java.util.Collections.emptyList());
             request.setAttribute("marcas", java.util.Collections.emptyList());
             request.setAttribute("modelos", java.util.Collections.emptyList());
@@ -185,7 +184,7 @@ public class VeiculoFormServlet extends HttpServlet {
                 List<String> codigosVaga = vagaDao.listCodigosVagaAtual(((Unidade) unidadeAttr).getChave());
                 request.setAttribute("codigosVagaUnidade", String.join(", ", codigosVaga));
             } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao carregar vagas da unidade.", e);
+                ErrorMessages.logErro(LOGGER, "veiculos", "Carregar vagas da unidade", e);
                 request.setAttribute("codigosVagaUnidade", "");
             }
         }

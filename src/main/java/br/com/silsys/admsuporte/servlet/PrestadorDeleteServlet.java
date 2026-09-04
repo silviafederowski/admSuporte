@@ -3,9 +3,9 @@ package br.com.silsys.admsuporte.servlet;
 import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.PrestadorDao;
 import br.com.silsys.admsuporte.model.Prestador;
+import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -33,7 +33,7 @@ public class PrestadorDeleteServlet extends HttpServlet {
             String usuarioLogado = (String) request.getSession().getAttribute("userName");
             operacaoLogDao.registrar(usuarioLogado, "Prestadores", "Excluir prestador: " + descricao);
         } catch (NumberFormatException | SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao excluir prestador.", e);
+            ErrorMessages.logErro(LOGGER, "prestadores", "Excluir prestador", e);
         }
         response.sendRedirect(request.getContextPath() + "/prestadores?excluido=1");
     }

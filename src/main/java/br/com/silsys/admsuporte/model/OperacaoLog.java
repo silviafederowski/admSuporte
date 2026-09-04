@@ -8,7 +8,7 @@ public class OperacaoLog implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private static final DateTimeFormatter DATA_HORA_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private static final DateTimeFormatter DATA_HORA_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yy HH:mm:ss");
 
     private int id;
     private String usuario;

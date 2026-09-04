@@ -8,6 +8,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Cria as tabelas (se nao existirem) e carrega o logotipo padrao no banco MySQL "condo",
@@ -28,6 +30,64 @@ public final class SchemaInitializer {
     private static final String PAVIMENTO_KEY_PREFIX = "pavimento_";
     private static final String PAVIMENTO_MIME_TYPE = "image/jpeg";
 
+    /**
+     * Autorizacoes padrao das opcoes do menu (tela_codigo, tela_descricao, nivel, tipo_acesso),
+     * replicando o comportamento que os filtros antigos (AdminOrZeladorFilter, EscritaRestritaFilter,
+     * SemCondominoFilter) ja aplicavam. So e usada para semear a tabela na primeira vez (se ja tiver
+     * qualquer linha, nao mexe mais - a tela de Autorizacoes passa a ser a fonte da verdade).
+     */
+    private static final String[][] AUTORIZACOES_MENU_PADRAO = {
+        {"prestadores", "Cadastro de prestadores de serviço", "0", "edicao"},
+        {"prestadores", "Cadastro de prestadores de serviço", "5", "edicao"},
+        {"prestadores", "Cadastro de prestadores de serviço", "10", "consulta"},
+        {"prestadores", "Cadastro de prestadores de serviço", "15", "consulta"},
+        {"servicos", "Cadastro de serviços de manutenção", "0", "edicao"},
+        {"servicos", "Cadastro de serviços de manutenção", "5", "edicao"},
+        {"servicos", "Cadastro de serviços de manutenção", "10", "consulta"},
+        {"servicos", "Cadastro de serviços de manutenção", "15", "consulta"},
+        {"pendencias-servico", "Histórico de serviços", "0", "edicao"},
+        {"pendencias-servico", "Histórico de serviços", "5", "edicao"},
+        {"pendencias-servico", "Histórico de serviços", "10", "consulta"},
+        {"pendencias-servico", "Histórico de serviços", "15", "consulta"},
+        {"produtos", "Cadastro de produtos", "0", "edicao"},
+        {"produtos", "Cadastro de produtos", "5", "edicao"},
+        {"produtos", "Cadastro de produtos", "10", "consulta"},
+        {"produtos", "Cadastro de produtos", "15", "consulta"},
+        {"fornecedores", "Cadastro de fornecedores", "0", "edicao"},
+        {"fornecedores", "Cadastro de fornecedores", "5", "edicao"},
+        {"fornecedores", "Cadastro de fornecedores", "10", "consulta"},
+        {"fornecedores", "Cadastro de fornecedores", "15", "consulta"},
+        {"usuarios", "Cadastro de usuários", "0", "edicao"},
+        {"usuarios", "Cadastro de usuários", "5", "edicao"},
+        {"usuarios", "Cadastro de usuários", "10", "consulta"},
+        {"vagas", "Consulta de vagas de garagem", "0", "consulta"},
+        {"vagas", "Consulta de vagas de garagem", "5", "consulta"},
+        {"vagas", "Consulta de vagas de garagem", "10", "consulta"},
+        {"vagas", "Consulta de vagas de garagem", "15", "consulta"},
+        {"veiculos", "Cadastro de veículos por unidade", "0", "edicao"},
+        {"veiculos", "Cadastro de veículos por unidade", "5", "edicao"},
+        {"veiculos", "Cadastro de veículos por unidade", "10", "edicao"},
+        {"veiculos", "Cadastro de veículos por unidade", "15", "edicao"},
+        {"documentos", "Documentos (Google Drive)", "0", "consulta"},
+        {"documentos", "Documentos (Google Drive)", "5", "consulta"},
+        {"documentos", "Documentos (Google Drive)", "10", "consulta"},
+        {"documentos", "Documentos (Google Drive)", "15", "consulta"},
+        {"operacoes", "Log de operações", "0", "consulta"},
+        {"operacoes", "Log de operações", "5", "consulta"},
+        {"google-form", "Formulário Google", "0", "edicao"},
+        {"google-form", "Formulário Google", "5", "edicao"},
+        {"documento-condominio", "Dados do condomínio", "0", "edicao"},
+        {"documento-condominio", "Dados do condomínio", "5", "edicao"},
+        {"documento-condominio", "Dados do condomínio", "10", "consulta"},
+        {"documento-condominio", "Dados do condomínio", "15", "consulta"},
+        {"tipos-usuario", "Tipos de usuário", "0", "edicao"},
+        {"tipos-usuario", "Tipos de usuário", "5", "edicao"},
+        // "autorizacoes" e so informativa nesta lista: o acesso a propria tela de Autorizacoes
+        // e sempre fixo no codigo (AutorizacaoMenuFormServlet/DeleteServlet), nunca controlado
+        // por esta tabela - assim nao ha risco de alguem se trancar fora editando essa linha.
+        {"autorizacoes", "Autorizações do menu (administrador e síndico)", "0", "edicao"},
+    };
+
     /** E-mail que deve sempre ter o perfil "administrador", independente de como o usuário foi criado. */
     private static final String BUILTIN_ADMIN_EMAIL = "s070460@gmail.com";
 
@@ -41,6 +101,20 @@ public final class SchemaInitializer {
     };
 
     private SchemaInitializer() {
+    }
+
+    /**
+     * Codigo de tela -> descricao de todas as telas do app que podem ter autorizacao no menu
+     * (mesma fonte usada para semear autorizacoes_menu num banco novo). Usado pelo formulario de
+     * Autorizacoes para sugerir toda tela existente, mesmo uma que ainda nao tenha nenhuma linha
+     * na tabela (banco ja em producao, tela nova adicionada depois do primeiro deploy).
+     */
+    public static Map<String, String> telasConhecidas() {
+        Map<String, String> result = new LinkedHashMap<>();
+        for (String[] linha : AUTORIZACOES_MENU_PADRAO) {
+            result.putIfAbsent(linha[0], linha[1]);
+        }
+        return result;
     }
 
     public static void initialize() throws SQLException {
@@ -66,10 +140,13 @@ public final class SchemaInitializer {
             ensurePrestadorTipoColumn(conn);
             ensureModelosMarcaColumn(conn);
             ensureVeiculosCorObrigatoria(conn);
+            ensureServicoObservacaoColumn(conn);
             ensureEmailAceitaVarios(conn, "prestadores");
             ensureEmailAceitaVarios(conn, "fornecedores");
+            ensurePendenciaServicoStatusColuna(conn);
             seedLogo(conn);
             seedPavimentoImagens(conn);
+            seedAutorizacoesMenu(conn);
         }
     }
 
@@ -131,6 +208,7 @@ public final class SchemaInitializer {
                 "  prestador_proxima_execucao_id INT NULL," +
                 "  valor_orcado_proxima_execucao DECIMAL(10,2) NULL," +
                 "  tipo VARCHAR(15) NOT NULL DEFAULT 'contratado'," +
+                "  observacao LONGTEXT NULL," +
                 "  CONSTRAINT chk_servicos_unidade_periodicidade_v2 " +
                 "    CHECK (unidade_periodicidade IN ('dia', 'mes', 'ano', 'por_demanda'))," +
                 "  CONSTRAINT chk_servicos_tipo " +
@@ -169,6 +247,22 @@ public final class SchemaInitializer {
                 "    REFERENCES prestadores(id) ON DELETE CASCADE," +
                 "  CONSTRAINT fk_prestador_servicos_servico FOREIGN KEY (servico_id) " +
                 "    REFERENCES servicos(id) ON DELETE CASCADE" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS pendencias_servico (" +
+                "  id INT PRIMARY KEY AUTO_INCREMENT," +
+                "  servico_id INT NOT NULL," +
+                "  prestador_id INT NOT NULL," +
+                "  data DATE NOT NULL," +
+                "  nome_tecnico VARCHAR(255) NOT NULL," +
+                "  descricao_ocorrencia LONGTEXT NULL," +
+                "  status VARCHAR(10) NOT NULL DEFAULT 'pendente'," +
+                "  CONSTRAINT fk_pendencias_servico_servico FOREIGN KEY (servico_id) " +
+                "    REFERENCES servicos(id) ON DELETE CASCADE," +
+                "  CONSTRAINT fk_pendencias_servico_prestador FOREIGN KEY (prestador_id) " +
+                "    REFERENCES prestadores(id) ON DELETE CASCADE," +
+                "  CONSTRAINT chk_pendencias_servico_status CHECK (status IN ('pendente', 'resolvido'))" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
             stmt.executeUpdate(
@@ -298,6 +392,19 @@ public final class SchemaInitializer {
                 "  CONSTRAINT fk_veiculos_marca FOREIGN KEY (marca_id) REFERENCES marcas(id)," +
                 "  CONSTRAINT fk_veiculos_modelo FOREIGN KEY (modelo_id) REFERENCES modelos(id)," +
                 "  CONSTRAINT fk_veiculos_cor FOREIGN KEY (cor_id) REFERENCES cores(id)" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            // Fonte unica de autorizacao das opcoes do menu: sem linha para (tela_codigo, nivel),
+            // a opcao nem aparece no menu nem pode ser acessada diretamente pela URL.
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS autorizacoes_menu (" +
+                "  id INT PRIMARY KEY AUTO_INCREMENT," +
+                "  tela_codigo VARCHAR(50) NOT NULL," +
+                "  tela_descricao VARCHAR(255) NOT NULL," +
+                "  nivel INT NOT NULL," +
+                "  tipo_acesso VARCHAR(15) NOT NULL," +
+                "  CONSTRAINT uq_autorizacoes_menu_tela_nivel UNIQUE (tela_codigo, nivel)," +
+                "  CONSTRAINT chk_autorizacoes_menu_tipo_acesso CHECK (tipo_acesso IN ('consulta', 'edicao'))" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         }
     }
@@ -587,6 +694,14 @@ public final class SchemaInitializer {
         }
     }
 
+    private static void ensureServicoObservacaoColumn(Connection conn) throws SQLException {
+        if (!columnExists(conn, "servicos", "observacao")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE servicos ADD COLUMN observacao LONGTEXT NULL");
+            }
+        }
+    }
+
     /** O campo email de prestadores/fornecedores pode ter varios enderecos; garante que a coluna seja TEXT. */
     private static void ensureEmailAceitaVarios(Connection conn, String table) throws SQLException {
         String dataType = null;
@@ -603,6 +718,24 @@ public final class SchemaInitializer {
         if (dataType != null && !"text".equalsIgnoreCase(dataType)) {
             try (Statement stmt = conn.createStatement()) {
                 stmt.executeUpdate("ALTER TABLE " + table + " MODIFY COLUMN email TEXT NULL");
+            }
+        }
+    }
+
+    /** Coluna adicionada apos a criacao inicial da tabela (bancos ja em producao). */
+    private static void ensurePendenciaServicoStatusColuna(Connection conn) throws SQLException {
+        if (!columnExists(conn, "pendencias_servico", "status")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE pendencias_servico ADD COLUMN status VARCHAR(10) NOT NULL DEFAULT 'pendente' " +
+                    "AFTER descricao_ocorrencia");
+            }
+        }
+        if (!constraintExists(conn, "pendencias_servico", "chk_pendencias_servico_status")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE pendencias_servico ADD CONSTRAINT chk_pendencias_servico_status " +
+                    "CHECK (status IN ('pendente', 'resolvido'))");
             }
         }
     }
@@ -825,6 +958,28 @@ public final class SchemaInitializer {
                 insert.setBytes(3, imageBytes);
                 insert.executeUpdate();
             }
+        }
+    }
+
+    /** So semeia se a tabela estiver vazia: depois disso, a tela de Autorizacoes manda. */
+    private static void seedAutorizacoesMenu(Connection conn) throws SQLException {
+        try (Statement check = conn.createStatement();
+             ResultSet rs = check.executeQuery("SELECT COUNT(*) FROM autorizacoes_menu")) {
+            rs.next();
+            if (rs.getInt(1) > 0) {
+                return;
+            }
+        }
+        try (PreparedStatement insert = conn.prepareStatement(
+                "INSERT INTO autorizacoes_menu (tela_codigo, tela_descricao, nivel, tipo_acesso) VALUES (?, ?, ?, ?)")) {
+            for (String[] linha : AUTORIZACOES_MENU_PADRAO) {
+                insert.setString(1, linha[0]);
+                insert.setString(2, linha[1]);
+                insert.setInt(3, Integer.parseInt(linha[2]));
+                insert.setString(4, linha[3]);
+                insert.addBatch();
+            }
+            insert.executeBatch();
         }
     }
 

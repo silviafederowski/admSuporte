@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Veículos - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
 </head>
 <body>
 <div class="page">
@@ -14,7 +14,7 @@
         <div class="toolbar">
             <h1 class="title" style="text-align:left;margin:0;">
                 Veículos da unidade ${unidade.codigo}
-                <c:if test="${not empty codigosVagaUnidade}"> - ${codigosVagaUnidade}</c:if>
+                <c:if test="${not empty codigosVagaUnidade}"> - Vaga ${codigosVagaUnidade}</c:if>
             </h1>
             <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
         </div>

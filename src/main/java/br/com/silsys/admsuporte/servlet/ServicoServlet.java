@@ -5,7 +5,6 @@ import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -36,8 +35,8 @@ public class ServicoServlet extends HttpServlet {
             List<?> servicos = servicoDao.listAll();
             request.setAttribute("servicos", servicos);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao listar servicos.", e);
-            request.setAttribute("formError", "Não foi possível carregar os serviços: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível carregar os serviços: "
+                    + ErrorMessages.friendly(LOGGER, "servicos", "Listar serviços", e));
         }
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/servicoList.jsp");

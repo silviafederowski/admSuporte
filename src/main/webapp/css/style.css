@@ -9,6 +9,9 @@
     --border: #D1D5DB;
     --error: #DC2626;
     --success: #16A34A;
+    /* Icone de filtro (funil + selo de check), usado nas colunas filtraveis das tabelas e nos
+       filtros de fornecedores/prestadores. SVG embutido para nao depender de fonte/emoji. */
+    --icon-filter: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 4l8.5 9.5v4.3'/%3E%3Cpath d='M12.5 17.8q-1 1.7 -3 1'/%3E%3Cpath d='M20 4l-5.2 5.8'/%3E%3Ccircle cx='17' cy='17' r='4.3'/%3E%3Cpath d='M15 17.3l1.4 1.4l2.6-2.8'/%3E%3C/svg%3E");
 }
 
 * {
@@ -95,6 +98,12 @@ input:focus {
 
 .field-error {
     color: var(--error);
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.field-hint {
+    color: var(--text-muted);
     font-size: 12px;
     margin-top: 4px;
 }
@@ -227,6 +236,32 @@ a.link:hover {
 
 .menu-page .logo {
     max-width: 220px;
+}
+
+.menu-grid {
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(6, auto);
+    gap: 10px 16px;
+    margin-bottom: 16px;
+}
+
+.menu-grid .btn {
+    margin-bottom: 0;
+}
+
+.menu-logout {
+    max-width: 260px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (max-width: 640px) {
+    .menu-grid {
+        grid-auto-flow: row;
+        grid-template-rows: none;
+        grid-template-columns: 1fr;
+    }
 }
 
 .simulated-code {
@@ -380,6 +415,58 @@ textarea:focus {
     opacity: 0.7;
 }
 
+.nivel-cell {
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.nivel-cell:hover {
+    text-decoration: underline;
+}
+
+.info-popup {
+    position: fixed;
+    z-index: 1000;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    padding: 12px 16px;
+    min-width: 200px;
+    max-width: min(90vw, 320px);
+}
+
+.info-popup-title {
+    font-weight: 700;
+    margin-bottom: 8px;
+    padding-right: 16px;
+}
+
+.info-popup ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.info-popup li {
+    text-transform: capitalize;
+}
+
+.info-popup-close {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 1;
+}
+
 .clickable-row {
     cursor: pointer;
 }
@@ -426,6 +513,22 @@ tr.selected-row:hover {
     width: 100%;
     overflow-x: auto;
     margin-bottom: 20px;
+}
+
+.sticky-hscroll {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    height: 14px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    z-index: 900;
+}
+
+.sticky-hscroll > div {
+    height: 1px;
 }
 
 .data-table {
@@ -514,6 +617,16 @@ tr.selected-row:hover {
     color: var(--error);
 }
 
+.badge-pendente {
+    background: rgba(217, 119, 6, 0.12);
+    color: #B45309;
+}
+
+.badge-resolvido {
+    background: rgba(22, 163, 74, 0.12);
+    color: var(--success);
+}
+
 @keyframes blink-atrasado {
     0%, 49% { opacity: 1; }
     50%, 100% { opacity: 0.25; }
@@ -523,6 +636,28 @@ tr.selected-row:hover {
     color: var(--error);
     font-weight: 700;
     animation: blink-atrasado 1s step-start infinite;
+}
+
+.agendado {
+    color: var(--primary);
+    font-weight: 700;
+}
+
+/* Tela de aviso pos-login: atrasados e agendados-para-hoje lado a lado (uma coluna por lista presente). */
+.alerta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    margin-bottom: 20px;
+}
+
+.alerta-coluna {
+    min-width: 0;
+}
+
+/* Tela de Servicos: linha inteira em vermelho quando o servico esta atrasado. */
+.row-atrasado td {
+    color: var(--error);
 }
 
 .sortable-header {
@@ -569,6 +704,31 @@ tr.selected-row:hover {
     letter-spacing: normal;
     background: var(--surface);
     color: var(--text);
+}
+
+.filter-icon {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    background-image: var(--icon-filter);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    vertical-align: middle;
+}
+
+/* :placeholder-shown (so quando o campo esta vazio) troca o texto do placeholder pelo
+   icone de filtro, do maior tamanho que cabe sem alterar a altura da linha atual. */
+.column-filter::placeholder {
+    color: transparent;
+}
+
+.column-filter:placeholder-shown {
+    text-align: center;
+    background-image: var(--icon-filter);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 20px 20px;
 }
 
 .column-filter:focus {

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -75,8 +74,8 @@ public class ResetPasswordServlet extends HttpServlet {
                     return;
                 }
             } catch (SQLException e) {
-                LOGGER.log(Level.SEVERE, "Falha ao redefinir senha.", e);
-                errors.put("form", "Não foi possível redefinir a senha: " + ErrorMessages.describe(e));
+                errors.put("form", "Não foi possível redefinir a senha: "
+                        + ErrorMessages.friendly(LOGGER, "reset-password", "Redefinir senha", e));
             }
         }
 
@@ -94,9 +93,9 @@ public class ResetPasswordServlet extends HttpServlet {
             session.setAttribute("simulatedCode", newCode);
             request.setAttribute("resentMessage", "Novo código gerado (simulado) para " + destination + ".");
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao reenviar codigo de recuperacao.", e);
             request.setAttribute("errors", java.util.Collections.singletonMap(
-                    "form", "Não foi possível gerar um novo código: " + ErrorMessages.describe(e)));
+                    "form", "Não foi possível gerar um novo código: "
+                            + ErrorMessages.friendly(LOGGER, "reset-password", "Reenviar código de recuperação", e)));
         }
         forward(request, response);
     }

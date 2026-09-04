@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -82,9 +81,9 @@ public class GoogleFormPdfServlet extends HttpServlet {
             response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
             buffer.writeTo(response.getOutputStream());
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Falha ao gerar o PDF do condominio.", e);
             request.setAttribute("rows", allRows);
-            request.setAttribute("error", "Não foi possível gerar o PDF: " + ErrorMessages.describe(e));
+            request.setAttribute("error", "Não foi possível gerar o PDF: "
+                    + ErrorMessages.friendly(LOGGER, "google-form", "Gerar PDF do condomínio", e));
             RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/googleFormSelect.jsp");
             dispatcher.forward(request, response);
         }

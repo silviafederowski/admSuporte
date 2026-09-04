@@ -21,6 +21,12 @@ public class UserType implements Serializable {
     /** Ate este nivel (inclusive), o usuario recebe o alerta de servicos atrasados ao logar. Condomino (15) fica de fora. */
     public static final int NIVEL_MAXIMO_ALERTA_ATRASO = NIVEL_MAXIMO_SEM_CONDOMINO;
 
+    /** Ate este nivel (inclusive), o usuario recebe o alerta de servicos agendados para hoje ao logar (nivel < 6: so administrador e zelador). */
+    public static final int NIVEL_MAXIMO_ALERTA_AGENDADO = 5;
+
+    /** Ate este nivel (inclusive), a tela de Documentos tambem mostra os arquivos da subpasta "procedimentos" dentro de "ParaWeb" (nivel < 6: so administrador e zelador). */
+    public static final int NIVEL_MAXIMO_SUBPASTA_PROCEDIMENTOS = 5;
+
     private int id;
     private String name;
     private int nivel;
@@ -61,5 +67,14 @@ public class UserType implements Serializable {
 
     public void setNivel(int nivel) {
         this.nivel = nivel;
+    }
+
+    /**
+     * Nivel com 2 digitos (00, 01, 05, 10...), so para exibicao nas listas: o filtro de coluna
+     * (busca por trecho) confunde "0" com "10"/"20" e "1" com "10"/"15" quando o numero tem so
+     * 1 digito. O valor real (int) usado em toda a logica de autorizacao nao muda.
+     */
+    public String getNivelFormatado() {
+        return String.format("%02d", nivel);
     }
 }

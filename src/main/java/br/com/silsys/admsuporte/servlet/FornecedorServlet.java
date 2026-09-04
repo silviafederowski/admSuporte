@@ -7,7 +7,6 @@ import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -15,7 +14,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Lista de fornecedores, com filtro opcional por produto. Acesso liberado a qualquer usuario logado (ver AuthFilter/AdminOrZeladorFilter). */
+/** Lista de fornecedores, com filtro opcional por produto. Acesso controlado pela tabela autorizacoes_menu, tela "fornecedores" (ver MenuAutorizacaoFilter). */
 public class FornecedorServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
@@ -53,8 +52,8 @@ public class FornecedorServlet extends HttpServlet {
             request.setAttribute("produtosFiltro", produtoDao.listAll());
             request.setAttribute("produtoIdFiltro", produtoIdFiltro);
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Falha ao listar fornecedores.", e);
-            request.setAttribute("formError", "Não foi possível carregar os fornecedores: " + ErrorMessages.describe(e));
+            request.setAttribute("formError", "Não foi possível carregar os fornecedores: "
+                    + ErrorMessages.friendly(LOGGER, "fornecedores", "Listar fornecedores", e));
         }
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/fornecedorList.jsp");

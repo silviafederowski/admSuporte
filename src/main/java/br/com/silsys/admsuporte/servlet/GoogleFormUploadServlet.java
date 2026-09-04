@@ -7,7 +7,6 @@ import br.com.silsys.admsuporte.util.SpreadsheetParser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -36,8 +35,8 @@ public class GoogleFormUploadServlet extends HttpServlet {
         try {
             filePart = request.getPart("file");
         } catch (ServletException e) {
-            LOGGER.log(Level.WARNING, "Falha ao ler upload multipart.", e);
-            request.setAttribute("error", "Não foi possível ler o arquivo enviado: " + ErrorMessages.describe(e));
+            request.setAttribute("error", "Não foi possível ler o arquivo enviado: "
+                    + ErrorMessages.friendly(LOGGER, "google-form", "Ler upload multipart", e));
             forwardUpload(request, response);
             return;
         }
@@ -57,8 +56,8 @@ public class GoogleFormUploadServlet extends HttpServlet {
             request.setAttribute("error", e.getMessage());
             forwardUpload(request, response);
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Falha ao ler a planilha enviada.", e);
-            request.setAttribute("error", "Não foi possível ler a planilha selecionada: " + ErrorMessages.describe(e));
+            request.setAttribute("error", "Não foi possível ler a planilha selecionada: "
+                    + ErrorMessages.friendly(LOGGER, "google-form", "Ler planilha enviada", e));
             forwardUpload(request, response);
         }
     }

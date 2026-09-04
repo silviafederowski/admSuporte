@@ -1,6 +1,6 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<c:set var="readOnly" value="${sessionScope.userNivel > 9}" />
+<%-- readOnly vem de request (definido pelo MenuAutorizacaoFilter, tela "prestadores") --%>
 <c:set var="dis" value="${readOnly ? 'disabled' : ''}" />
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Prestador - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
 </head>
 <body>
 <div class="page">
