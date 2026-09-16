@@ -81,6 +81,33 @@
             </div>
         </c:if>
 
+        <c:if test="${not empty arquivosPlantas}">
+            <h2 class="subtitle" style="margin-top:24px;">Plantas</h2>
+            <div class="table-wrap">
+                <table class="data-table" data-sortable>
+                    <thead>
+                    <tr>
+                        <th style="text-align:left;">Nome</th>
+                        <th>Tipo</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <c:forEach var="ap" items="${arquivosPlantas}">
+                        <c:url var="verUrlPlanta" value="/procedimentos/ver">
+                            <c:param name="id" value="${ap.id}" />
+                            <c:param name="nome" value="${ap.nome}" />
+                            <c:param name="mimeType" value="${ap.mimeType}" />
+                        </c:url>
+                        <tr class="clickable-row" onclick="window.location='${verUrlPlanta}'">
+                            <td style="text-align:left;">${ap.nome}</td>
+                            <td>${ap.tipo}</td>
+                        </tr>
+                    </c:forEach>
+                    </tbody>
+                </table>
+            </div>
+        </c:if>
+
     </div>
 </div>
 <script src="${pageContext.request.contextPath}/js/dataTable.js?v=5"></script>

@@ -3,15 +3,14 @@ package br.com.silsys.admsuporte.servlet;
 import br.com.silsys.admsuporte.dao.FornecedorDao;
 import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.ProdutoDao;
-import br.com.silsys.admsuporte.model.PeriodicidadeUnidade;
+import br.com.silsys.admsuporte.dao.TipoProdutoDao;
 import br.com.silsys.admsuporte.model.Produto;
+import br.com.silsys.admsuporte.model.UnidadeMedidaProduto;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -29,6 +28,7 @@ public class ProdutoFormServlet extends HttpServlet {
 
     private final ProdutoDao produtoDao = new ProdutoDao();
     private final FornecedorDao fornecedorDao = new FornecedorDao();
+    private final TipoProdutoDao tipoProdutoDao = new TipoProdutoDao();
     private final OperacaoLogDao operacaoLogDao = new OperacaoLogDao();
 
     @Override
@@ -57,54 +57,59 @@ public class ProdutoFormServlet extends HttpServlet {
             throws ServletException, IOException {
         String idParam = request.getParameter("id");
         String descricao = request.getParameter("descricao");
-        String periodicidadeParam = request.getParameter("periodicidade");
-        String unidadeParam = request.getParameter("unidadePeriodicidade");
-        String ultimaExecucaoParam = request.getParameter("ultimaExecucao");
+        String tipoIdParam = request.getParameter("tipoId");
+        String unidadeParam = request.getParameter("unidade");
+        String estoqueMinimoParam = request.getParameter("estoqueMinimo");
+        String estoqueAtualParam = request.getParameter("estoqueAtual");
         String ultimoFornecedorIdParam = request.getParameter("ultimoFornecedorId");
-        String valorPagoUltimaExecucaoParam = request.getParameter("valorPagoUltimaExecucao");
-        String dataAgendadaProximaExecucaoParam = request.getParameter("dataAgendadaProximaExecucao");
-        String fornecedorProximaExecucaoIdParam = request.getParameter("fornecedorProximaExecucaoId");
-        String valorOrcadoProximaExecucaoParam = request.getParameter("valorOrcadoProximaExecucao");
+        String valorUltimaCompraParam = request.getParameter("valorUltimaCompra");
 
         Map<String, String> errors = new HashMap<>();
         if (ValidationUtil.isBlank(descricao)) {
             errors.put("descricao", "Informe a descrição.");
         }
 
-        PeriodicidadeUnidade unidade = null;
+        Integer tipoId = null;
+        if (!ValidationUtil.isBlank(tipoIdParam)) {
+            try {
+                tipoId = Integer.parseInt(tipoIdParam.trim());
+            } catch (NumberFormatException e) {
+                errors.put("tipoId", "Tipo inválido.");
+            }
+        }
+
+        UnidadeMedidaProduto unidade = null;
         if (ValidationUtil.isBlank(unidadeParam)) {
-            errors.put("unidadePeriodicidade", "Selecione a unidade.");
+            errors.put("unidade", "Selecione a unidade.");
         } else {
             try {
-                unidade = PeriodicidadeUnidade.fromDbValue(unidadeParam);
+                unidade = UnidadeMedidaProduto.fromDbValue(unidadeParam);
             } catch (IllegalArgumentException e) {
-                errors.put("unidadePeriodicidade", "Unidade inválida.");
+                errors.put("unidade", "Unidade inválida.");
             }
         }
 
-        Integer periodicidade = null;
-        boolean porDemanda = unidade == PeriodicidadeUnidade.POR_DEMANDA;
-        if (!porDemanda) {
-            if (ValidationUtil.isBlank(periodicidadeParam)) {
-                errors.put("periodicidade", "Informe a periodicidade.");
-            } else {
-                try {
-                    periodicidade = Integer.parseInt(periodicidadeParam.trim());
-                    if (periodicidade <= 0) {
-                        errors.put("periodicidade", "A periodicidade deve ser maior que zero.");
-                    }
-                } catch (NumberFormatException e) {
-                    errors.put("periodicidade", "Informe um número válido.");
-                }
-            }
-        }
-
-        LocalDate ultimaExecucao = null;
-        if (!ValidationUtil.isBlank(ultimaExecucaoParam)) {
+        Integer estoqueMinimo = 0;
+        if (!ValidationUtil.isBlank(estoqueMinimoParam)) {
             try {
-                ultimaExecucao = LocalDate.parse(ultimaExecucaoParam.trim());
-            } catch (DateTimeParseException e) {
-                errors.put("ultimaExecucao", "Data inválida.");
+                estoqueMinimo = Integer.parseInt(estoqueMinimoParam.trim());
+                if (estoqueMinimo < 0) {
+                    errors.put("estoqueMinimo", "O estoque mínimo não pode ser negativo.");
+                }
+            } catch (NumberFormatException e) {
+                errors.put("estoqueMinimo", "Informe um número válido.");
+            }
+        }
+
+        Integer estoqueAtual = 0;
+        if (!ValidationUtil.isBlank(estoqueAtualParam)) {
+            try {
+                estoqueAtual = Integer.parseInt(estoqueAtualParam.trim());
+                if (estoqueAtual < 0) {
+                    errors.put("estoqueAtual", "O estoque atual não pode ser negativo.");
+                }
+            } catch (NumberFormatException e) {
+                errors.put("estoqueAtual", "Informe um número válido.");
             }
         }
 
@@ -117,52 +122,23 @@ public class ProdutoFormServlet extends HttpServlet {
             }
         }
 
-        BigDecimal valorPagoUltimaExecucao = null;
-        if (!ValidationUtil.isBlank(valorPagoUltimaExecucaoParam)) {
+        BigDecimal valorUltimaCompra = null;
+        if (!ValidationUtil.isBlank(valorUltimaCompraParam)) {
             try {
-                valorPagoUltimaExecucao = new BigDecimal(valorPagoUltimaExecucaoParam.trim());
+                valorUltimaCompra = new BigDecimal(valorUltimaCompraParam.trim());
             } catch (NumberFormatException e) {
-                errors.put("valorPagoUltimaExecucao", "Valor inválido.");
-            }
-        }
-
-        LocalDate dataAgendadaProximaExecucao = null;
-        if (!ValidationUtil.isBlank(dataAgendadaProximaExecucaoParam)) {
-            try {
-                dataAgendadaProximaExecucao = LocalDate.parse(dataAgendadaProximaExecucaoParam.trim());
-            } catch (DateTimeParseException e) {
-                errors.put("dataAgendadaProximaExecucao", "Data invalida.");
-            }
-        }
-
-        Integer fornecedorProximaExecucaoId = null;
-        if (!ValidationUtil.isBlank(fornecedorProximaExecucaoIdParam)) {
-            try {
-                fornecedorProximaExecucaoId = Integer.parseInt(fornecedorProximaExecucaoIdParam.trim());
-            } catch (NumberFormatException e) {
-                errors.put("fornecedorProximaExecucaoId", "Fornecedor inválido.");
-            }
-        }
-
-        BigDecimal valorOrcadoProximaExecucao = null;
-        if (!ValidationUtil.isBlank(valorOrcadoProximaExecucaoParam)) {
-            try {
-                valorOrcadoProximaExecucao = new BigDecimal(valorOrcadoProximaExecucaoParam.trim());
-            } catch (NumberFormatException e) {
-                errors.put("valorOrcadoProximaExecucao", "Valor inválido.");
+                errors.put("valorUltimaCompra", "Valor inválido.");
             }
         }
 
         Produto produto = new Produto();
         produto.setDescricao(descricao);
-        produto.setPeriodicidade(periodicidade);
-        produto.setUnidadePeriodicidade(unidade);
-        produto.setUltimaExecucao(ultimaExecucao);
+        produto.setTipoId(tipoId);
+        produto.setUnidade(unidade);
+        produto.setEstoqueMinimo(estoqueMinimo);
+        produto.setEstoqueAtual(estoqueAtual);
         produto.setUltimoFornecedorId(ultimoFornecedorId);
-        produto.setValorPagoUltimaExecucao(valorPagoUltimaExecucao);
-        produto.setDataAgendadaProximaExecucao(dataAgendadaProximaExecucao);
-        produto.setFornecedorProximaExecucaoId(fornecedorProximaExecucaoId);
-        produto.setValorOrcadoProximaExecucao(valorOrcadoProximaExecucao);
+        produto.setValorUltimaCompra(valorUltimaCompra);
 
         boolean isEdit = idParam != null && !idParam.trim().isEmpty();
         if (isEdit) {
@@ -206,6 +182,12 @@ public class ProdutoFormServlet extends HttpServlet {
         } catch (SQLException e) {
             ErrorMessages.logErro(LOGGER, "produtos", "Carregar fornecedores para formulário", e);
             request.setAttribute("fornecedores", java.util.Collections.emptyList());
+        }
+        try {
+            request.setAttribute("tipos", tipoProdutoDao.listAll());
+        } catch (SQLException e) {
+            ErrorMessages.logErro(LOGGER, "produtos", "Carregar tipos de produtos para formulário", e);
+            request.setAttribute("tipos", java.util.Collections.emptyList());
         }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/produtoForm.jsp");
         dispatcher.forward(request, response);

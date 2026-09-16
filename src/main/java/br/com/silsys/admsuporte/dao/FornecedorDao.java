@@ -31,7 +31,7 @@ public class FornecedorDao {
                 }
             }
             if (id > 0) {
-                saveProdutoLinks(conn, id, f.getProdutoIds());
+                saveTipoProdutoLinks(conn, id, f.getTipoProdutoIds());
             }
             return id;
         }
@@ -50,7 +50,7 @@ public class FornecedorDao {
                 stmt.setInt(nextIndex, f.getId());
                 stmt.executeUpdate();
             }
-            saveProdutoLinks(conn, f.getId(), f.getProdutoIds());
+            saveTipoProdutoLinks(conn, f.getId(), f.getTipoProdutoIds());
         }
     }
 
@@ -72,7 +72,7 @@ public class FornecedorDao {
                 }
             }
             if (f != null) {
-                f.setProdutoIds(loadProdutoIds(conn, id));
+                f.setTipoProdutoIds(loadTipoProdutoIds(conn, id));
             }
             return f;
         }
@@ -91,14 +91,14 @@ public class FornecedorDao {
         return result;
     }
 
-    public List<Fornecedor> listByProduto(int produtoId) throws SQLException {
+    public List<Fornecedor> listByTipoProduto(int tipoProdutoId) throws SQLException {
         List<Fornecedor> result = new ArrayList<>();
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT f.* FROM fornecedores f " +
-                     "JOIN fornecedor_produtos fp ON fp.fornecedor_id = f.id " +
-                     "WHERE fp.produto_id = ? ORDER BY f.nome_razao_social")) {
-            stmt.setInt(1, produtoId);
+                     "JOIN fornecedor_produtos_tipo fpt ON fpt.fornecedor_id = f.id " +
+                     "WHERE fpt.tipo_produto_id = ? ORDER BY f.nome_razao_social")) {
+            stmt.setInt(1, tipoProdutoId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     result.add(mapRow(rs));
@@ -108,29 +108,29 @@ public class FornecedorDao {
         return result;
     }
 
-    private void saveProdutoLinks(Connection conn, int fornecedorId, List<Integer> produtoIds) throws SQLException {
-        try (PreparedStatement del = conn.prepareStatement("DELETE FROM fornecedor_produtos WHERE fornecedor_id = ?")) {
+    private void saveTipoProdutoLinks(Connection conn, int fornecedorId, List<Integer> tipoProdutoIds) throws SQLException {
+        try (PreparedStatement del = conn.prepareStatement("DELETE FROM fornecedor_produtos_tipo WHERE fornecedor_id = ?")) {
             del.setInt(1, fornecedorId);
             del.executeUpdate();
         }
-        if (produtoIds == null || produtoIds.isEmpty()) {
+        if (tipoProdutoIds == null || tipoProdutoIds.isEmpty()) {
             return;
         }
         try (PreparedStatement ins = conn.prepareStatement(
-                "INSERT INTO fornecedor_produtos (fornecedor_id, produto_id) VALUES (?, ?)")) {
-            for (Integer produtoId : produtoIds) {
+                "INSERT INTO fornecedor_produtos_tipo (fornecedor_id, tipo_produto_id) VALUES (?, ?)")) {
+            for (Integer tipoProdutoId : tipoProdutoIds) {
                 ins.setInt(1, fornecedorId);
-                ins.setInt(2, produtoId);
+                ins.setInt(2, tipoProdutoId);
                 ins.addBatch();
             }
             ins.executeBatch();
         }
     }
 
-    private List<Integer> loadProdutoIds(Connection conn, int fornecedorId) throws SQLException {
+    private List<Integer> loadTipoProdutoIds(Connection conn, int fornecedorId) throws SQLException {
         List<Integer> ids = new ArrayList<>();
         try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT produto_id FROM fornecedor_produtos WHERE fornecedor_id = ?")) {
+                "SELECT tipo_produto_id FROM fornecedor_produtos_tipo WHERE fornecedor_id = ?")) {
             stmt.setInt(1, fornecedorId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {

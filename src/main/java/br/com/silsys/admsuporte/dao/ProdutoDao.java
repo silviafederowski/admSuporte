@@ -1,12 +1,11 @@
 package br.com.silsys.admsuporte.dao;
 
 import br.com.silsys.admsuporte.model.Fornecedor;
-import br.com.silsys.admsuporte.model.PeriodicidadeUnidade;
 import br.com.silsys.admsuporte.model.Produto;
+import br.com.silsys.admsuporte.model.UnidadeMedidaProduto;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.math.BigDecimal;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -18,18 +17,17 @@ import java.util.List;
 public class ProdutoDao {
 
     private static final String SELECT_BASE =
-            "SELECT p.*, uf.nome_razao_social AS ultimo_fornecedor_nome, " +
-            "fp.nome_razao_social AS fornecedor_proxima_execucao_nome FROM produtos p " +
-            "LEFT JOIN fornecedores uf ON p.ultimo_fornecedor_id = uf.id " +
-            "LEFT JOIN fornecedores fp ON p.fornecedor_proxima_execucao_id = fp.id ";
+            "SELECT p.*, pt.descricao AS tipo_descricao, uf.nome_razao_social AS ultimo_fornecedor_nome " +
+            "FROM produtos p " +
+            "LEFT JOIN produtos_tipo pt ON p.produtos_tipo = pt.id " +
+            "LEFT JOIN fornecedores uf ON p.ultimo_fornecedor_id = uf.id ";
 
     public int create(Produto p) throws SQLException {
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO produtos (descricao, periodicidade, unidade_periodicidade, " +
-                     "ultima_execucao, ultimo_fornecedor_id, valor_pago_ultima_execucao, " +
-                     "data_agendada_proxima_execucao, fornecedor_proxima_execucao_id, valor_orcado_proxima_execucao) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     "INSERT INTO produtos (descricao, produtos_tipo, unidade, estoque_minimo, estoque_atual, " +
+                     "ultimo_fornecedor_id, valor_ultima_compra) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?)",
                      Statement.RETURN_GENERATED_KEYS)) {
             bindParams(stmt, p);
             stmt.executeUpdate();
@@ -45,10 +43,8 @@ public class ProdutoDao {
     public void update(Produto p) throws SQLException {
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE produtos SET descricao = ?, periodicidade = ?, unidade_periodicidade = ?, " +
-                     "ultima_execucao = ?, ultimo_fornecedor_id = ?, valor_pago_ultima_execucao = ?, " +
-                     "data_agendada_proxima_execucao = ?, fornecedor_proxima_execucao_id = ?, " +
-                     "valor_orcado_proxima_execucao = ? WHERE id = ?")) {
+                     "UPDATE produtos SET descricao = ?, produtos_tipo = ?, unidade = ?, estoque_minimo = ?, " +
+                     "estoque_atual = ?, ultimo_fornecedor_id = ?, valor_ultima_compra = ? WHERE id = ?")) {
             int nextIndex = bindParams(stmt, p);
             stmt.setInt(nextIndex, p.getId());
             stmt.executeUpdate();
@@ -95,12 +91,17 @@ public class ProdutoDao {
         return result;
     }
 
+    /**
+     * Fornecedores que oferecem o tipo de produto deste produto (fornecedor_produtos_tipo), ja
+     * que fornecedores agora sao associados ao tipo de produto, nao a um produto especifico.
+     */
     private List<Fornecedor> findFornecedoresByProduto(Connection conn, int produtoId) throws SQLException {
         List<Fornecedor> fornecedores = new ArrayList<>();
         try (PreparedStatement stmt = conn.prepareStatement(
-                "SELECT f.id, f.nome_razao_social FROM fornecedor_produtos fp " +
-                "JOIN fornecedores f ON fp.fornecedor_id = f.id " +
-                "WHERE fp.produto_id = ? ORDER BY f.nome_razao_social")) {
+                "SELECT DISTINCT f.id, f.nome_razao_social FROM fornecedor_produtos_tipo fpt " +
+                "JOIN fornecedores f ON fpt.fornecedor_id = f.id " +
+                "JOIN produtos p ON p.produtos_tipo = fpt.tipo_produto_id " +
+                "WHERE p.id = ? ORDER BY f.nome_razao_social")) {
             stmt.setInt(1, produtoId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -116,23 +117,13 @@ public class ProdutoDao {
 
     private int bindParams(PreparedStatement stmt, Produto p) throws SQLException {
         stmt.setString(1, ValidationUtil.toUpperOrNull(p.getDescricao()));
-        setNullableInt(stmt, 2, p.getPeriodicidade());
-        stmt.setString(3, p.getUnidadePeriodicidade().dbValue());
-        setNullableDate(stmt, 4, p.getUltimaExecucao());
-        setNullableInt(stmt, 5, p.getUltimoFornecedorId());
-        setNullableDecimal(stmt, 6, p.getValorPagoUltimaExecucao());
-        setNullableDate(stmt, 7, p.getDataAgendadaProximaExecucao());
-        setNullableInt(stmt, 8, p.getFornecedorProximaExecucaoId());
-        setNullableDecimal(stmt, 9, p.getValorOrcadoProximaExecucao());
-        return 10;
-    }
-
-    private void setNullableDate(PreparedStatement stmt, int index, java.time.LocalDate value) throws SQLException {
-        if (value != null) {
-            stmt.setDate(index, Date.valueOf(value));
-        } else {
-            stmt.setNull(index, Types.DATE);
-        }
+        setNullableInt(stmt, 2, p.getTipoId());
+        stmt.setString(3, p.getUnidade().dbValue());
+        setNullableInt(stmt, 4, p.getEstoqueMinimo());
+        setNullableInt(stmt, 5, p.getEstoqueAtual());
+        setNullableInt(stmt, 6, p.getUltimoFornecedorId());
+        setNullableDecimal(stmt, 7, p.getValorUltimaCompra());
+        return 8;
     }
 
     private void setNullableInt(PreparedStatement stmt, int index, Integer value) throws SQLException {
@@ -155,21 +146,18 @@ public class ProdutoDao {
         Produto p = new Produto();
         p.setId(rs.getInt("id"));
         p.setDescricao(rs.getString("descricao"));
-        int periodicidade = rs.getInt("periodicidade");
-        p.setPeriodicidade(rs.wasNull() ? null : periodicidade);
-        p.setUnidadePeriodicidade(PeriodicidadeUnidade.fromDbValue(rs.getString("unidade_periodicidade")));
-        Date ultimaExecucao = rs.getDate("ultima_execucao");
-        p.setUltimaExecucao(ultimaExecucao != null ? ultimaExecucao.toLocalDate() : null);
+        int tipoId = rs.getInt("produtos_tipo");
+        p.setTipoId(rs.wasNull() ? null : tipoId);
+        p.setTipoDescricao(rs.getString("tipo_descricao"));
+        p.setUnidade(UnidadeMedidaProduto.fromDbValue(rs.getString("unidade")));
+        int estoqueMinimo = rs.getInt("estoque_minimo");
+        p.setEstoqueMinimo(rs.wasNull() ? null : estoqueMinimo);
+        int estoqueAtual = rs.getInt("estoque_atual");
+        p.setEstoqueAtual(rs.wasNull() ? null : estoqueAtual);
         int ultimoFornecedorId = rs.getInt("ultimo_fornecedor_id");
         p.setUltimoFornecedorId(rs.wasNull() ? null : ultimoFornecedorId);
         p.setUltimoFornecedorNome(rs.getString("ultimo_fornecedor_nome"));
-        p.setValorPagoUltimaExecucao(rs.getBigDecimal("valor_pago_ultima_execucao"));
-        Date dataAgendada = rs.getDate("data_agendada_proxima_execucao");
-        p.setDataAgendadaProximaExecucao(dataAgendada != null ? dataAgendada.toLocalDate() : null);
-        int fornecedorProximaExecucaoId = rs.getInt("fornecedor_proxima_execucao_id");
-        p.setFornecedorProximaExecucaoId(rs.wasNull() ? null : fornecedorProximaExecucaoId);
-        p.setFornecedorProximaExecucaoNome(rs.getString("fornecedor_proxima_execucao_nome"));
-        p.setValorOrcadoProximaExecucao(rs.getBigDecimal("valor_orcado_proxima_execucao"));
+        p.setValorUltimaCompra(rs.getBigDecimal("valor_ultima_compra"));
         return p;
     }
 }

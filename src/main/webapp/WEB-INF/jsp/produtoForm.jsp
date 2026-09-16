@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Produto - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=11">
 </head>
 <body>
 <div class="page">
@@ -40,48 +40,48 @@
         <form id="produtoForm" method="post" action="${pageContext.request.contextPath}/produtos/form">
             <input type="hidden" name="id" value="${param.id}">
 
-            <div class="field">
-                <label for="descricao">Descrição</label>
-                <input type="text" id="descricao" name="descricao" value="${produto.descricao}" ${dis} required>
-                <c:if test="${not empty errors.descricao}"><div class="field-error">${errors.descricao}</div></c:if>
+            <div class="field-row" style="grid-template-columns: 2fr 1fr;">
+                <div class="field">
+                    <label for="descricao">Descrição</label>
+                    <input type="text" id="descricao" name="descricao" value="${produto.descricao}" ${dis} required>
+                    <c:if test="${not empty errors.descricao}"><div class="field-error">${errors.descricao}</div></c:if>
+                </div>
+                <div class="field">
+                    <label for="tipoId">Tipo</label>
+                    <select id="tipoId" name="tipoId" ${dis}>
+                        <option value="" ${empty produto.tipoId ? 'selected' : ''}>Não informado</option>
+                        <c:forEach var="t" items="${tipos}">
+                            <option value="${t.id}" ${produto.tipoId == t.id ? 'selected' : ''}>${t.descricao}</option>
+                        </c:forEach>
+                    </select>
+                    <c:if test="${not empty errors.tipoId}"><div class="field-error">${errors.tipoId}</div></c:if>
+                </div>
             </div>
 
-            <div class="field">
-                <label for="unidadePeriodicidade">Unidade da periodicidade</label>
-                <select id="unidadePeriodicidade" name="unidadePeriodicidade" ${dis} required
-                        onchange="atualizarCampoPeriodicidade()">
-                    <option value="" disabled ${empty produto.unidadePeriodicidade ? 'selected' : ''}>Selecione...</option>
-                    <option value="dia" ${produto.unidadePeriodicidade == 'DIA' ? 'selected' : ''}>Dias</option>
-                    <option value="mes" ${produto.unidadePeriodicidade == 'MES' ? 'selected' : ''}>Meses</option>
-                    <option value="ano" ${produto.unidadePeriodicidade == 'ANO' ? 'selected' : ''}>Anos</option>
-                    <option value="por_demanda" ${produto.unidadePeriodicidade == 'POR_DEMANDA' ? 'selected' : ''}>Por demanda</option>
-                </select>
-                <c:if test="${not empty errors.unidadePeriodicidade}"><div class="field-error">${errors.unidadePeriodicidade}</div></c:if>
-            </div>
-
-            <div class="field" id="periodicidadeField">
-                <label for="periodicidade">Periodicidade</label>
-                <input type="number" id="periodicidade" name="periodicidade" min="1" ${dis}
-                       value="${not empty param.periodicidade ? param.periodicidade : produto.periodicidade}">
-                <c:if test="${not empty errors.periodicidade}"><div class="field-error">${errors.periodicidade}</div></c:if>
-            </div>
-
-            <script>
-                function atualizarCampoPeriodicidade() {
-                    var unidade = document.getElementById('unidadePeriodicidade').value;
-                    var campo = document.getElementById('periodicidadeField');
-                    var input = document.getElementById('periodicidade');
-                    var porDemanda = unidade === 'por_demanda';
-                    campo.hidden = porDemanda;
-                    input.required = !porDemanda;
-                }
-                atualizarCampoPeriodicidade();
-            </script>
-
-            <div class="field">
-                <label for="ultimaExecucao">Data da última execução</label>
-                <input type="date" id="ultimaExecucao" name="ultimaExecucao" value="${produto.ultimaExecucao}" ${dis}>
-                <c:if test="${not empty errors.ultimaExecucao}"><div class="field-error">${errors.ultimaExecucao}</div></c:if>
+            <div class="field-row" style="grid-template-columns: 1fr 1fr 1fr;">
+                <div class="field">
+                    <label for="unidade">Unidade</label>
+                    <select id="unidade" name="unidade" ${dis} required>
+                        <option value="" disabled ${empty produto.unidade ? 'selected' : ''}>Selecione...</option>
+                        <option value="unidades" ${produto.unidade == 'UNIDADES' ? 'selected' : ''}>Unidades</option>
+                        <option value="duzias" ${produto.unidade == 'DUZIAS' ? 'selected' : ''}>Dúzias</option>
+                        <option value="kgs" ${produto.unidade == 'KGS' ? 'selected' : ''}>Kgs</option>
+                        <option value="litros" ${produto.unidade == 'LITROS' ? 'selected' : ''}>Litros</option>
+                    </select>
+                    <c:if test="${not empty errors.unidade}"><div class="field-error">${errors.unidade}</div></c:if>
+                </div>
+                <div class="field">
+                    <label for="estoqueMinimo">Estoque mínimo</label>
+                    <input type="number" id="estoqueMinimo" name="estoqueMinimo" min="0" ${dis}
+                           value="${produto.estoqueMinimo}">
+                    <c:if test="${not empty errors.estoqueMinimo}"><div class="field-error">${errors.estoqueMinimo}</div></c:if>
+                </div>
+                <div class="field">
+                    <label for="estoqueAtual">Estoque atual</label>
+                    <input type="number" id="estoqueAtual" name="estoqueAtual" min="0" ${dis}
+                           value="${produto.estoqueAtual}">
+                    <c:if test="${not empty errors.estoqueAtual}"><div class="field-error">${errors.estoqueAtual}</div></c:if>
+                </div>
             </div>
 
             <div class="field">
@@ -96,35 +96,10 @@
             </div>
 
             <div class="field">
-                <label for="valorPagoUltimaExecucao">Valor pago na última execução</label>
-                <input type="number" id="valorPagoUltimaExecucao" name="valorPagoUltimaExecucao" step="0.01" min="0" ${dis}
-                       value="${produto.valorPagoUltimaExecucao}">
-                <c:if test="${not empty errors.valorPagoUltimaExecucao}"><div class="field-error">${errors.valorPagoUltimaExecucao}</div></c:if>
-            </div>
-
-            <div class="field">
-                <label for="dataAgendadaProximaExecucao">Data agendada da próxima execução</label>
-                <input type="date" id="dataAgendadaProximaExecucao" name="dataAgendadaProximaExecucao" ${dis}
-                       value="${produto.dataAgendadaProximaExecucao}">
-                <c:if test="${not empty errors.dataAgendadaProximaExecucao}"><div class="field-error">${errors.dataAgendadaProximaExecucao}</div></c:if>
-            </div>
-
-            <div class="field">
-                <label for="fornecedorProximaExecucaoId">Fornecedor da próxima execução</label>
-                <select id="fornecedorProximaExecucaoId" name="fornecedorProximaExecucaoId" ${dis}>
-                    <option value="" ${empty produto.fornecedorProximaExecucaoId ? 'selected' : ''}>Não informado</option>
-                    <c:forEach var="f" items="${fornecedores}">
-                        <option value="${f.id}" ${produto.fornecedorProximaExecucaoId == f.id ? 'selected' : ''}>${f.nomeRazaoSocial}</option>
-                    </c:forEach>
-                </select>
-                <c:if test="${not empty errors.fornecedorProximaExecucaoId}"><div class="field-error">${errors.fornecedorProximaExecucaoId}</div></c:if>
-            </div>
-
-            <div class="field">
-                <label for="valorOrcadoProximaExecucao">Valor orçado da próxima execução</label>
-                <input type="number" id="valorOrcadoProximaExecucao" name="valorOrcadoProximaExecucao" step="0.01" min="0" ${dis}
-                       value="${produto.valorOrcadoProximaExecucao}">
-                <c:if test="${not empty errors.valorOrcadoProximaExecucao}"><div class="field-error">${errors.valorOrcadoProximaExecucao}</div></c:if>
+                <label for="valorUltimaCompra">Valor última compra</label>
+                <input type="number" id="valorUltimaCompra" name="valorUltimaCompra" step="0.01" min="0" ${dis}
+                       value="${produto.valorUltimaCompra}">
+                <c:if test="${not empty errors.valorUltimaCompra}"><div class="field-error">${errors.valorUltimaCompra}</div></c:if>
             </div>
 
         </form>

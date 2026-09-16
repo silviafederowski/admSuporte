@@ -22,7 +22,7 @@ public class Fornecedor implements Serializable {
     private String contato3Telefone;
     private Classificacao classificacao;
     private String observacao;
-    private List<Integer> produtoIds = new ArrayList<>();
+    private List<Integer> tipoProdutoIds = new ArrayList<>();
 
     public int getId() {
         return id;
@@ -136,11 +136,11 @@ public class Fornecedor implements Serializable {
         this.observacao = observacao;
     }
 
-    public List<Integer> getProdutoIds() {
-        return produtoIds;
+    public List<Integer> getTipoProdutoIds() {
+        return tipoProdutoIds;
     }
 
-    public void setProdutoIds(List<Integer> produtoIds) {
-        this.produtoIds = produtoIds != null ? produtoIds : new ArrayList<>();
+    public void setTipoProdutoIds(List<Integer> tipoProdutoIds) {
+        this.tipoProdutoIds = tipoProdutoIds != null ? tipoProdutoIds : new ArrayList<>();
     }
 }

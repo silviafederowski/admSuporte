@@ -2,7 +2,7 @@ package br.com.silsys.admsuporte.servlet;
 
 import br.com.silsys.admsuporte.dao.FornecedorDao;
 import br.com.silsys.admsuporte.dao.OperacaoLogDao;
-import br.com.silsys.admsuporte.dao.ProdutoDao;
+import br.com.silsys.admsuporte.dao.TipoProdutoDao;
 import br.com.silsys.admsuporte.model.Classificacao;
 import br.com.silsys.admsuporte.model.Fornecedor;
 import br.com.silsys.admsuporte.util.ErrorMessages;
@@ -28,7 +28,7 @@ public class FornecedorFormServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(FornecedorFormServlet.class.getName());
 
     private final FornecedorDao fornecedorDao = new FornecedorDao();
-    private final ProdutoDao produtoDao = new ProdutoDao();
+    private final TipoProdutoDao tipoProdutoDao = new TipoProdutoDao();
     private final OperacaoLogDao operacaoLogDao = new OperacaoLogDao();
 
     @Override
@@ -70,7 +70,7 @@ public class FornecedorFormServlet extends HttpServlet {
         String contato3Telefone = request.getParameter("contato3Telefone");
         String classificacaoParam = request.getParameter("classificacao");
         String observacao = request.getParameter("observacao");
-        String[] produtoIdParams = request.getParameterValues("produtoIds");
+        String[] tipoProdutoIdParams = request.getParameterValues("tipoProdutoIds");
 
         Map<String, String> errors = new HashMap<>();
         if (ValidationUtil.isBlank(nomeRazaoSocial)) {
@@ -101,7 +101,7 @@ public class FornecedorFormServlet extends HttpServlet {
         fornecedor.setContato3Telefone(contato3Telefone);
         fornecedor.setClassificacao(classificacao);
         fornecedor.setObservacao(observacao);
-        fornecedor.setProdutoIds(parseProdutoIds(produtoIdParams));
+        fornecedor.setTipoProdutoIds(parseTipoProdutoIds(tipoProdutoIdParams));
 
         boolean isEdit = idParam != null && !idParam.trim().isEmpty();
         Integer id = null;
@@ -140,16 +140,16 @@ public class FornecedorFormServlet extends HttpServlet {
         forward(request, response);
     }
 
-    private List<Integer> parseProdutoIds(String[] produtoIdParams) {
+    private List<Integer> parseTipoProdutoIds(String[] tipoProdutoIdParams) {
         List<Integer> ids = new ArrayList<>();
-        if (produtoIdParams == null) {
+        if (tipoProdutoIdParams == null) {
             return ids;
         }
-        for (String value : produtoIdParams) {
+        for (String value : tipoProdutoIdParams) {
             try {
                 ids.add(Integer.parseInt(value));
             } catch (NumberFormatException e) {
-                LOGGER.log(Level.WARNING, "Ignorando id de produto invalido: " + value, e);
+                LOGGER.log(Level.WARNING, "Ignorando id de tipo de produto invalido: " + value, e);
             }
         }
         return ids;
@@ -158,10 +158,10 @@ public class FornecedorFormServlet extends HttpServlet {
     private void forward(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            request.setAttribute("produtos", produtoDao.listAll());
+            request.setAttribute("tipos", tipoProdutoDao.listAll());
         } catch (SQLException e) {
-            ErrorMessages.logErro(LOGGER, "fornecedores", "Carregar produtos para formulário", e);
-            request.setAttribute("produtos", java.util.Collections.emptyList());
+            ErrorMessages.logErro(LOGGER, "fornecedores", "Carregar tipos de produtos para formulário", e);
+            request.setAttribute("tipos", java.util.Collections.emptyList());
         }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/fornecedorForm.jsp");
         dispatcher.forward(request, response);

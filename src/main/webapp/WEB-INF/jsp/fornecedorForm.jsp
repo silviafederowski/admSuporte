@@ -110,18 +110,18 @@
             </div>
 
             <div class="field">
-                <label>Produtos fornecidos por este fornecedor</label>
+                <label>Tipos de produto fornecidos por este fornecedor</label>
                 <c:choose>
-                    <c:when test="${empty produtos}">
-                        <p class="empty-state">Nenhum produto cadastrado ainda.</p>
+                    <c:when test="${empty tipos}">
+                        <p class="empty-state">Nenhum tipo de produto cadastrado ainda.</p>
                     </c:when>
                     <c:otherwise>
                         <div class="row-list">
-                            <c:forEach var="produto" items="${produtos}">
+                            <c:forEach var="tipo" items="${tipos}">
                                 <label class="row-item">
-                                    <input type="checkbox" name="produtoIds" value="${produto.id}" ${dis}
-                                           ${fornecedor.produtoIds.contains(produto.id) ? 'checked' : ''}>
-                                    <span>${produto.descricao}</span>
+                                    <input type="checkbox" name="tipoProdutoIds" value="${tipo.id}" ${dis}
+                                           ${fornecedor.tipoProdutoIds.contains(tipo.id) ? 'checked' : ''}>
+                                    <span>${tipo.descricao}</span>
                                 </label>
                             </c:forEach>
                         </div>

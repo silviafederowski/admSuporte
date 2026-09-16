@@ -1,7 +1,7 @@
 package br.com.silsys.admsuporte.servlet;
 
 import br.com.silsys.admsuporte.dao.FornecedorDao;
-import br.com.silsys.admsuporte.dao.ProdutoDao;
+import br.com.silsys.admsuporte.dao.TipoProdutoDao;
 import br.com.silsys.admsuporte.model.Fornecedor;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
@@ -14,14 +14,14 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-/** Lista de fornecedores, com filtro opcional por produto. Acesso controlado pela tabela autorizacoes_menu, tela "fornecedores" (ver MenuAutorizacaoFilter). */
+/** Lista de fornecedores, com filtro opcional por tipo de produto. Acesso controlado pela tabela autorizacoes_menu, tela "fornecedores" (ver MenuAutorizacaoFilter). */
 public class FornecedorServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(FornecedorServlet.class.getName());
 
     private final FornecedorDao fornecedorDao = new FornecedorDao();
-    private final ProdutoDao produtoDao = new ProdutoDao();
+    private final TipoProdutoDao tipoProdutoDao = new TipoProdutoDao();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -34,23 +34,23 @@ public class FornecedorServlet extends HttpServlet {
             request.setAttribute("infoMessage", "Fornecedor excluído com sucesso.");
         }
 
-        String produtoIdParam = request.getParameter("produtoId");
-        Integer produtoIdFiltro = null;
-        if (produtoIdParam != null && !produtoIdParam.trim().isEmpty()) {
+        String tipoProdutoIdParam = request.getParameter("tipoProdutoId");
+        Integer tipoProdutoIdFiltro = null;
+        if (tipoProdutoIdParam != null && !tipoProdutoIdParam.trim().isEmpty()) {
             try {
-                produtoIdFiltro = Integer.parseInt(produtoIdParam.trim());
+                tipoProdutoIdFiltro = Integer.parseInt(tipoProdutoIdParam.trim());
             } catch (NumberFormatException e) {
-                produtoIdFiltro = null;
+                tipoProdutoIdFiltro = null;
             }
         }
 
         try {
-            List<Fornecedor> fornecedores = produtoIdFiltro != null
-                    ? fornecedorDao.listByProduto(produtoIdFiltro)
+            List<Fornecedor> fornecedores = tipoProdutoIdFiltro != null
+                    ? fornecedorDao.listByTipoProduto(tipoProdutoIdFiltro)
                     : fornecedorDao.listAll();
             request.setAttribute("fornecedores", fornecedores);
-            request.setAttribute("produtosFiltro", produtoDao.listAll());
-            request.setAttribute("produtoIdFiltro", produtoIdFiltro);
+            request.setAttribute("tiposFiltro", tipoProdutoDao.listAll());
+            request.setAttribute("tipoProdutoIdFiltro", tipoProdutoIdFiltro);
         } catch (SQLException e) {
             request.setAttribute("formError", "Não foi possível carregar os fornecedores: "
                     + ErrorMessages.friendly(LOGGER, "fornecedores", "Listar fornecedores", e));

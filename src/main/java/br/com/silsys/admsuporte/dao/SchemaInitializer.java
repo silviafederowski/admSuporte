@@ -57,6 +57,10 @@ public final class SchemaInitializer {
         {"produtos", "Cadastro de produtos", "5", "edicao"},
         {"produtos", "Cadastro de produtos", "10", "consulta"},
         {"produtos", "Cadastro de produtos", "15", "consulta"},
+        {"tipos-produtos", "Cadastro de tipos de produtos", "0", "edicao"},
+        {"tipos-produtos", "Cadastro de tipos de produtos", "5", "edicao"},
+        {"tipos-produtos", "Cadastro de tipos de produtos", "10", "consulta"},
+        {"tipos-produtos", "Cadastro de tipos de produtos", "15", "consulta"},
         {"fornecedores", "Cadastro de fornecedores", "0", "edicao"},
         {"fornecedores", "Cadastro de fornecedores", "5", "edicao"},
         {"fornecedores", "Cadastro de fornecedores", "10", "consulta"},
@@ -135,7 +139,9 @@ public final class SchemaInitializer {
             ensureAppAssetsDataColumn(conn);
             ensurePrestadorFornecedorContatoColumns(conn);
             ensurePeriodicidadePorDemanda(conn, "servicos");
-            ensurePeriodicidadePorDemanda(conn, "produtos");
+            ensureProdutosTipoColumn(conn);
+            migrarFornecedorProdutosParaTipo(conn);
+            ensureProdutosRestructure(conn);
             ensureUserAtivoColumn(conn);
             ensureClassificacaoNaoAvaliado(conn, "prestadores");
             ensureClassificacaoNaoAvaliado(conn, "fornecedores");
@@ -313,20 +319,22 @@ public final class SchemaInitializer {
                 "CREATE TABLE IF NOT EXISTS produtos (" +
                 "  id INT PRIMARY KEY AUTO_INCREMENT," +
                 "  descricao VARCHAR(255) NOT NULL," +
-                "  periodicidade INT NULL," +
-                "  unidade_periodicidade VARCHAR(15) NOT NULL," +
-                "  ultima_execucao DATE NULL," +
+                "  unidade VARCHAR(20) NOT NULL DEFAULT 'unidades'," +
+                "  estoque_minimo INT NOT NULL DEFAULT 0," +
+                "  estoque_atual INT NOT NULL DEFAULT 0," +
                 "  ultimo_fornecedor_id INT NULL," +
-                "  valor_pago_ultima_execucao DECIMAL(10,2) NULL," +
-                "  data_agendada_proxima_execucao DATE NULL," +
-                "  fornecedor_proxima_execucao_id INT NULL," +
-                "  valor_orcado_proxima_execucao DECIMAL(10,2) NULL," +
-                "  CONSTRAINT chk_produtos_unidade_periodicidade_v2 " +
-                "    CHECK (unidade_periodicidade IN ('dia', 'mes', 'ano', 'por_demanda'))," +
+                "  valor_ultima_compra DECIMAL(10,2) NULL," +
+                "  CONSTRAINT chk_produtos_unidade " +
+                "    CHECK (unidade IN ('unidades', 'duzias', 'kgs', 'litros'))," +
                 "  CONSTRAINT fk_produtos_ultimo_fornecedor FOREIGN KEY (ultimo_fornecedor_id) " +
-                "    REFERENCES fornecedores(id) ON DELETE SET NULL," +
-                "  CONSTRAINT fk_produtos_fornecedor_proxima_execucao FOREIGN KEY (fornecedor_proxima_execucao_id) " +
                 "    REFERENCES fornecedores(id) ON DELETE SET NULL" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS produtos_tipo (" +
+                "  id INT PRIMARY KEY AUTO_INCREMENT," +
+                "  descricao VARCHAR(255) NOT NULL," +
+                "  UNIQUE KEY uq_produtos_tipo_descricao (descricao)" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
             stmt.executeUpdate(
@@ -338,6 +346,21 @@ public final class SchemaInitializer {
                 "    REFERENCES fornecedores(id) ON DELETE CASCADE," +
                 "  CONSTRAINT fk_fornecedor_produtos_produto FOREIGN KEY (produto_id) " +
                 "    REFERENCES produtos(id) ON DELETE CASCADE" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            // Substitui fornecedor_produtos (fornecedor <-> produto especifico): fornecedores
+            // agora sao associados ao tipo de produto que fornecem, nao a um produto especifico.
+            // A tabela antiga fornecedor_produtos fica intacta (nao mais usada), so para nao
+            // perder o historico.
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS fornecedor_produtos_tipo (" +
+                "  fornecedor_id INT NOT NULL," +
+                "  tipo_produto_id INT NOT NULL," +
+                "  PRIMARY KEY (fornecedor_id, tipo_produto_id)," +
+                "  CONSTRAINT fk_fornecedor_produtos_tipo_fornecedor FOREIGN KEY (fornecedor_id) " +
+                "    REFERENCES fornecedores(id) ON DELETE CASCADE," +
+                "  CONSTRAINT fk_fornecedor_produtos_tipo_tipo FOREIGN KEY (tipo_produto_id) " +
+                "    REFERENCES produtos_tipo(id) ON DELETE CASCADE" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
             // Chave nao e auto-incrementada de proposito: o valor vem de fora (sistema de origem).
@@ -491,6 +514,129 @@ public final class SchemaInitializer {
                 stmt.executeUpdate(
                     "ALTER TABLE servicos ADD CONSTRAINT fk_servicos_prestador_proxima_execucao " +
                     "FOREIGN KEY (prestador_proxima_execucao_id) REFERENCES prestadores(id) ON DELETE SET NULL");
+            }
+        }
+    }
+
+    /**
+     * Cria produtos_tipo (id, descricao) a partir das descricoes ja usadas em produtos.descricao
+     * (uma linha por descricao distinta), liga produtos a ela pela nova coluna
+     * produtos.produtos_tipo (FK) e preenche essa coluna casando pela descricao. Nao remove
+     * produtos.descricao. Idempotente: roda a cada start, so insere/preenche o que ainda faltar.
+     */
+    private static void ensureProdutosTipoColumn(Connection conn) throws SQLException {
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(
+                "INSERT IGNORE INTO produtos_tipo (descricao) " +
+                "SELECT DISTINCT descricao FROM produtos WHERE descricao IS NOT NULL");
+        }
+
+        if (!columnExists(conn, "produtos", "produtos_tipo")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE produtos ADD COLUMN produtos_tipo INT NULL AFTER descricao");
+            }
+        }
+
+        if (!constraintExists(conn, "produtos", "fk_produtos_produtos_tipo")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE produtos ADD CONSTRAINT fk_produtos_produtos_tipo " +
+                    "FOREIGN KEY (produtos_tipo) REFERENCES produtos_tipo(id)");
+            }
+        }
+
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(
+                "UPDATE produtos p JOIN produtos_tipo pt ON pt.descricao = p.descricao " +
+                "SET p.produtos_tipo = pt.id WHERE p.produtos_tipo IS NULL");
+        }
+    }
+
+    /**
+     * Preenche fornecedor_produtos_tipo a partir das associacoes antigas em fornecedor_produtos
+     * (fornecedor <-> produto especifico), traduzindo cada produto para o seu tipo (produtos.
+     * produtos_tipo). So preenche o que ainda faltar; nao apaga fornecedor_produtos.
+     */
+    private static void migrarFornecedorProdutosParaTipo(Connection conn) throws SQLException {
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(
+                "INSERT IGNORE INTO fornecedor_produtos_tipo (fornecedor_id, tipo_produto_id) " +
+                "SELECT DISTINCT fp.fornecedor_id, p.produtos_tipo " +
+                "FROM fornecedor_produtos fp " +
+                "JOIN produtos p ON p.id = fp.produto_id " +
+                "WHERE p.produtos_tipo IS NOT NULL");
+        }
+    }
+
+    /**
+     * Transforma produtos de "servico recorrente" em cadastro de estoque: remove periodicidade,
+     * unidade_periodicidade, ultima_execucao, data_agendada_proxima_execucao,
+     * fornecedor_proxima_execucao_id e valor_orcado_proxima_execucao; renomeia
+     * valor_pago_ultima_execucao para valor_ultima_compra; adiciona unidade (medida), estoque_minimo
+     * e estoque_atual. Idempotente.
+     */
+    private static void ensureProdutosRestructure(Connection conn) throws SQLException {
+        if (constraintExists(conn, "produtos", "chk_produtos_unidade_periodicidade_v2")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE produtos DROP CONSTRAINT chk_produtos_unidade_periodicidade_v2");
+            }
+        }
+        if (constraintExists(conn, "produtos", "chk_produtos_unidade_periodicidade")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE produtos DROP CONSTRAINT chk_produtos_unidade_periodicidade");
+            }
+        }
+        if (constraintExists(conn, "produtos", "fk_produtos_fornecedor_proxima_execucao")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE produtos DROP FOREIGN KEY fk_produtos_fornecedor_proxima_execucao");
+            }
+        }
+        dropColumnIfExists(conn, "produtos", "periodicidade");
+        dropColumnIfExists(conn, "produtos", "unidade_periodicidade");
+        dropColumnIfExists(conn, "produtos", "ultima_execucao");
+        dropColumnIfExists(conn, "produtos", "data_agendada_proxima_execucao");
+        dropColumnIfExists(conn, "produtos", "fornecedor_proxima_execucao_id");
+        dropColumnIfExists(conn, "produtos", "valor_orcado_proxima_execucao");
+
+        if (columnExists(conn, "produtos", "valor_pago_ultima_execucao")
+                && !columnExists(conn, "produtos", "valor_ultima_compra")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE produtos CHANGE COLUMN valor_pago_ultima_execucao " +
+                    "valor_ultima_compra DECIMAL(10,2) NULL");
+            }
+        }
+
+        if (!columnExists(conn, "produtos", "unidade")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE produtos ADD COLUMN unidade VARCHAR(20) NOT NULL DEFAULT 'unidades' " +
+                    "AFTER produtos_tipo");
+            }
+        }
+        if (!constraintExists(conn, "produtos", "chk_produtos_unidade")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE produtos ADD CONSTRAINT chk_produtos_unidade " +
+                    "CHECK (unidade IN ('unidades', 'duzias', 'kgs', 'litros'))");
+            }
+        }
+        if (!columnExists(conn, "produtos", "estoque_minimo")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE produtos ADD COLUMN estoque_minimo INT NOT NULL DEFAULT 0");
+            }
+        }
+        if (!columnExists(conn, "produtos", "estoque_atual")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE produtos ADD COLUMN estoque_atual INT NOT NULL DEFAULT 0");
+            }
+        }
+    }
+
+    private static void dropColumnIfExists(Connection conn, String table, String column) throws SQLException {
+        if (columnExists(conn, table, column)) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE " + table + " DROP COLUMN " + column);
             }
         }
     }

@@ -51,6 +51,9 @@
             <c:if test="${telasPermitidas.contains('servicos')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/servicos">Serviços</a>
             </c:if>
+            <c:if test="${telasPermitidas.contains('tipos-produtos')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/tipos-produtos">Tipos de produtos</a>
+            </c:if>
             <c:if test="${telasPermitidas.contains('tipos-usuario')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/tipos-usuario">Tipos de usuário</a>
             </c:if>

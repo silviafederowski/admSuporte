@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Produtos - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=11">
 </head>
 <body>
 <div class="page">
@@ -40,16 +40,14 @@
                         <thead>
                         <tr>
                             <th>Descrição</th>
-                            <th>Periodicidade</th>
-                            <th>Última execução</th>
+                            <th>Tipo</th>
+                            <th>Unidade</th>
+                            <th>Estoque mínimo</th>
+                            <th>Estoque atual</th>
+                            <th>Comprar</th>
                             <th>Fornecedor da última atualização</th>
-                            <th>Valor pago</th>
+                            <th>Valor última compra</th>
                             <th>Fornecedores que oferecem</th>
-                            <th>Próxima execução (calculada)</th>
-                            <th>Dias faltantes</th>
-                            <th>Próxima execução (agendada)</th>
-                            <th>Fornecedor da próxima execução</th>
-                            <th>Valor orçado</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -57,15 +55,13 @@
                             <tr class="clickable-row"
                                 onclick="window.location='${pageContext.request.contextPath}/produtos/form?id=${p.id}'">
                                 <td>${p.descricao}</td>
-                                <td>
-                                    <c:choose>
-                                        <c:when test="${p.unidadePeriodicidade == 'POR_DEMANDA'}">Por demanda</c:when>
-                                        <c:otherwise>A cada ${p.periodicidade} ${p.unidadePeriodicidade.label}</c:otherwise>
-                                    </c:choose>
-                                </td>
-                                <td>${empty p.ultimaExecucao ? '-' : p.ultimaExecucaoFormatada}</td>
+                                <td>${empty p.tipoDescricao ? '-' : p.tipoDescricao}</td>
+                                <td>${empty p.unidade ? '-' : p.unidade.label}</td>
+                                <td>${p.estoqueMinimo}</td>
+                                <td>${p.estoqueAtual}</td>
+                                <td><span class="badge ${p.comprar ? 'badge-inativo' : 'badge-ativo'}">${p.comprar ? 'Sim' : 'Não'}</span></td>
                                 <td>${empty p.ultimoFornecedorNome ? '-' : p.ultimoFornecedorNome}</td>
-                                <td><c:choose><c:when test="${empty p.valorPagoUltimaExecucao}">-</c:when><c:otherwise>R$ ${p.valorPagoUltimaExecucao}</c:otherwise></c:choose></td>
+                                <td><c:choose><c:when test="${empty p.valorUltimaCompra}">-</c:when><c:otherwise>R$ ${p.valorUltimaCompra}</c:otherwise></c:choose></td>
                                 <td>
                                     <c:choose>
                                         <c:when test="${empty p.fornecedoresQueOferecem}">-</c:when>
@@ -76,24 +72,6 @@
                                         </c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td class="${p.atrasado ? 'atrasado' : ''}">
-                                    <c:choose>
-                                        <c:when test="${p.unidadePeriodicidade == 'POR_DEMANDA'}">Por demanda</c:when>
-                                        <c:when test="${empty p.proximaExecucao}">Nunca executado</c:when>
-                                        <c:otherwise>${p.proximaExecucaoFormatada}</c:otherwise>
-                                    </c:choose>
-                                </td>
-                                <td class="${p.atrasado ? 'atrasado' : ''}">
-                                    <c:choose>
-                                        <c:when test="${p.unidadePeriodicidade == 'POR_DEMANDA'}">Por demanda</c:when>
-                                        <c:when test="${empty p.ultimaExecucao}">Nunca executado</c:when>
-                                        <c:when test="${p.diasFaltantes lt 0}">Atrasado há ${-1 * p.diasFaltantes} dia(s)</c:when>
-                                        <c:otherwise>${p.diasFaltantes} dia(s)</c:otherwise>
-                                    </c:choose>
-                                </td>
-                                <td>${empty p.dataAgendadaProximaExecucao ? '-' : p.dataAgendadaProximaExecucaoFormatada}</td>
-                                <td>${empty p.fornecedorProximaExecucaoNome ? '-' : p.fornecedorProximaExecucaoNome}</td>
-                                <td><c:choose><c:when test="${empty p.valorOrcadoProximaExecucao}">-</c:when><c:otherwise>R$ ${p.valorOrcadoProximaExecucao}</c:otherwise></c:choose></td>
                             </tr>
                         </c:forEach>
                         </tbody>

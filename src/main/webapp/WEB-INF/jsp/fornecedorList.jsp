@@ -24,14 +24,14 @@
         </div>
 
         <form method="get" action="${pageContext.request.contextPath}/fornecedores" class="filter-bar">
-            <label for="produtoIdFiltro" title="Filtrar por produto"><span class="filter-icon" aria-hidden="true"></span> por produto</label>
-            <select id="produtoIdFiltro" name="produtoId" onchange="this.form.submit()">
-                <option value="" ${empty produtoIdFiltro ? 'selected' : ''}>Todos os produtos</option>
-                <c:forEach var="p" items="${produtosFiltro}">
-                    <option value="${p.id}" ${produtoIdFiltro == p.id ? 'selected' : ''}>${p.descricao}</option>
+            <label for="tipoProdutoIdFiltro" title="Filtrar por tipo de produto"><span class="filter-icon" aria-hidden="true"></span> por tipo de produto</label>
+            <select id="tipoProdutoIdFiltro" name="tipoProdutoId" onchange="this.form.submit()">
+                <option value="" ${empty tipoProdutoIdFiltro ? 'selected' : ''}>Todos os tipos de produto</option>
+                <c:forEach var="t" items="${tiposFiltro}">
+                    <option value="${t.id}" ${tipoProdutoIdFiltro == t.id ? 'selected' : ''}>${t.descricao}</option>
                 </c:forEach>
             </select>
-            <c:if test="${not empty produtoIdFiltro}">
+            <c:if test="${not empty tipoProdutoIdFiltro}">
                 <a class="link" href="${pageContext.request.contextPath}/fornecedores">Limpar filtro</a>
             </c:if>
         </form>
@@ -47,7 +47,7 @@
             <c:when test="${empty fornecedores}">
                 <p class="empty-state">
                     <c:choose>
-                        <c:when test="${not empty produtoIdFiltro}">Nenhum fornecedor fornece esse produto.</c:when>
+                        <c:when test="${not empty tipoProdutoIdFiltro}">Nenhum fornecedor fornece esse tipo de produto.</c:when>
                         <c:otherwise>Nenhum fornecedor cadastrado ainda.</c:otherwise>
                     </c:choose>
                 </p>
