@@ -59,8 +59,10 @@ public class ProdutoFormServlet extends HttpServlet {
         String descricao = request.getParameter("descricao");
         String tipoIdParam = request.getParameter("tipoId");
         String unidadeParam = request.getParameter("unidade");
+        String estoqueIdealParam = request.getParameter("estoqueIdeal");
         String estoqueMinimoParam = request.getParameter("estoqueMinimo");
         String estoqueAtualParam = request.getParameter("estoqueAtual");
+        String comprarParam = request.getParameter("comprar");
         String ultimoFornecedorIdParam = request.getParameter("ultimoFornecedorId");
         String valorUltimaCompraParam = request.getParameter("valorUltimaCompra");
 
@@ -89,6 +91,18 @@ public class ProdutoFormServlet extends HttpServlet {
             }
         }
 
+        Integer estoqueIdeal = 0;
+        if (!ValidationUtil.isBlank(estoqueIdealParam)) {
+            try {
+                estoqueIdeal = Integer.parseInt(estoqueIdealParam.trim());
+                if (estoqueIdeal < 0) {
+                    errors.put("estoqueIdeal", "O estoque ideal não pode ser negativo.");
+                }
+            } catch (NumberFormatException e) {
+                errors.put("estoqueIdeal", "Informe um número válido.");
+            }
+        }
+
         Integer estoqueMinimo = 0;
         if (!ValidationUtil.isBlank(estoqueMinimoParam)) {
             try {
@@ -110,6 +124,18 @@ public class ProdutoFormServlet extends HttpServlet {
                 }
             } catch (NumberFormatException e) {
                 errors.put("estoqueAtual", "Informe um número válido.");
+            }
+        }
+
+        Integer comprar = 0;
+        if (!ValidationUtil.isBlank(comprarParam)) {
+            try {
+                comprar = Integer.parseInt(comprarParam.trim());
+                if (comprar < 0) {
+                    errors.put("comprar", "A quantidade a comprar não pode ser negativa.");
+                }
+            } catch (NumberFormatException e) {
+                errors.put("comprar", "Informe um número válido.");
             }
         }
 
@@ -135,8 +161,10 @@ public class ProdutoFormServlet extends HttpServlet {
         produto.setDescricao(descricao);
         produto.setTipoId(tipoId);
         produto.setUnidade(unidade);
+        produto.setEstoqueIdeal(estoqueIdeal);
         produto.setEstoqueMinimo(estoqueMinimo);
         produto.setEstoqueAtual(estoqueAtual);
+        produto.setComprar(comprar);
         produto.setUltimoFornecedorId(ultimoFornecedorId);
         produto.setValorUltimaCompra(valorUltimaCompra);
 

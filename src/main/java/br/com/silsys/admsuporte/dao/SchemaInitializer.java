@@ -320,8 +320,10 @@ public final class SchemaInitializer {
                 "  id INT PRIMARY KEY AUTO_INCREMENT," +
                 "  descricao VARCHAR(255) NOT NULL," +
                 "  unidade VARCHAR(20) NOT NULL DEFAULT 'unidades'," +
+                "  estoque_ideal INT NOT NULL DEFAULT 0," +
                 "  estoque_minimo INT NOT NULL DEFAULT 0," +
                 "  estoque_atual INT NOT NULL DEFAULT 0," +
+                "  comprar INT NOT NULL DEFAULT 0," +
                 "  ultimo_fornecedor_id INT NULL," +
                 "  valor_ultima_compra DECIMAL(10,2) NULL," +
                 "  CONSTRAINT chk_produtos_unidade " +
@@ -621,6 +623,12 @@ public final class SchemaInitializer {
                     "CHECK (unidade IN ('unidades', 'duzias', 'kgs', 'litros'))");
             }
         }
+        if (!columnExists(conn, "produtos", "estoque_ideal")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE produtos ADD COLUMN estoque_ideal INT NOT NULL DEFAULT 0 AFTER unidade");
+            }
+        }
         if (!columnExists(conn, "produtos", "estoque_minimo")) {
             try (Statement stmt = conn.createStatement()) {
                 stmt.executeUpdate("ALTER TABLE produtos ADD COLUMN estoque_minimo INT NOT NULL DEFAULT 0");
@@ -629,6 +637,12 @@ public final class SchemaInitializer {
         if (!columnExists(conn, "produtos", "estoque_atual")) {
             try (Statement stmt = conn.createStatement()) {
                 stmt.executeUpdate("ALTER TABLE produtos ADD COLUMN estoque_atual INT NOT NULL DEFAULT 0");
+            }
+        }
+        if (!columnExists(conn, "produtos", "comprar")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE produtos ADD COLUMN comprar INT NOT NULL DEFAULT 0 AFTER estoque_atual");
             }
         }
     }

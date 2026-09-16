@@ -42,8 +42,9 @@
                             <th>Descrição</th>
                             <th>Tipo</th>
                             <th>Unidade</th>
-                            <th>Estoque mínimo</th>
-                            <th>Estoque atual</th>
+                            <th>Est ideal</th>
+                            <th>Est min</th>
+                            <th>Est atual</th>
                             <th>Comprar</th>
                             <th>Fornecedor da última atualização</th>
                             <th>Valor última compra</th>
@@ -57,9 +58,10 @@
                                 <td>${p.descricao}</td>
                                 <td>${empty p.tipoDescricao ? '-' : p.tipoDescricao}</td>
                                 <td>${empty p.unidade ? '-' : p.unidade.label}</td>
+                                <td>${p.estoqueIdeal}</td>
                                 <td>${p.estoqueMinimo}</td>
                                 <td>${p.estoqueAtual}</td>
-                                <td><span class="badge ${p.comprar ? 'badge-inativo' : 'badge-ativo'}">${p.comprar ? 'Sim' : 'Não'}</span></td>
+                                <td><span class="badge ${p.comprar gt 0 ? 'badge-inativo' : 'badge-ativo'}">${p.comprar gt 0 ? p.comprar : 'Não'}</span></td>
                                 <td>${empty p.ultimoFornecedorNome ? '-' : p.ultimoFornecedorNome}</td>
                                 <td><c:choose><c:when test="${empty p.valorUltimaCompra}">-</c:when><c:otherwise>R$ ${p.valorUltimaCompra}</c:otherwise></c:choose></td>
                                 <td>

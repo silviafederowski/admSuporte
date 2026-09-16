@@ -13,8 +13,10 @@ public class Produto implements Serializable {
     private String descricao;
     private Integer tipoId;
     private UnidadeMedidaProduto unidade;
+    private Integer estoqueIdeal;
     private Integer estoqueMinimo;
     private Integer estoqueAtual;
+    private Integer comprar;
     private Integer ultimoFornecedorId;
     private BigDecimal valorUltimaCompra;
 
@@ -67,6 +69,14 @@ public class Produto implements Serializable {
         this.unidade = unidade;
     }
 
+    public Integer getEstoqueIdeal() {
+        return estoqueIdeal;
+    }
+
+    public void setEstoqueIdeal(Integer estoqueIdeal) {
+        this.estoqueIdeal = estoqueIdeal;
+    }
+
     public Integer getEstoqueMinimo() {
         return estoqueMinimo;
     }
@@ -81,6 +91,19 @@ public class Produto implements Serializable {
 
     public void setEstoqueAtual(Integer estoqueAtual) {
         this.estoqueAtual = estoqueAtual;
+    }
+
+    /**
+     * Quantidade sugerida para compra. Recalculada em tela (via JS) quando estoque ideal/minimo/
+     * atual mudam (estoqueIdeal - estoqueAtual, quando estoqueAtual &lt; estoqueMinimo), mas pode
+     * ser sobrescrita manualmente pelo usuario antes de salvar.
+     */
+    public Integer getComprar() {
+        return comprar;
+    }
+
+    public void setComprar(Integer comprar) {
+        this.comprar = comprar;
     }
 
     public Integer getUltimoFornecedorId() {
@@ -113,10 +136,5 @@ public class Produto implements Serializable {
 
     public void setFornecedoresQueOferecem(List<Fornecedor> fornecedoresQueOferecem) {
         this.fornecedoresQueOferecem = fornecedoresQueOferecem != null ? fornecedoresQueOferecem : new ArrayList<>();
-    }
-
-    /** Calculado em tela: estoque atual abaixo do minimo. */
-    public boolean isComprar() {
-        return estoqueAtual != null && estoqueMinimo != null && estoqueAtual < estoqueMinimo;
     }
 }

@@ -224,6 +224,10 @@
         <filter-name>AuthFilter</filter-name>
         <url-pattern>/tipos-produtos/excluir</url-pattern>
     </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/tipos-produtos/lista-compras</url-pattern>
+    </filter-mapping>
 
     <!--
       Fonte unica de autorizacao das opcoes do menu: tabela autorizacoes_menu (tela de
@@ -517,6 +521,10 @@
     <filter-mapping>
         <filter-name>Autorizacao_tiposProdutos</filter-name>
         <url-pattern>/tipos-produtos/excluir</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_tiposProdutos</filter-name>
+        <url-pattern>/tipos-produtos/lista-compras</url-pattern>
     </filter-mapping>
 
     <servlet>
@@ -882,6 +890,15 @@
     <servlet-mapping>
         <servlet-name>TipoProdutoDeleteServlet</servlet-name>
         <url-pattern>/tipos-produtos/excluir</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>TipoProdutoListaComprasServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.TipoProdutoListaComprasServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TipoProdutoListaComprasServlet</servlet-name>
+        <url-pattern>/tipos-produtos/lista-compras</url-pattern>
     </servlet-mapping>
 
     <servlet>

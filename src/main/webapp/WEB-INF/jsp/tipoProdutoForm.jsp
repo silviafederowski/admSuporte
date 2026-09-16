@@ -25,6 +25,9 @@
                     <button type="submit" form="tipoProdutoForm" class="menu-icon-link" title="Salvar" aria-label="Salvar">💾</button>
                 </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/tipos-produtos" title="Cancelar" aria-label="Cancelar">↩️</a>
+                <c:if test="${not empty param.id}">
+                    <a class="menu-icon-link" href="${pageContext.request.contextPath}/tipos-produtos/lista-compras?id=${param.id}" title="Lista de compras" aria-label="Lista de compras">🛒</a>
+                </c:if>
                 <c:if test="${!readOnly && not empty param.id}">
                     <button type="submit" form="tipoProdutoExcluirForm" class="menu-icon-link" title="Excluir" aria-label="Excluir">🗑️</button>
                 </c:if>
