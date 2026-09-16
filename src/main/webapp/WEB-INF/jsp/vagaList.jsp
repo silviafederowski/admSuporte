@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Vagas - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
 </head>
 <body>
 <div class="page">
@@ -68,7 +68,6 @@
             </c:otherwise>
         </c:choose>
 
-        <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
     </div>
 </div>
 

@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Registro do histórico - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=11">
 </head>
 <body>
 <div class="page">
@@ -17,24 +17,32 @@
             <h1 class="title" style="text-align:left;margin:0;">
                 <c:choose>
                     <c:when test="${readOnly}">Consultar registro</c:when>
-                    <c:when test="${empty param.id}">Novo registro</c:when>
+                    <c:when test="${empty param.id}">Novo registro de histórico de serviços</c:when>
                     <c:otherwise>Editar registro</c:otherwise>
                 </c:choose>
             </h1>
-            <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            <div class="toolbar-actions">
+                <c:if test="${!readOnly}">
+                    <button type="submit" form="pendenciaServicoForm" class="menu-icon-link" title="Salvar" aria-label="Salvar">💾</button>
+                </c:if>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/pendencias-servico" title="Cancelar" aria-label="Cancelar">↩️</a>
+                <c:if test="${!readOnly && not empty param.id}">
+                    <button type="submit" form="pendenciaServicoExcluirForm" class="menu-icon-link" title="Excluir" aria-label="Excluir">🗑️</button>
+                </c:if>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            </div>
         </div>
-        <p class="subtitle">Dados do registro do histórico de serviço</p>
 
         <c:if test="${not empty errors.form}">
             <p class="form-error">${errors.form}</p>
         </c:if>
 
-        <form method="post" action="${pageContext.request.contextPath}/pendencias-servico/form">
+        <form id="pendenciaServicoForm" method="post" action="${pageContext.request.contextPath}/pendencias-servico/form">
             <input type="hidden" name="id" value="${param.id}">
 
             <div class="field">
                 <label for="servicoId">Serviço</label>
-                <select id="servicoId" name="servicoId" ${dis} required>
+                <select id="servicoId" name="servicoId" ${dis} required onchange="filtrarPrestadoresDoServico()">
                     <option value="" disabled ${empty pendencia.servicoId ? 'selected' : ''}>Selecione...</option>
                     <c:forEach var="s" items="${servicos}">
                         <option value="${s.id}" ${pendencia.servicoId == s.id ? 'selected' : ''}>${s.descricao}</option>
@@ -54,10 +62,27 @@
                 <c:if test="${not empty errors.prestadorId}"><div class="field-error">${errors.prestadorId}</div></c:if>
             </div>
 
-            <div class="field">
-                <label for="data">Data</label>
-                <input type="date" id="data" name="data" value="${pendencia.data}" ${dis} required>
-                <c:if test="${not empty errors.data}"><div class="field-error">${errors.data}</div></c:if>
+            <div class="field-row data-alterar-row">
+                <div class="field">
+                    <label for="data">Data</label>
+                    <input type="date" id="data" name="data" value="${pendencia.data}" ${dis} required>
+                    <c:if test="${not empty errors.data}"><div class="field-error">${errors.data}</div></c:if>
+                </div>
+                <div class="field">
+                    <label>Alterar cadastro</label>
+                    <div class="radio-row">
+                        <label class="radio-option">
+                            <input type="radio" name="alterarCadastro" value="nao" ${dis}
+                                   ${empty param.alterarCadastro || param.alterarCadastro != 'sim' ? 'checked' : ''}>
+                            <span>Não</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="alterarCadastro" value="sim" ${dis}
+                                   ${param.alterarCadastro == 'sim' ? 'checked' : ''}>
+                            <span>Sim</span>
+                        </label>
+                    </div>
+                </div>
             </div>
 
             <div class="field">
@@ -82,21 +107,47 @@
                 <c:if test="${not empty errors.descricaoOcorrencia}"><div class="field-error">${errors.descricaoOcorrencia}</div></c:if>
             </div>
 
-            <c:if test="${!readOnly}">
-                <button type="submit" class="btn btn-primary">Salvar</button>
-            </c:if>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/pendencias-servico">Cancelar</a>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
         </form>
 
         <c:if test="${!readOnly && not empty param.id}">
-            <form method="post" action="${pageContext.request.contextPath}/pendencias-servico/excluir"
+            <form id="pendenciaServicoExcluirForm" method="post" action="${pageContext.request.contextPath}/pendencias-servico/excluir"
                   onsubmit="return confirm('Excluir este registro?');">
                 <input type="hidden" name="id" value="${param.id}">
-                <button type="submit" class="btn btn-danger">Excluir</button>
             </form>
         </c:if>
     </div>
 </div>
+<script>
+    var PRESTADORES_POR_SERVICO = {};
+    <c:forEach var="s" items="${servicos}">
+    PRESTADORES_POR_SERVICO[${s.id}] = [<c:forEach var="p" items="${s.prestadoresQueOferecem}" varStatus="ps">${p.id}<c:if test="${!ps.last}">,</c:if></c:forEach>];
+    </c:forEach>
+
+    function filtrarPrestadoresDoServico() {
+        var servicoSelect = document.getElementById('servicoId');
+        var prestadorSelect = document.getElementById('prestadorId');
+        var servicoId = servicoSelect.value;
+        var permitidos = PRESTADORES_POR_SERVICO[servicoId] || [];
+        var currentValue = prestadorSelect.value;
+        var currentStillValid = false;
+
+        Array.prototype.forEach.call(prestadorSelect.options, function (option) {
+            if (!option.value) {
+                return;
+            }
+            var matches = !servicoId || permitidos.indexOf(Number(option.value)) !== -1;
+            option.hidden = !matches;
+            if (matches && option.value === currentValue) {
+                currentStillValid = true;
+            }
+        });
+
+        if (!currentStillValid) {
+            prestadorSelect.value = '';
+        }
+    }
+
+    filtrarPrestadoresDoServico();
+</script>
 </body>
 </html>

@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Histórico de serviços - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
 </head>
 <body>
 <div class="page">
@@ -22,7 +22,7 @@
                             <c:param name="servicoId" value="${servicoIdFiltro}" />
                         </c:if>
                     </c:url>
-                    <a class="btn btn-primary" href="${novoRegistroUrl}">Novo registro</a>
+                    <a class="menu-icon-link" href="${novoRegistroUrl}" title="Novo registro" aria-label="Novo registro">➕</a>
                 </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
@@ -54,7 +54,7 @@
                             <th>Prestador</th>
                             <th>Data</th>
                             <th>Técnico</th>
-                            <th style="min-width: 320px;">Descrição da ocorrência</th>
+                            <th style="min-width: 320px; text-align:left;">Descrição da ocorrência</th>
                             <th>Situação</th>
                         </tr>
                         </thead>
@@ -66,7 +66,11 @@
                                 <td>${p.prestadorNome}</td>
                                 <td>${p.dataFormatada}</td>
                                 <td>${p.nomeTecnico}</td>
-                                <td>${p.descricaoOcorrencia}</td>
+                                <td style="text-align:left;">
+                                    <c:forEach var="linha" items="${p.descricaoOcorrenciaLinhas}" varStatus="ls">
+                                        <c:if test="${!ls.first}"><br></c:if>${linha}
+                                    </c:forEach>
+                                </td>
                                 <td><span class="badge badge-${p.status.dbValue}">${p.status.label}</span></td>
                             </tr>
                         </c:forEach>
@@ -76,7 +80,6 @@
             </c:otherwise>
         </c:choose>
 
-        <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
     </div>
 </div>
 <script src="${pageContext.request.contextPath}/js/dataTable.js?v=5"></script>

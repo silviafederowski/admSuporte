@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Fornecedor - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
 </head>
 <body>
 <div class="page">
@@ -21,15 +21,23 @@
                     <c:otherwise>Editar fornecedor</c:otherwise>
                 </c:choose>
             </h1>
-            <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            <div class="toolbar-actions">
+                <c:if test="${!readOnly}">
+                    <button type="submit" form="fornecedorForm" class="menu-icon-link" title="Salvar" aria-label="Salvar">💾</button>
+                </c:if>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/fornecedores" title="Cancelar" aria-label="Cancelar">↩️</a>
+                <c:if test="${!readOnly && not empty param.id}">
+                    <button type="submit" form="fornecedorExcluirForm" class="menu-icon-link" title="Excluir" aria-label="Excluir">🗑️</button>
+                </c:if>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            </div>
         </div>
-        <p class="subtitle">Dados do fornecedor</p>
 
         <c:if test="${not empty errors.form}">
             <p class="form-error">${errors.form}</p>
         </c:if>
 
-        <form method="post" action="${pageContext.request.contextPath}/fornecedores/form">
+        <form id="fornecedorForm" method="post" action="${pageContext.request.contextPath}/fornecedores/form">
             <input type="hidden" name="id" value="${param.id}">
 
             <div class="field">
@@ -126,18 +134,12 @@
                 <textarea id="observacao" name="observacao" style="min-height:160px;" ${dis}>${fornecedor.observacao}</textarea>
             </div>
 
-            <c:if test="${!readOnly}">
-                <button type="submit" class="btn btn-primary">Salvar</button>
-            </c:if>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/fornecedores">Cancelar</a>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
         </form>
 
         <c:if test="${!readOnly && not empty param.id}">
-            <form method="post" action="${pageContext.request.contextPath}/fornecedores/excluir"
+            <form id="fornecedorExcluirForm" method="post" action="${pageContext.request.contextPath}/fornecedores/excluir"
                   onsubmit="return confirm('Excluir este fornecedor?');">
                 <input type="hidden" name="id" value="${param.id}">
-                <button type="submit" class="btn btn-danger">Excluir</button>
             </form>
         </c:if>
     </div>

@@ -19,8 +19,43 @@
         </c:if>
 
         <div class="menu-grid">
+            <c:if test="${telasPermitidas.contains('agenda')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/agenda">Agenda</a>
+            </c:if>
+            <!-- Autorizacoes: consulta liberada a qualquer usuario logado, edicao so ao sindico (nivel 0) -->
+            <a class="btn btn-primary" href="${pageContext.request.contextPath}/autorizacoes">Autorizações</a>
+            <c:if test="${telasPermitidas.contains('documento-condominio')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/documento-condominio">Dados do condomínio</a>
+            </c:if>
             <c:if test="${telasPermitidas.contains('documentos')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/procedimentos">Documentos</a>
+            </c:if>
+            <c:if test="${telasPermitidas.contains('google-form')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/google-form">Formulário Google</a>
+            </c:if>
+            <c:if test="${telasPermitidas.contains('fornecedores')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/fornecedores">Fornecedores</a>
+            </c:if>
+            <c:if test="${telasPermitidas.contains('pendencias-servico')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/pendencias-servico">Histórico de serviços</a>
+            </c:if>
+            <c:if test="${telasPermitidas.contains('operacoes')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/operacoes">Log de operações</a>
+            </c:if>
+            <c:if test="${telasPermitidas.contains('prestadores')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/prestadores">Prestadores</a>
+            </c:if>
+            <c:if test="${telasPermitidas.contains('produtos')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/produtos">Produtos</a>
+            </c:if>
+            <c:if test="${telasPermitidas.contains('servicos')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/servicos">Serviços</a>
+            </c:if>
+            <c:if test="${telasPermitidas.contains('tipos-usuario')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/tipos-usuario">Tipos de usuário</a>
+            </c:if>
+            <c:if test="${telasPermitidas.contains('usuarios')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/usuarios">Usuários</a>
             </c:if>
             <c:if test="${telasPermitidas.contains('vagas')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/vagas">Vagas</a>
@@ -28,42 +63,6 @@
             <c:if test="${telasPermitidas.contains('veiculos')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/veiculos">Veículos</a>
             </c:if>
-
-            <c:if test="${telasPermitidas.contains('servicos')}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/servicos">Serviços</a>
-            </c:if>
-            <c:if test="${telasPermitidas.contains('pendencias-servico')}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/pendencias-servico">Histórico de serviços</a>
-            </c:if>
-            <c:if test="${telasPermitidas.contains('produtos')}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/produtos">Produtos</a>
-            </c:if>
-            <c:if test="${telasPermitidas.contains('prestadores')}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/prestadores">Prestadores</a>
-            </c:if>
-            <c:if test="${telasPermitidas.contains('fornecedores')}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/fornecedores">Fornecedores</a>
-            </c:if>
-
-            <c:if test="${telasPermitidas.contains('usuarios')}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/usuarios">Usuários</a>
-            </c:if>
-
-            <c:if test="${telasPermitidas.contains('operacoes')}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/operacoes">Log de operações</a>
-            </c:if>
-            <c:if test="${telasPermitidas.contains('google-form')}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/google-form">Formulário Google</a>
-            </c:if>
-            <c:if test="${telasPermitidas.contains('documento-condominio')}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/documento-condominio">Dados do condomínio</a>
-            </c:if>
-            <c:if test="${telasPermitidas.contains('tipos-usuario')}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/tipos-usuario">Tipos de usuário</a>
-            </c:if>
-
-            <!-- Autorizacoes: consulta liberada a qualquer usuario logado, edicao so ao sindico (nivel 0) -->
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/autorizacoes">Autorizações</a>
         </div>
 
         <a class="btn btn-secondary menu-logout" href="${pageContext.request.contextPath}/logout">Sair</a>

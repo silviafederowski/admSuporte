@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${not empty arquivoNome ? arquivoNome : 'Documento'} - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
 </head>
 <body>
 <div class="page">
@@ -16,6 +16,7 @@
                 <h1 class="title" style="text-align:left;margin:0;">${not empty arquivoNome ? arquivoNome : 'Documento'}</h1>
             </div>
             <div class="toolbar-actions">
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/procedimentos" title="Voltar aos documentos" aria-label="Voltar aos documentos">📄</a>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
@@ -36,9 +37,6 @@
                 </c:otherwise>
             </c:choose>
         </div>
-
-        <a class="btn btn-secondary" href="${pageContext.request.contextPath}/procedimentos">Voltar aos documentos</a>
-        <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
     </div>
 </div>
 </body>

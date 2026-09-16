@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Usuários - admSuporte</title>
+    <title>Agenda - admSuporte</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
 </head>
 <body>
@@ -13,11 +13,11 @@
     <div class="card card-wide">
         <div class="toolbar">
             <div>
-                <h1 class="title" style="text-align:left;margin:0;">Usuários</h1>
+                <h1 class="title" style="text-align:left;margin:0;">Agenda</h1>
             </div>
             <div class="toolbar-actions">
                 <c:if test="${!readOnly}">
-                    <a class="menu-icon-link" href="${pageContext.request.contextPath}/usuarios/form" title="Novo usuário" aria-label="Novo usuário">➕</a>
+                    <a class="menu-icon-link" href="${pageContext.request.contextPath}/agenda/form" title="Novo compromisso" aria-label="Novo compromisso">➕</a>
                 </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
@@ -31,30 +31,30 @@
         </c:if>
 
         <c:choose>
-            <c:when test="${empty usuarios}">
-                <p class="empty-state">Nenhum usuário cadastrado ainda.</p>
+            <c:when test="${empty agenda}">
+                <p class="empty-state">Nenhum compromisso cadastrado ainda.</p>
             </c:when>
             <c:otherwise>
                 <div class="table-wrap">
                     <table class="data-table" data-sortable>
                         <thead>
                         <tr>
-                            <th>Nome</th>
-                            <th>E-mail</th>
-                            <th>Telefone</th>
-                            <th>Tipo</th>
-                            <th>Status</th>
+                            <th>Data</th>
+                            <th>Hora</th>
+                            <th>Ponto focal</th>
+                            <th>Assunto</th>
+                            <th style="min-width: 320px;">Observação</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <c:forEach var="u" items="${usuarios}">
+                        <c:forEach var="a" items="${agenda}">
                             <tr class="clickable-row"
-                                onclick="window.location='${pageContext.request.contextPath}/usuarios/form?id=${u.id}'">
-                                <td>${u.name}</td>
-                                <td>${u.email}</td>
-                                <td>${u.phone}</td>
-                                <td>${u.userTypeName}</td>
-                                <td><span class="badge ${u.ativo ? 'badge-ativo' : 'badge-inativo'}">${u.ativo ? 'Ativo' : 'Inativo'}</span></td>
+                                onclick="window.location='${pageContext.request.contextPath}/agenda/form?id=${a.id}'">
+                                <td>${a.dataFormatada}</td>
+                                <td>${a.horaFormatada}</td>
+                                <td>${a.pontoFocal}</td>
+                                <td>${a.assunto}</td>
+                                <td>${empty a.observacao ? '-' : a.observacao}</td>
                             </tr>
                         </c:forEach>
                         </tbody>

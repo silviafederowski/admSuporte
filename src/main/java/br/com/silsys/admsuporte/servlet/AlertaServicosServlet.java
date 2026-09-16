@@ -1,6 +1,8 @@
 package br.com.silsys.admsuporte.servlet;
 
+import br.com.silsys.admsuporte.dao.AgendaDao;
 import br.com.silsys.admsuporte.dao.ServicoDao;
+import br.com.silsys.admsuporte.model.Agenda;
 import br.com.silsys.admsuporte.model.Servico;
 import br.com.silsys.admsuporte.model.UserType;
 import br.com.silsys.admsuporte.util.ErrorMessages;
@@ -18,9 +20,10 @@ import javax.servlet.http.HttpSession;
 
 /**
  * Exibido logo apos o login, antes do menu: avisa sobre servicos de manutencao atrasados
- * (nivel <= NIVEL_MAXIMO_ALERTA_ATRASO) e sobre servicos agendados para hoje (nivel <=
- * NIVEL_MAXIMO_ALERTA_AGENDADO, mais restrito: so administrador/zelador). Se nao houver nada
- * para mostrar (ou o nivel do usuario nao se aplicar a nenhum dos dois), passa direto para o menu.
+ * (nivel <= NIVEL_MAXIMO_ALERTA_ATRASO), sobre servicos agendados para hoje e compromissos da
+ * agenda para hoje (nivel <= NIVEL_MAXIMO_ALERTA_AGENDADO, mais restrito: so administrador/
+ * zelador). Se nao houver nada para mostrar (ou o nivel do usuario nao se aplicar a nenhum dos
+ * tres), passa direto para o menu.
  */
 public class AlertaServicosServlet extends HttpServlet {
 
@@ -28,6 +31,7 @@ public class AlertaServicosServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(AlertaServicosServlet.class.getName());
 
     private final ServicoDao servicoDao = new ServicoDao();
+    private final AgendaDao agendaDao = new AgendaDao();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -56,13 +60,27 @@ public class AlertaServicosServlet extends HttpServlet {
             }
         }
 
-        if (servicosAtrasados.isEmpty() && servicosAgendadosHoje.isEmpty()) {
+        List<Agenda> agendaHoje = new ArrayList<>();
+        if (verificaAgendados) {
+            try {
+                for (Agenda compromisso : agendaDao.listAll()) {
+                    if (compromisso.isHoje()) {
+                        agendaHoje.add(compromisso);
+                    }
+                }
+            } catch (SQLException e) {
+                ErrorMessages.logErro(LOGGER, "alerta-servicos", "Verificar compromissos da agenda de hoje", e);
+            }
+        }
+
+        if (servicosAtrasados.isEmpty() && servicosAgendadosHoje.isEmpty() && agendaHoje.isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/menu");
             return;
         }
 
         request.setAttribute("servicosAtrasados", servicosAtrasados);
         request.setAttribute("servicosAgendadosHoje", servicosAgendadosHoje);
+        request.setAttribute("agendaHoje", agendaHoje);
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/alertaServicos.jsp");
         dispatcher.forward(request, response);
     }

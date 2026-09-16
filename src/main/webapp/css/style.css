@@ -240,8 +240,7 @@ a.link:hover {
 
 .menu-grid {
     display: grid;
-    grid-auto-flow: column;
-    grid-template-rows: repeat(6, auto);
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px 16px;
     margin-bottom: 16px;
 }
@@ -258,8 +257,6 @@ a.link:hover {
 
 @media (max-width: 640px) {
     .menu-grid {
-        grid-auto-flow: row;
-        grid-template-rows: none;
         grid-template-columns: 1fr;
     }
 }
@@ -332,10 +329,23 @@ textarea:focus {
     line-height: 1;
     text-decoration: none;
     flex-shrink: 0;
+    /* Reset de <button>: mesma classe serve para links e para botoes de submit (Salvar/Excluir),
+       sem herdar aparencia nativa de botao. */
+    border: none;
+    background: none;
+    padding: 0;
+    font-family: inherit;
+    color: inherit;
+    cursor: pointer;
 }
 
 .menu-icon-link:hover {
     opacity: 0.7;
+}
+
+.menu-icon-link:disabled {
+    opacity: 0.35;
+    cursor: default;
 }
 
 .filter-bar {
@@ -394,13 +404,60 @@ textarea:focus {
 }
 
 .veiculo-row {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, 1fr) 32px;
+    align-items: end;
+}
+
+.veiculo-row-delete {
+    display: flex;
+    justify-content: center;
+    padding-bottom: 12px;
+}
+
+.veiculo-row-delete .icon-link {
+    font-size: 20px;
 }
 
 @media (max-width: 700px) {
     .veiculo-row {
         grid-template-columns: 1fr;
     }
+
+    .veiculo-row-delete {
+        justify-content: flex-start;
+        padding-bottom: 0;
+    }
+}
+
+.data-alterar-row {
+    grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 560px) {
+    .data-alterar-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+.radio-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 0 4px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.radio-option input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary);
 }
 
 .icon-link {
@@ -409,6 +466,13 @@ textarea:focus {
     line-height: 1;
     text-decoration: none;
     cursor: pointer;
+    /* Reset de <button>: a mesma classe serve para links e para botoes de acao (ex.: excluir
+       linha), sem herdar aparencia nativa de botao. */
+    border: none;
+    background: none;
+    padding: 0;
+    font-family: inherit;
+    color: inherit;
 }
 
 .icon-link:hover {
@@ -469,6 +533,18 @@ textarea:focus {
 
 .clickable-row {
     cursor: pointer;
+}
+
+/* Linhas extras de contato (2o/3o contato de um mesmo fornecedor/prestador): repete os dados da
+   empresa no DOM (para ordenacao/filtro da tabela continuarem funcionando por linha), mas
+   esconde visualmente para dar a impressao de uma unica linha "dona" por empresa. */
+.repeat-hidden {
+    visibility: hidden;
+}
+
+.contact-row-extra td {
+    border-top: none;
+    padding-top: 0;
 }
 
 .clickable-row:hover {

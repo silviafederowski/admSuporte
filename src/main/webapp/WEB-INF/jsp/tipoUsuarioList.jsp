@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tipos de usuário - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
 </head>
 <body>
 <div class="page">
@@ -17,7 +17,7 @@
             </div>
             <div class="toolbar-actions">
                 <c:if test="${!readOnly}">
-                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/tipos-usuario/form">Novo tipo de usuário</a>
+                    <a class="menu-icon-link" href="${pageContext.request.contextPath}/tipos-usuario/form" title="Novo tipo de usuário" aria-label="Novo tipo de usuário">➕</a>
                 </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
@@ -58,7 +58,6 @@
             </c:otherwise>
         </c:choose>
 
-        <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
     </div>
 </div>
 <script src="${pageContext.request.contextPath}/js/dataTable.js?v=5"></script>

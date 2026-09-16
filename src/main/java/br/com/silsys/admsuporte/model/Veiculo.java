@@ -19,6 +19,9 @@ public class Veiculo implements Serializable {
     private String marcaDescricao;
     private String modeloDescricao;
 
+    /** Codigo(s) da(s) vaga(s) atual(is) da unidade (ver VagaDao.listCodigosVagaAtual); preenchido no servlet. */
+    private String vagaAtual;
+
     public int getId() {
         return id;
     }
@@ -97,5 +100,13 @@ public class Veiculo implements Serializable {
 
     public void setModeloDescricao(String modeloDescricao) {
         this.modeloDescricao = modeloDescricao;
+    }
+
+    public String getVagaAtual() {
+        return vagaAtual;
+    }
+
+    public void setVagaAtual(String vagaAtual) {
+        this.vagaAtual = vagaAtual;
     }
 }

@@ -155,13 +155,25 @@ public class PendenciaServicoFormServlet extends HttpServlet {
                     pendenciaServicoDao.update(pendencia);
                     operacaoLogDao.registrar(usuarioLogado, "Histórico de serviços",
                             "Editar registro do histórico: " + pendencia.getNomeTecnico());
-                    response.sendRedirect(request.getContextPath() + "/pendencias-servico?atualizado=1");
                 } else {
                     pendenciaServicoDao.create(pendencia);
                     operacaoLogDao.registrar(usuarioLogado, "Histórico de serviços",
                             "Criar registro do histórico: " + pendencia.getNomeTecnico());
-                    response.sendRedirect(request.getContextPath() + "/pendencias-servico?criado=1");
                 }
+
+                if ("sim".equals(request.getParameter("alterarCadastro"))) {
+                    try {
+                        servicoDao.atualizarExecucaoAPartirDePendencia(servicoId, data, prestadorId);
+                        operacaoLogDao.registrar(usuarioLogado, "Serviços",
+                                "Atualizar cadastro a partir do histórico: " + pendencia.getNomeTecnico());
+                    } catch (SQLException e) {
+                        ErrorMessages.logErro(LOGGER, "servicos",
+                                "Atualizar cadastro do serviço a partir do histórico", e);
+                    }
+                }
+
+                response.sendRedirect(request.getContextPath() + "/pendencias-servico?"
+                        + (isEdit ? "atualizado=1" : "criado=1"));
                 return;
             } catch (SQLException e) {
                 errors.put("form", "Não foi possível salvar o registro: "

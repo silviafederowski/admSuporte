@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Documentos - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
 </head>
 <body>
 <div class="page">
@@ -19,8 +19,6 @@
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
-        <p class="subtitle">Clique em um arquivo para consultá-lo.</p>
-
         <c:if test="${not empty formError}">
             <p class="form-error">${formError}</p>
         </c:if>
@@ -83,7 +81,6 @@
             </div>
         </c:if>
 
-        <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
     </div>
 </div>
 <script src="${pageContext.request.contextPath}/js/dataTable.js?v=5"></script>

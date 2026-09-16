@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Autorizações - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
 </head>
 <body>
 <div class="page">
@@ -18,7 +18,7 @@
             </div>
             <div class="toolbar-actions">
                 <c:if test="${!readOnly}">
-                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/autorizacoes/form">Nova autorização</a>
+                    <a class="menu-icon-link" href="${pageContext.request.contextPath}/autorizacoes/form" title="Nova autorização" aria-label="Nova autorização">➕</a>
                 </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
@@ -79,7 +79,6 @@
             </c:otherwise>
         </c:choose>
 
-        <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
     </div>
 </div>
 

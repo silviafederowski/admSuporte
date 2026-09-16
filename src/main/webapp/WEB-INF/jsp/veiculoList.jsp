@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Veículos - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=10">
 </head>
 <body>
 <div class="page">
@@ -38,6 +38,7 @@
                         <thead>
                         <tr>
                             <th>Unidade</th>
+                            <th>Vagas</th>
                             <th>Marca</th>
                             <th>Modelo</th>
                             <th>Cor</th>
@@ -45,15 +46,29 @@
                         </tr>
                         </thead>
                         <tbody>
+                        <c:set var="unidadeAnterior" value="" />
                         <c:forEach var="v" items="${veiculos}">
+                            <c:set var="primeiraDaUnidade" value="${v.unidadeCodigo != unidadeAnterior}" />
                             <tr class="clickable-row"
                                 onclick="window.location='${pageContext.request.contextPath}/veiculos/form?unidade=${v.unidadeChave}'">
-                                <td>${v.unidadeCodigo}</td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${primeiraDaUnidade}">${v.unidadeCodigo}</c:when>
+                                        <c:otherwise><span class="repeat-hidden">${v.unidadeCodigo}</span></c:otherwise>
+                                    </c:choose>
+                                </td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${primeiraDaUnidade}">${v.vagaAtual}</c:when>
+                                        <c:otherwise><span class="repeat-hidden">${v.vagaAtual}</span></c:otherwise>
+                                    </c:choose>
+                                </td>
                                 <td>${v.marcaDescricao}</td>
                                 <td>${v.modeloDescricao}</td>
                                 <td>${v.corDescricao}</td>
                                 <td>${v.placas}</td>
                             </tr>
+                            <c:set var="unidadeAnterior" value="${v.unidadeCodigo}" />
                         </c:forEach>
                         </tbody>
                     </table>
@@ -61,7 +76,6 @@
             </c:otherwise>
         </c:choose>
 
-        <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
     </div>
 </div>
 <script src="${pageContext.request.contextPath}/js/dataTable.js?v=5"></script>

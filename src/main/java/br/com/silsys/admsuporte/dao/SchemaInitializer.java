@@ -49,6 +49,10 @@ public final class SchemaInitializer {
         {"pendencias-servico", "Histórico de serviços", "5", "edicao"},
         {"pendencias-servico", "Histórico de serviços", "10", "consulta"},
         {"pendencias-servico", "Histórico de serviços", "15", "consulta"},
+        {"agenda", "Agenda", "0", "edicao"},
+        {"agenda", "Agenda", "5", "edicao"},
+        {"agenda", "Agenda", "10", "consulta"},
+        {"agenda", "Agenda", "15", "consulta"},
         {"produtos", "Cadastro de produtos", "0", "edicao"},
         {"produtos", "Cadastro de produtos", "5", "edicao"},
         {"produtos", "Cadastro de produtos", "10", "consulta"},
@@ -263,6 +267,16 @@ public final class SchemaInitializer {
                 "  CONSTRAINT fk_pendencias_servico_prestador FOREIGN KEY (prestador_id) " +
                 "    REFERENCES prestadores(id) ON DELETE CASCADE," +
                 "  CONSTRAINT chk_pendencias_servico_status CHECK (status IN ('pendente', 'resolvido'))" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS agenda (" +
+                "  id INT PRIMARY KEY AUTO_INCREMENT," +
+                "  data DATE NOT NULL," +
+                "  hora TIME NOT NULL," +
+                "  ponto_focal VARCHAR(255) NOT NULL," +
+                "  assunto VARCHAR(255) NOT NULL," +
+                "  observacao LONGTEXT NULL" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
             stmt.executeUpdate(

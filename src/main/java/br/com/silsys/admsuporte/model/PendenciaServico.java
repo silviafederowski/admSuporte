@@ -3,6 +3,8 @@ package br.com.silsys.admsuporte.model;
 import br.com.silsys.admsuporte.util.DateFormatUtil;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PendenciaServico implements Serializable {
 
@@ -73,6 +75,21 @@ public class PendenciaServico implements Serializable {
 
     public void setDescricaoOcorrencia(String descricaoOcorrencia) {
         this.descricaoOcorrencia = descricaoOcorrencia;
+    }
+
+    /** Linhas nao vazias da descricao (uma por linha do textarea), para exibir em tabela sem linhas em branco. */
+    public List<String> getDescricaoOcorrenciaLinhas() {
+        List<String> linhas = new ArrayList<>();
+        if (descricaoOcorrencia == null) {
+            return linhas;
+        }
+        for (String linha : descricaoOcorrencia.split("\\r?\\n")) {
+            String aparada = linha.trim();
+            if (!aparada.isEmpty()) {
+                linhas.add(aparada);
+            }
+        }
+        return linhas;
     }
 
     public StatusPendencia getStatus() {

@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Autorização - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
 </head>
 <body>
 <div class="page">
@@ -21,7 +21,16 @@
                     <c:otherwise>Editar autorização</c:otherwise>
                 </c:choose>
             </h1>
-            <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            <div class="toolbar-actions">
+                <c:if test="${!readOnly}">
+                    <button type="submit" form="autorizacaoMenuForm" class="menu-icon-link" title="Salvar" aria-label="Salvar">💾</button>
+                </c:if>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/autorizacoes" title="Cancelar" aria-label="Cancelar">↩️</a>
+                <c:if test="${!readOnly && not empty param.id}">
+                    <button type="submit" form="autorizacaoMenuExcluirForm" class="menu-icon-link" title="Excluir" aria-label="Excluir">🗑️</button>
+                </c:if>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            </div>
         </div>
         <p class="subtitle">
             Código da tela usado nas URLs/filtros (ex.: servicos, prestadores, veiculos, vagas,
@@ -32,7 +41,7 @@
             <p class="form-error">${errors.form}</p>
         </c:if>
 
-        <form method="post" action="${pageContext.request.contextPath}/autorizacoes/form">
+        <form id="autorizacaoMenuForm" method="post" action="${pageContext.request.contextPath}/autorizacoes/form">
             <input type="hidden" name="id" value="${param.id}">
 
             <div class="field-row">
@@ -74,18 +83,12 @@
                 <c:if test="${not empty errors.telaDescricao}"><div class="field-error">${errors.telaDescricao}</div></c:if>
             </div>
 
-            <c:if test="${!readOnly}">
-                <button type="submit" class="btn btn-primary">Salvar</button>
-            </c:if>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/autorizacoes">Cancelar</a>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
         </form>
 
         <c:if test="${!readOnly && not empty param.id}">
-            <form method="post" action="${pageContext.request.contextPath}/autorizacoes/excluir"
+            <form id="autorizacaoMenuExcluirForm" method="post" action="${pageContext.request.contextPath}/autorizacoes/excluir"
                   onsubmit="return confirm('Excluir esta autorização?');">
                 <input type="hidden" name="id" value="${param.id}">
-                <button type="submit" class="btn btn-danger">Excluir</button>
             </form>
         </c:if>
     </div>

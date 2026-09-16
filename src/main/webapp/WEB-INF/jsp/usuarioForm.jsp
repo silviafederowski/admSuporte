@@ -9,7 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Usuário - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
 </head>
 <body>
 <div class="page">
@@ -22,15 +22,20 @@
                     <c:otherwise>Editar usuário</c:otherwise>
                 </c:choose>
             </h1>
-            <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            <div class="toolbar-actions">
+                <c:if test="${!readOnly}">
+                    <button type="submit" form="usuarioForm" class="menu-icon-link" title="Salvar" aria-label="Salvar">💾</button>
+                </c:if>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/usuarios" title="Cancelar" aria-label="Cancelar">↩️</a>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            </div>
         </div>
-        <p class="subtitle">Dados do usuário</p>
 
         <c:if test="${not empty errors.form}">
             <p class="form-error">${errors.form}</p>
         </c:if>
 
-        <form method="post" action="${pageContext.request.contextPath}/usuarios/form">
+        <form id="usuarioForm" method="post" action="${pageContext.request.contextPath}/usuarios/form">
             <input type="hidden" name="id" value="${param.id}">
 
             <div class="field">
@@ -89,11 +94,6 @@
                 <c:if test="${not empty errors.ativo}"><div class="field-error">${errors.ativo}</div></c:if>
             </div>
 
-            <c:if test="${!readOnly}">
-                <button type="submit" class="btn btn-primary">Salvar</button>
-            </c:if>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/usuarios">Cancelar</a>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
         </form>
     </div>
 </div>

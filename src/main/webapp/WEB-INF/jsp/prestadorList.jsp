@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Prestadores - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
 </head>
 <body>
 <div class="page">
@@ -17,7 +17,7 @@
             </div>
             <div class="toolbar-actions">
                 <c:if test="${!readOnly}">
-                    <a class="btn btn-primary" href="${pageContext.request.contextPath}/prestadores/form">Novo prestador</a>
+                    <a class="menu-icon-link" href="${pageContext.request.contextPath}/prestadores/form" title="Novo prestador" aria-label="Novo prestador">➕</a>
                 </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
@@ -57,27 +57,45 @@
                     <table class="data-table" data-sortable>
                         <thead>
                         <tr>
-                            <th>Nome / Razão social</th>
-                            <th>Email</th>
-                            <th>Contatos</th>
+                            <th style="text-align:left;">Nome / Razão social</th>
+                            <th style="text-align:left;">Contatos</th>
+                            <th>Telefones</th>
                             <th>Classificação</th>
                             <th>Tipo</th>
                         </tr>
                         </thead>
                         <tbody>
                         <c:forEach var="p" items="${prestadores}">
+                            <c:set var="temContato2" value="${not empty p.contato2Nome}" />
+                            <c:set var="temContato3" value="${not empty p.contato3Nome}" />
                             <tr class="clickable-row"
                                 onclick="window.location='${pageContext.request.contextPath}/prestadores/form?id=${p.id}'">
-                                <td>${p.nomeRazaoSocial}</td>
-                                <td>${p.email}</td>
-                                <td>
-                                    <c:if test="${not empty p.contato1Nome}">${p.contato1Nome} (${p.contato1Cargo}) - ${p.contato1Telefone}<br></c:if>
-                                    <c:if test="${not empty p.contato2Nome}">${p.contato2Nome} (${p.contato2Cargo}) - ${p.contato2Telefone}<br></c:if>
-                                    <c:if test="${not empty p.contato3Nome}">${p.contato3Nome} (${p.contato3Cargo}) - ${p.contato3Telefone}</c:if>
-                                </td>
+                                <td style="text-align:left;">${p.nomeRazaoSocial}</td>
+                                <td style="text-align:left;"><c:if test="${not empty p.contato1Nome}">${p.contato1Nome} (${p.contato1Cargo})</c:if></td>
+                                <td>${p.contato1Telefone}</td>
                                 <td><span class="badge badge-${p.classificacao.dbValue}">${p.classificacao.label}</span></td>
                                 <td>${p.tipo.label}</td>
                             </tr>
+                            <c:if test="${temContato2}">
+                                <tr class="clickable-row contact-row-extra"
+                                    onclick="window.location='${pageContext.request.contextPath}/prestadores/form?id=${p.id}'">
+                                    <td style="text-align:left;"><span class="repeat-hidden">${p.nomeRazaoSocial}</span></td>
+                                    <td style="text-align:left;">${p.contato2Nome} (${p.contato2Cargo})</td>
+                                    <td>${p.contato2Telefone}</td>
+                                    <td><span class="repeat-hidden badge badge-${p.classificacao.dbValue}">${p.classificacao.label}</span></td>
+                                    <td><span class="repeat-hidden">${p.tipo.label}</span></td>
+                                </tr>
+                            </c:if>
+                            <c:if test="${temContato3}">
+                                <tr class="clickable-row contact-row-extra"
+                                    onclick="window.location='${pageContext.request.contextPath}/prestadores/form?id=${p.id}'">
+                                    <td style="text-align:left;"><span class="repeat-hidden">${p.nomeRazaoSocial}</span></td>
+                                    <td style="text-align:left;">${p.contato3Nome} (${p.contato3Cargo})</td>
+                                    <td>${p.contato3Telefone}</td>
+                                    <td><span class="repeat-hidden badge badge-${p.classificacao.dbValue}">${p.classificacao.label}</span></td>
+                                    <td><span class="repeat-hidden">${p.tipo.label}</span></td>
+                                </tr>
+                            </c:if>
                         </c:forEach>
                         </tbody>
                     </table>
@@ -85,7 +103,6 @@
             </c:otherwise>
         </c:choose>
 
-        <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
     </div>
 </div>
 <script src="${pageContext.request.contextPath}/js/dataTable.js?v=5"></script>

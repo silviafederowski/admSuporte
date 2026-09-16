@@ -1,10 +1,14 @@
 package br.com.silsys.admsuporte.servlet;
 
+import br.com.silsys.admsuporte.dao.VagaDao;
 import br.com.silsys.admsuporte.dao.VeiculoDao;
+import br.com.silsys.admsuporte.model.Veiculo;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
@@ -24,6 +28,7 @@ public class VeiculoServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(VeiculoServlet.class.getName());
 
     private final VeiculoDao veiculoDao = new VeiculoDao();
+    private final VagaDao vagaDao = new VagaDao();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -32,7 +37,12 @@ public class VeiculoServlet extends HttpServlet {
             request.setAttribute("infoMessage", "Veículos da unidade atualizados com sucesso.");
         }
         try {
-            List<?> veiculos = veiculoDao.listAllComDetalhes();
+            List<Veiculo> veiculos = veiculoDao.listAllComDetalhes();
+            Map<Integer, String> vagasPorUnidade = new HashMap<>();
+            for (Veiculo v : veiculos) {
+                v.setVagaAtual(vagasPorUnidade.computeIfAbsent(v.getUnidadeChave(),
+                        chave -> buscarVagaAtual(chave)));
+            }
             request.setAttribute("veiculos", veiculos);
         } catch (SQLException e) {
             request.setAttribute("formError", "Não foi possível carregar os veículos: "
@@ -40,5 +50,14 @@ public class VeiculoServlet extends HttpServlet {
         }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/veiculoList.jsp");
         dispatcher.forward(request, response);
+    }
+
+    private String buscarVagaAtual(int unidadeChave) {
+        try {
+            return String.join(", ", vagaDao.listCodigosVagaAtual(unidadeChave));
+        } catch (SQLException e) {
+            ErrorMessages.logErro(LOGGER, "veiculos", "Carregar vaga atual da unidade", e);
+            return "";
+        }
     }
 }

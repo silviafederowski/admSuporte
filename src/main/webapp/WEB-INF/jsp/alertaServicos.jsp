@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<c:set var="ambosPresentes" value="${not empty servicosAtrasados && not empty servicosAgendadosHoje}" />
+<c:set var="totalColunas" value="${(empty servicosAgendadosHoje ? 0 : 1) + (empty servicosAtrasados ? 0 : 1) + (empty agendaHoje ? 0 : 1)}" />
+<c:set var="multiplasColunas" value="${totalColunas > 1}" />
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -11,7 +12,7 @@
 </head>
 <body>
 <div class="page">
-    <div class="card ${ambosPresentes ? 'card-wide' : ''}">
+    <div class="card ${multiplasColunas ? 'card-wide' : ''}">
         <h1 class="title">Atenção</h1>
 
         <div class="alerta-grid">
@@ -42,6 +43,21 @@
                                         <c:when test="${empty s.ultimaExecucao}">nunca executado</c:when>
                                         <c:otherwise>atrasado há ${-1 * s.diasFaltantes} dia(s)</c:otherwise>
                                     </c:choose>
+                                </span>
+                            </div>
+                        </c:forEach>
+                    </div>
+                </div>
+            </c:if>
+
+            <c:if test="${not empty agendaHoje}">
+                <div class="alerta-coluna">
+                    <p class="subtitle">Compromisso(s) da agenda para hoje</p>
+                    <div class="row-list">
+                        <c:forEach var="a" items="${agendaHoje}">
+                            <div class="row-item">
+                                <span class="agendado">
+                                    <c:if test="${not empty a.horaFormatada}">${a.horaFormatada} - </c:if>${a.assunto}<c:if test="${not empty a.pontoFocal}"> (${a.pontoFocal})</c:if>
                                 </span>
                             </div>
                         </c:forEach>

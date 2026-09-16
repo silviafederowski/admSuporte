@@ -100,6 +100,28 @@ public class ServicoDao {
         return result;
     }
 
+    /**
+     * Usado ao registrar uma pendencia de servico marcada como "alterar cadastro": se a data
+     * informada for futura, vira a proxima execucao agendada do servico; se for hoje ou passada,
+     * some como proxima execucao (ja aconteceu) e vira a ultima execucao registrada.
+     */
+    public void atualizarExecucaoAPartirDePendencia(int servicoId, java.time.LocalDate data, int prestadorId)
+            throws SQLException {
+        boolean futura = data.isAfter(java.time.LocalDate.now());
+        String sql = futura
+                ? "UPDATE servicos SET data_agendada_proxima_execucao = ?, prestador_proxima_execucao_id = ? " +
+                  "WHERE id = ?"
+                : "UPDATE servicos SET data_agendada_proxima_execucao = NULL, prestador_proxima_execucao_id = NULL, " +
+                  "ultima_execucao = ?, ultimo_prestador_id = ? WHERE id = ?";
+        try (Connection conn = ConnectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setDate(1, Date.valueOf(data));
+            stmt.setInt(2, prestadorId);
+            stmt.setInt(3, servicoId);
+            stmt.executeUpdate();
+        }
+    }
+
     private List<Prestador> findPrestadoresByServico(Connection conn, int servicoId) throws SQLException {
         List<Prestador> prestadores = new ArrayList<>();
         try (PreparedStatement stmt = conn.prepareStatement(

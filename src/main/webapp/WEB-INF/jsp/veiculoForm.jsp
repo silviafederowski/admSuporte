@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Veículos - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=10">
 </head>
 <body>
 <div class="page">
@@ -16,7 +16,11 @@
                 Veículos da unidade ${unidade.codigo}
                 <c:if test="${not empty codigosVagaUnidade}"> - Vaga ${codigosVagaUnidade}</c:if>
             </h1>
-            <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            <div class="toolbar-actions">
+                <button type="submit" form="veiculoForm" class="menu-icon-link" title="Salvar" aria-label="Salvar">💾</button>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/veiculos" title="Cancelar" aria-label="Cancelar">↩️</a>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
+            </div>
         </div>
         <p class="subtitle">Informe até 5 veículos. Cor, marca, modelo e placas são obrigatórios; deixe a linha em branco para não usá-la.</p>
 
@@ -24,7 +28,7 @@
             <p class="form-error">${errors.form}</p>
         </c:if>
 
-        <form method="post" action="${pageContext.request.contextPath}/veiculos/form">
+        <form id="veiculoForm" method="post" action="${pageContext.request.contextPath}/veiculos/form">
             <input type="hidden" name="unidadeChave" value="${unidade.chave}">
 
             <c:forEach var="v" items="${veiculos}" varStatus="status">
@@ -61,15 +65,16 @@
                         <label for="placas${status.count}">Placas</label>
                         <input type="text" id="placas${status.count}" name="placas${status.count}" value="${v.placas}">
                     </div>
+                    <div class="field veiculo-row-delete">
+                        <button type="button" class="icon-link" title="Remover este veículo" aria-label="Remover este veículo"
+                                onclick="limparLinhaVeiculo(${status.count})">🗑️</button>
+                    </div>
                 </div>
                 <c:if test="${not empty errors[linhaKey]}">
                     <div class="field-error">${errors[linhaKey]}</div>
                 </c:if>
             </c:forEach>
 
-            <button type="submit" class="btn btn-primary">Salvar</button>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/veiculos">Cancelar</a>
-            <a class="btn btn-secondary" href="${pageContext.request.contextPath}/menu">Voltar ao menu</a>
         </form>
     </div>
 </div>
@@ -106,6 +111,17 @@
                 filterModelos(row);
             });
         });
+
+        window.limparLinhaVeiculo = function (row) {
+            if (!confirm('Remover este veículo? A remoção só é efetivada ao clicar em Salvar.')) {
+                return;
+            }
+            document.getElementById('marcaId' + row).value = '';
+            document.getElementById('modeloId' + row).value = '';
+            document.getElementById('corId' + row).value = '';
+            document.getElementById('placas' + row).value = '';
+            filterModelos(row);
+        };
     })();
 </script>
 </body>
