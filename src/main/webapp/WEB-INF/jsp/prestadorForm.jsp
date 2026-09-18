@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Prestador - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=19">
 </head>
 <body>
 <div class="page">

@@ -83,6 +83,7 @@ label {
 
 .field-inline {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
     margin-bottom: 16px;
@@ -95,6 +96,18 @@ label {
 
 .field-inline input {
     flex: 1;
+}
+
+/* Campos de estoque/conversao/comprar: digitados, nao selecionados por seta, e centralizados. */
+.campo-estoque {
+    text-align: center;
+    -moz-appearance: textfield;
+}
+
+.campo-estoque::-webkit-outer-spin-button,
+.campo-estoque::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
 }
 
 .field {
@@ -432,7 +445,7 @@ textarea:focus {
 }
 
 .produto-estoque-row {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(3, 1fr);
 }
 
 @media (max-width: 560px) {
@@ -663,6 +676,12 @@ tr.selected-row:hover {
 .veiculos-table th,
 .veiculos-table td {
     padding: 8px 6px;
+}
+
+.produtos-table th,
+.produtos-table td {
+    padding: 8px 6px;
+    font-size: 13px;
 }
 
 .data-table th {

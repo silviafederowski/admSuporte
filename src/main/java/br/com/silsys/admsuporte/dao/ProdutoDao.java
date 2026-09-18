@@ -138,8 +138,8 @@ public class ProdutoDao {
         stmt.setString(3, p.getUnidade().dbValue());
         setNullableDecimal(stmt, 4, p.getConversaoUnidades());
         setNullableDecimal(stmt, 5, p.getEstoqueIdeal());
-        setNullableDecimal(stmt, 6, p.getEstoqueMinimo());
-        setNullableDecimal(stmt, 7, p.getEstoqueAtual());
+        setNullableInt(stmt, 6, p.getEstoqueMinimo());
+        setNullableInt(stmt, 7, p.getEstoqueAtual());
         setNullableDecimal(stmt, 8, p.getComprar());
         setNullableInt(stmt, 9, p.getUltimoFornecedorId());
         setNullableDecimal(stmt, 10, p.getValorUltimaCompra());
@@ -172,8 +172,10 @@ public class ProdutoDao {
         p.setUnidade(UnidadeMedidaProduto.fromDbValue(rs.getString("unidade")));
         p.setConversaoUnidades(rs.getBigDecimal("conversao_unidades"));
         p.setEstoqueIdeal(rs.getBigDecimal("estoque_ideal"));
-        p.setEstoqueMinimo(rs.getBigDecimal("estoque_minimo"));
-        p.setEstoqueAtual(rs.getBigDecimal("estoque_atual"));
+        int estoqueMinimo = rs.getInt("estoque_minimo");
+        p.setEstoqueMinimo(rs.wasNull() ? null : estoqueMinimo);
+        int estoqueAtual = rs.getInt("estoque_atual");
+        p.setEstoqueAtual(rs.wasNull() ? null : estoqueAtual);
         p.setComprar(rs.getBigDecimal("comprar"));
         int ultimoFornecedorId = rs.getInt("ultimo_fornecedor_id");
         p.setUltimoFornecedorId(rs.wasNull() ? null : ultimoFornecedorId);

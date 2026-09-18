@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Produtos - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=19">
 </head>
 <body>
 <div class="page">
@@ -37,32 +37,32 @@
             </c:when>
             <c:otherwise>
                 <div class="table-wrap">
-                    <table class="data-table" data-sortable>
+                    <table class="data-table produtos-table" data-sortable>
                         <thead>
                         <tr>
-                            <th>Descrição</th>
+                            <th style="text-align:left;">Descrição</th>
                             <th>Tipo</th>
-                            <th>Unidade</th>
-                            <th>Conversão</th>
-                            <th>Est ideal</th>
-                            <th>Est mínimo(unid)</th>
-                            <th>Est atual(unid)</th>
+                            <th>Unid</th>
+                            <th>Conv</th>
+                            <th>Ideal</th>
+                            <th>Mín(unid)</th>
+                            <th>Atual(unid)</th>
                             <th>Comprar</th>
-                            <th>Fornecedor da última compra</th>
-                            <th>Valor última compra</th>
-                            <th>Fornecedores que oferecem</th>
+                            <th>Fornecedor</th>
+                            <th>Valor</th>
+                            <th style="text-align:left;">Fornecedores que oferecem</th>
                         </tr>
                         </thead>
                         <tbody>
                         <c:forEach var="p" items="${produtos}">
                             <tr class="clickable-row"
                                 onclick="window.location='${pageContext.request.contextPath}/produtos/form?id=${p.id}'">
-                                <td>${p.descricao}</td>
+                                <td style="text-align:left;">${p.descricao}</td>
                                 <td>${empty p.tipoDescricao ? '-' : p.tipoDescricao}</td>
                                 <td>${empty p.unidade ? '-' : p.unidade.label}</td>
                                 <td>${p.conversaoUnidades}</td>
                                 <td>${p.estoqueIdeal}</td>
-                                <td>${p.estoqueMinimoUnidades}</td>
+                                <td>${p.estoqueMinimo}</td>
                                 <td>${p.estoqueAtual}</td>
                                 <td>
                                     <c:choose>
@@ -74,7 +74,7 @@
                                 </td>
                                 <td>${empty p.ultimoFornecedorNome ? '-' : p.ultimoFornecedorNome}</td>
                                 <td><c:choose><c:when test="${empty p.valorUltimaCompra}">-</c:when><c:otherwise>R$ ${p.valorUltimaCompra}</c:otherwise></c:choose></td>
-                                <td>
+                                <td style="text-align:left;">
                                     <c:choose>
                                         <c:when test="${empty p.fornecedoresQueOferecem}">-</c:when>
                                         <c:otherwise>

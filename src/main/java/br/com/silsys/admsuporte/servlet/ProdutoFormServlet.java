@@ -116,27 +116,27 @@ public class ProdutoFormServlet extends HttpServlet {
             }
         }
 
-        BigDecimal estoqueMinimo = BigDecimal.ZERO;
+        Integer estoqueMinimo = 0;
         if (!ValidationUtil.isBlank(estoqueMinimoParam)) {
             try {
-                estoqueMinimo = new BigDecimal(estoqueMinimoParam.trim());
-                if (estoqueMinimo.compareTo(BigDecimal.ZERO) < 0) {
+                estoqueMinimo = Integer.parseInt(estoqueMinimoParam.trim());
+                if (estoqueMinimo < 0) {
                     errors.put("estoqueMinimo", "O estoque mínimo não pode ser negativo.");
                 }
             } catch (NumberFormatException e) {
-                errors.put("estoqueMinimo", "Informe um número válido.");
+                errors.put("estoqueMinimo", "Informe um número inteiro válido.");
             }
         }
 
-        BigDecimal estoqueAtual = BigDecimal.ZERO;
+        Integer estoqueAtual = 0;
         if (!ValidationUtil.isBlank(estoqueAtualParam)) {
             try {
-                estoqueAtual = new BigDecimal(estoqueAtualParam.trim());
-                if (estoqueAtual.compareTo(BigDecimal.ZERO) < 0) {
+                estoqueAtual = Integer.parseInt(estoqueAtualParam.trim());
+                if (estoqueAtual < 0) {
                     errors.put("estoqueAtual", "O estoque atual não pode ser negativo.");
                 }
             } catch (NumberFormatException e) {
-                errors.put("estoqueAtual", "Informe um número válido.");
+                errors.put("estoqueAtual", "Informe um número inteiro válido.");
             }
         }
 

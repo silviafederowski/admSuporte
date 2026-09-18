@@ -144,6 +144,7 @@ public final class SchemaInitializer {
             limparTiposProdutoEspelho(conn);
             ensureProdutosRestructure(conn);
             ensureProdutosCamposDecimais(conn);
+            ensureProdutosEstoqueMinimoAtualInteiros(conn);
             ensureUserAtivoColumn(conn);
             ensureClassificacaoNaoAvaliado(conn, "prestadores");
             ensureClassificacaoNaoAvaliado(conn, "fornecedores");
@@ -328,8 +329,8 @@ public final class SchemaInitializer {
                 "  unidade VARCHAR(20) NOT NULL DEFAULT 'unidades'," +
                 "  conversao_unidades DECIMAL(10,2) NOT NULL DEFAULT 1.00," +
                 "  estoque_ideal DECIMAL(10,2) NOT NULL DEFAULT 0.00," +
-                "  estoque_minimo DECIMAL(10,2) NOT NULL DEFAULT 0.00," +
-                "  estoque_atual DECIMAL(10,2) NOT NULL DEFAULT 0.00," +
+                "  estoque_minimo INT NOT NULL DEFAULT 0," +
+                "  estoque_atual INT NOT NULL DEFAULT 0," +
                 "  comprar DECIMAL(10,2) NOT NULL DEFAULT 0.00," +
                 "  ultimo_fornecedor_id INT NULL," +
                 "  valor_ultima_compra DECIMAL(10,2) NULL," +
@@ -681,8 +682,10 @@ public final class SchemaInitializer {
     /**
      * Adiciona produtos.conversao_unidades (fator de conversao da unidade de medida do produto
      * para unidades, ex.: duzia = 12; usado para calculos que precisem do total em unidades) e
-     * amplia estoque_ideal/estoque_minimo/estoque_atual/comprar de INT para DECIMAL(10,2), para
-     * permitir quantidades fracionadas (ex.: 1,5 kg). Idempotente.
+     * amplia estoque_ideal/comprar de INT para DECIMAL(10,2), para permitir quantidades
+     * fracionadas (ex.: 1,5 kg) nesses dois campos (digitados na unidade de medida do produto).
+     * Estoque minimo/atual ficam de fora: sao digitados direto em unidades, sempre inteiros (ver
+     * ensureProdutosEstoqueMinimoAtualInteiros). Idempotente.
      */
     private static void ensureProdutosCamposDecimais(Connection conn) throws SQLException {
         if (!columnExists(conn, "produtos", "conversao_unidades")) {
@@ -692,11 +695,26 @@ public final class SchemaInitializer {
                     "AFTER unidade");
             }
         }
-        for (String coluna : new String[] {"estoque_ideal", "estoque_minimo", "estoque_atual", "comprar"}) {
+        for (String coluna : new String[] {"estoque_ideal", "comprar"}) {
             if (columnExists(conn, "produtos", coluna) && !columnIsDecimal(conn, "produtos", coluna)) {
                 try (Statement stmt = conn.createStatement()) {
                     stmt.executeUpdate(
                         "ALTER TABLE produtos MODIFY COLUMN " + coluna + " DECIMAL(10,2) NOT NULL DEFAULT 0.00");
+                }
+            }
+        }
+    }
+
+    /**
+     * Estoque minimo/atual voltam a ser inteiros (digitados direto em unidades, ver getComprar em
+     * Produto.java): reverte de DECIMAL(10,2) para INT quando ja tiverem sido ampliados por uma
+     * versao anterior. Idempotente.
+     */
+    private static void ensureProdutosEstoqueMinimoAtualInteiros(Connection conn) throws SQLException {
+        for (String coluna : new String[] {"estoque_minimo", "estoque_atual"}) {
+            if (columnExists(conn, "produtos", coluna) && columnIsDecimal(conn, "produtos", coluna)) {
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("ALTER TABLE produtos MODIFY COLUMN " + coluna + " INT NOT NULL DEFAULT 0");
                 }
             }
         }

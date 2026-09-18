@@ -2,7 +2,6 @@ package br.com.silsys.admsuporte.model;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,8 +15,8 @@ public class Produto implements Serializable {
     private UnidadeMedidaProduto unidade;
     private BigDecimal conversaoUnidades;
     private BigDecimal estoqueIdeal;
-    private BigDecimal estoqueMinimo;
-    private BigDecimal estoqueAtual;
+    private Integer estoqueMinimo;
+    private Integer estoqueAtual;
     private BigDecimal comprar;
     private Integer ultimoFornecedorId;
     private BigDecimal valorUltimaCompra;
@@ -88,40 +87,29 @@ public class Produto implements Serializable {
         this.estoqueIdeal = estoqueIdeal;
     }
 
-    public BigDecimal getEstoqueMinimo() {
+    public Integer getEstoqueMinimo() {
         return estoqueMinimo;
     }
 
-    public void setEstoqueMinimo(BigDecimal estoqueMinimo) {
+    public void setEstoqueMinimo(Integer estoqueMinimo) {
         this.estoqueMinimo = estoqueMinimo;
     }
 
-    public BigDecimal getEstoqueAtual() {
+    public Integer getEstoqueAtual() {
         return estoqueAtual;
     }
 
-    public void setEstoqueAtual(BigDecimal estoqueAtual) {
+    public void setEstoqueAtual(Integer estoqueAtual) {
         this.estoqueAtual = estoqueAtual;
     }
 
     /**
-     * Estoque minimo convertido para unidades (estoqueMinimo x conversaoUnidades), para exibicao.
-     * Estoque ideal e estoque minimo sao digitados na unidade de medida do produto (ex.: duzias);
-     * estoque atual e digitado direto em unidades (ver getComprar).
-     */
-    public BigDecimal getEstoqueMinimoUnidades() {
-        if (estoqueMinimo == null || conversaoUnidades == null) {
-            return null;
-        }
-        return estoqueMinimo.multiply(conversaoUnidades).setScale(2, RoundingMode.HALF_UP);
-    }
-
-    /**
-     * Quantidade sugerida para compra, na unidade de medida do produto (ex.: duzias). Calculada
-     * quando estoqueAtual (digitado em unidades) for menor que estoqueMinimo x conversaoUnidades:
-     * arredonda ao inteiro mais proximo de (estoqueIdeal - (estoqueAtual / conversaoUnidades)).
-     * Recalculada em tela via JS quando estoque ideal/minimo/atual/conversao mudam, mas pode ser
-     * sobrescrita manualmente pelo usuario antes de salvar.
+     * Quantidade sugerida para compra, na unidade de medida do produto (ex.: duzias). Estoque
+     * minimo e estoque atual sao inteiros digitados direto em unidades; estoque ideal e digitado
+     * na unidade de medida do produto. Calculada quando estoqueAtual for menor que estoqueMinimo:
+     * arredonda para cima (inteiro acima) o resultado de ((estoqueIdeal x conversaoUnidades) -
+     * estoqueAtual) / conversaoUnidades. Recalculada em tela via JS quando estoque ideal/minimo/
+     * atual/conversao mudam, mas pode ser sobrescrita manualmente pelo usuario antes de salvar.
      */
     public BigDecimal getComprar() {
         return comprar;

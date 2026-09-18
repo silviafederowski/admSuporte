@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Produto - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=19">
 </head>
 <body>
 <div class="page">
@@ -73,50 +73,46 @@
                 </div>
                 <div class="field">
                     <label for="conversaoUnidades">Conversão p/ unidades</label>
-                    <input type="number" id="conversaoUnidades" name="conversaoUnidades" step="0.01" min="0.01" ${dis}
+                    <input type="number" id="conversaoUnidades" name="conversaoUnidades" class="campo-estoque" step="0.01" min="0.01" ${dis}
                            value="${produto.conversaoUnidades}" oninput="recalcularComprar()">
                     <c:if test="${not empty errors.conversaoUnidades}"><div class="field-error">${errors.conversaoUnidades}</div></c:if>
                 </div>
                 <div class="field">
                     <label for="estoqueIdeal">Estoque ideal</label>
-                    <input type="number" id="estoqueIdeal" name="estoqueIdeal" step="0.01" min="0" ${dis}
+                    <input type="number" id="estoqueIdeal" name="estoqueIdeal" class="campo-estoque" step="0.01" min="0" ${dis}
                            value="${produto.estoqueIdeal}" oninput="recalcularComprar()">
                     <c:if test="${not empty errors.estoqueIdeal}"><div class="field-error">${errors.estoqueIdeal}</div></c:if>
-                </div>
-                <div class="field">
-                    <label for="estoqueMinimo">Estoque mínimo</label>
-                    <input type="number" id="estoqueMinimo" name="estoqueMinimo" step="0.01" min="0" ${dis}
-                           value="${produto.estoqueMinimo}" oninput="recalcularComprar()">
-                    <c:if test="${not empty errors.estoqueMinimo}"><div class="field-error">${errors.estoqueMinimo}</div></c:if>
-                </div>
-                <div class="field">
-                    <label for="estoqueAtual">Estoque atual</label>
-                    <input type="number" id="estoqueAtual" name="estoqueAtual" step="0.01" min="0" ${dis}
-                           value="${produto.estoqueAtual}" oninput="recalcularComprar()">
-                    <c:if test="${not empty errors.estoqueAtual}"><div class="field-error">${errors.estoqueAtual}</div></c:if>
                 </div>
             </div>
 
             <div class="field-inline">
+                <label for="estoqueMinimo">Mínimo(unid)</label>
+                <input type="number" id="estoqueMinimo" name="estoqueMinimo" class="campo-estoque" step="1" min="0" ${dis}
+                       style="flex: none; width: 90px;" value="${produto.estoqueMinimo}" oninput="recalcularComprar()">
+                <label for="estoqueAtual">Atual(unid)</label>
+                <input type="number" id="estoqueAtual" name="estoqueAtual" class="campo-estoque" step="1" min="0" ${dis}
+                       style="flex: none; width: 90px;" value="${produto.estoqueAtual}" oninput="recalcularComprar()">
                 <label for="comprar">Comprar</label>
-                <input type="number" id="comprar" name="comprar" step="0.01" min="0" ${dis}
-                       style="flex: 0 0 90px;" value="${produto.comprar}">
+                <input type="number" id="comprar" name="comprar" class="campo-estoque" step="0.01" min="0" ${dis}
+                       style="flex: none; width: 90px;" value="${produto.comprar}">
                 <span>${produto.unidade.label}</span>
             </div>
+            <c:if test="${not empty errors.estoqueMinimo}"><div class="field-error">${errors.estoqueMinimo}</div></c:if>
+            <c:if test="${not empty errors.estoqueAtual}"><div class="field-error">${errors.estoqueAtual}</div></c:if>
             <c:if test="${not empty errors.comprar}"><div class="field-error">${errors.comprar}</div></c:if>
 
             <script>
                 function recalcularComprar() {
                     var ideal = parseFloat(document.getElementById('estoqueIdeal').value);
-                    var minimo = parseFloat(document.getElementById('estoqueMinimo').value);
-                    var atual = parseFloat(document.getElementById('estoqueAtual').value);
+                    var minimo = parseInt(document.getElementById('estoqueMinimo').value, 10);
+                    var atual = parseInt(document.getElementById('estoqueAtual').value, 10);
                     var conversao = parseFloat(document.getElementById('conversaoUnidades').value);
                     if (isNaN(ideal) || isNaN(minimo) || isNaN(atual) || isNaN(conversao) || conversao <= 0) {
                         return;
                     }
                     var sugestao = 0;
-                    if (atual < minimo * conversao) {
-                        sugestao = Math.max(Math.round(ideal - (atual / conversao)), 0);
+                    if (atual < minimo) {
+                        sugestao = Math.max(Math.ceil(((ideal * conversao) - atual) / conversao), 0);
                     }
                     document.getElementById('comprar').value = sugestao;
                 }
