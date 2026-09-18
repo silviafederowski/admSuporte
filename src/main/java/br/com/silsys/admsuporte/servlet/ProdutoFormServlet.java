@@ -59,6 +59,7 @@ public class ProdutoFormServlet extends HttpServlet {
         String descricao = request.getParameter("descricao");
         String tipoIdParam = request.getParameter("tipoId");
         String unidadeParam = request.getParameter("unidade");
+        String conversaoUnidadesParam = request.getParameter("conversaoUnidades");
         String estoqueIdealParam = request.getParameter("estoqueIdeal");
         String estoqueMinimoParam = request.getParameter("estoqueMinimo");
         String estoqueAtualParam = request.getParameter("estoqueAtual");
@@ -91,11 +92,23 @@ public class ProdutoFormServlet extends HttpServlet {
             }
         }
 
-        Integer estoqueIdeal = 0;
+        BigDecimal conversaoUnidades = BigDecimal.ONE;
+        if (!ValidationUtil.isBlank(conversaoUnidadesParam)) {
+            try {
+                conversaoUnidades = new BigDecimal(conversaoUnidadesParam.trim());
+                if (conversaoUnidades.compareTo(BigDecimal.ZERO) <= 0) {
+                    errors.put("conversaoUnidades", "O fator de conversão deve ser maior que zero.");
+                }
+            } catch (NumberFormatException e) {
+                errors.put("conversaoUnidades", "Informe um número válido.");
+            }
+        }
+
+        BigDecimal estoqueIdeal = BigDecimal.ZERO;
         if (!ValidationUtil.isBlank(estoqueIdealParam)) {
             try {
-                estoqueIdeal = Integer.parseInt(estoqueIdealParam.trim());
-                if (estoqueIdeal < 0) {
+                estoqueIdeal = new BigDecimal(estoqueIdealParam.trim());
+                if (estoqueIdeal.compareTo(BigDecimal.ZERO) < 0) {
                     errors.put("estoqueIdeal", "O estoque ideal não pode ser negativo.");
                 }
             } catch (NumberFormatException e) {
@@ -103,11 +116,11 @@ public class ProdutoFormServlet extends HttpServlet {
             }
         }
 
-        Integer estoqueMinimo = 0;
+        BigDecimal estoqueMinimo = BigDecimal.ZERO;
         if (!ValidationUtil.isBlank(estoqueMinimoParam)) {
             try {
-                estoqueMinimo = Integer.parseInt(estoqueMinimoParam.trim());
-                if (estoqueMinimo < 0) {
+                estoqueMinimo = new BigDecimal(estoqueMinimoParam.trim());
+                if (estoqueMinimo.compareTo(BigDecimal.ZERO) < 0) {
                     errors.put("estoqueMinimo", "O estoque mínimo não pode ser negativo.");
                 }
             } catch (NumberFormatException e) {
@@ -115,11 +128,11 @@ public class ProdutoFormServlet extends HttpServlet {
             }
         }
 
-        Integer estoqueAtual = 0;
+        BigDecimal estoqueAtual = BigDecimal.ZERO;
         if (!ValidationUtil.isBlank(estoqueAtualParam)) {
             try {
-                estoqueAtual = Integer.parseInt(estoqueAtualParam.trim());
-                if (estoqueAtual < 0) {
+                estoqueAtual = new BigDecimal(estoqueAtualParam.trim());
+                if (estoqueAtual.compareTo(BigDecimal.ZERO) < 0) {
                     errors.put("estoqueAtual", "O estoque atual não pode ser negativo.");
                 }
             } catch (NumberFormatException e) {
@@ -127,11 +140,11 @@ public class ProdutoFormServlet extends HttpServlet {
             }
         }
 
-        Integer comprar = 0;
+        BigDecimal comprar = BigDecimal.ZERO;
         if (!ValidationUtil.isBlank(comprarParam)) {
             try {
-                comprar = Integer.parseInt(comprarParam.trim());
-                if (comprar < 0) {
+                comprar = new BigDecimal(comprarParam.trim());
+                if (comprar.compareTo(BigDecimal.ZERO) < 0) {
                     errors.put("comprar", "A quantidade a comprar não pode ser negativa.");
                 }
             } catch (NumberFormatException e) {
@@ -161,6 +174,7 @@ public class ProdutoFormServlet extends HttpServlet {
         produto.setDescricao(descricao);
         produto.setTipoId(tipoId);
         produto.setUnidade(unidade);
+        produto.setConversaoUnidades(conversaoUnidades);
         produto.setEstoqueIdeal(estoqueIdeal);
         produto.setEstoqueMinimo(estoqueMinimo);
         produto.setEstoqueAtual(estoqueAtual);

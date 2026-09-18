@@ -5,11 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${title} - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
 </head>
 <body>
 <div class="page">
     <div class="card menu-page">
+        <p class="condominio-nome" style="text-align:left;">${nomeCondominio}</p>
         <div class="toolbar">
             <h1 class="title" style="text-align:left;margin:0;">${title}</h1>
             <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>

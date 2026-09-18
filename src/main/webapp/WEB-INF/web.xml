@@ -39,6 +39,16 @@
         <url-pattern>/*</url-pattern>
     </filter-mapping>
 
+    <!-- Disponibiliza o nome do condominio (request attribute "nomeCondominio") para toda tela. -->
+    <filter>
+        <filter-name>CondominioNomeFilter</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.CondominioNomeFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>CondominioNomeFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
     <filter>
         <filter-name>AuthFilter</filter-name>
         <filter-class>br.com.silsys.admsuporte.filter.AuthFilter</filter-class>

@@ -6,11 +6,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Nova senha - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
 </head>
 <body>
 <div class="page">
     <div class="card">
+        <p class="condominio-nome">${nomeCondominio}</p>
         <h1 class="title">Digite o código</h1>
         <p class="subtitle">
             Enviamos um código de 6 dígitos (simulado) para

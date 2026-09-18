@@ -6,11 +6,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Veículos - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=10">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
 </head>
 <body>
 <div class="page">
     <div class="card card-wide">
+        <p class="condominio-nome" style="text-align:left;">${nomeCondominio}</p>
         <div class="toolbar">
             <div>
                 <h1 class="title" style="text-align:left;margin:0;">Veículos</h1>
@@ -34,15 +35,16 @@
             </c:when>
             <c:otherwise>
                 <div class="table-wrap">
-                    <table class="data-table" data-sortable>
+                    <table class="data-table veiculos-table" data-sortable>
                         <thead>
                         <tr>
-                            <th>Unidade</th>
-                            <th>Vagas</th>
-                            <th>Marca</th>
-                            <th>Modelo</th>
-                            <th>Cor</th>
-                            <th>Placas</th>
+                            <th style="width:7%;">Unid</th>
+                            <th style="width:9%;">Vagas</th>
+                            <th style="width:11%;">Marca</th>
+                            <th style="width:11%;">Modelo</th>
+                            <th style="width:9%;">Cor</th>
+                            <th style="width:11%;">Placas</th>
+                            <th style="text-align:left;">Observação</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -67,6 +69,12 @@
                                 <td>${v.modeloDescricao}</td>
                                 <td>${v.corDescricao}</td>
                                 <td>${v.placas}</td>
+                                <td style="text-align:left;">
+                                    <c:choose>
+                                        <c:when test="${primeiraDaUnidade}">${v.vagaObservacao}</c:when>
+                                        <c:otherwise><span class="repeat-hidden">${v.vagaObservacao}</span></c:otherwise>
+                                    </c:choose>
+                                </td>
                             </tr>
                             <c:set var="unidadeAnterior" value="${v.unidadeCodigo}" />
                         </c:forEach>

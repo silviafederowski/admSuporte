@@ -1,5 +1,6 @@
 package br.com.silsys.admsuporte.dao;
 
+import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -29,6 +30,19 @@ public class AppAssetDao {
                 }
                 return new Asset(rs.getString("mime_type"), rs.getBytes("data"));
             }
+        }
+    }
+
+    /** Le um asset de texto (guardado como bytes UTF-8 na coluna data), como o nome do condominio. */
+    public String findTextByKey(String key) throws SQLException {
+        Asset asset = findByKey(key);
+        if (asset == null || asset.data == null) {
+            return null;
+        }
+        try {
+            return new String(asset.data, "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("UTF-8 nao suportado", e);
         }
     }
 

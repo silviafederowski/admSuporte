@@ -1,6 +1,7 @@
 package br.com.silsys.admsuporte.dao;
 
 import br.com.silsys.admsuporte.model.DriveArquivo;
+import br.com.silsys.admsuporte.model.DrivePasta;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -45,36 +46,54 @@ public class GoogleDriveClient {
     }
 
     /**
-     * Lista os arquivos de uma subpasta de "ParaWeb" pelo nome (ex.: "procedimentos"), usada
-     * para liberar conteudo extra a administrador/zelador na tela de Documentos. Resolve o id
-     * da subpasta a cada chamada (sem cache: baixo volume de uso, e assim nao quebra se a
-     * pasta for recriada no Drive). Se a subpasta nao existir, devolve lista vazia.
+     * Lista, recursivamente, todas as subpastas de "ParaWeb" (a qualquer profundidade) que
+     * tenham arquivo, com seus respectivos arquivos, usada para liberar todo o conteudo extra a
+     * administrador/zelador na tela de Documentos. Sem cache: baixo volume de uso, e assim nao
+     * quebra se pastas forem criadas/renomeadas/removidas no Drive.
      */
-    public List<DriveArquivo> listarArquivosDaSubpasta(String nomeSubpasta) throws IOException {
-        String subpastaId = buscarIdSubpasta(nomeSubpasta);
-        if (subpastaId == null) {
-            return new ArrayList<>();
-        }
-        return listarArquivosDaPasta(subpastaId);
+    public List<DrivePasta> listarSubpastasComArquivosRecursivo() throws IOException {
+        List<DrivePasta> resultado = new ArrayList<>();
+        coletarSubpastas(FOLDER_ID, "", resultado);
+        return resultado;
     }
 
-    private String buscarIdSubpasta(String nome) throws IOException {
-        String nomeEscapado = nome.replace("\\", "\\\\").replace("'", "\\'");
-        String query = "'" + FOLDER_ID + "' in parents and trashed = false "
-                + "and mimeType = 'application/vnd.google-apps.folder' and name = '" + nomeEscapado + "'";
+    private void coletarSubpastas(String pastaId, String caminho, List<DrivePasta> resultado) throws IOException {
+        for (JsonObject subpasta : listarSubpastasDiretas(pastaId)) {
+            String id = subpasta.getString("id");
+            String caminhoAtual = caminho.isEmpty() ? subpasta.getString("name") : caminho + " / " + subpasta.getString("name");
+
+            List<DriveArquivo> arquivos = listarArquivosDaPasta(id);
+            if (!arquivos.isEmpty()) {
+                DrivePasta pasta = new DrivePasta();
+                pasta.setNome(caminhoAtual);
+                pasta.setArquivos(arquivos);
+                resultado.add(pasta);
+            }
+            coletarSubpastas(id, caminhoAtual, resultado);
+        }
+    }
+
+    private List<JsonObject> listarSubpastasDiretas(String pastaId) throws IOException {
+        String query = "'" + pastaId + "' in parents and trashed = false "
+                + "and mimeType = 'application/vnd.google-apps.folder'";
         String url = "https://www.googleapis.com/drive/v3/files"
                 + "?q=" + URLEncoder.encode(query, "UTF-8")
-                + "&fields=" + URLEncoder.encode("files(id)", "UTF-8")
+                + "&fields=" + URLEncoder.encode("files(id,name)", "UTF-8")
+                + "&orderBy=" + URLEncoder.encode("name", "UTF-8")
+                + "&pageSize=1000"
                 + "&key=" + API_KEY;
 
         String body = fetch(url);
+        List<JsonObject> result = new ArrayList<>();
         try (JsonReader reader = Json.createReader(new java.io.StringReader(body))) {
             JsonArray files = reader.readObject().getJsonArray("files");
-            if (files != null && !files.isEmpty()) {
-                return files.getJsonObject(0).getString("id");
+            if (files != null) {
+                for (int i = 0; i < files.size(); i++) {
+                    result.add(files.getJsonObject(i));
+                }
             }
         }
-        return null;
+        return result;
     }
 
     private List<DriveArquivo> listarArquivosDaPasta(String folderId) throws IOException {

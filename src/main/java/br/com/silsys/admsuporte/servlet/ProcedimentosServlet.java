@@ -2,6 +2,7 @@ package br.com.silsys.admsuporte.servlet;
 
 import br.com.silsys.admsuporte.dao.GoogleDriveClient;
 import br.com.silsys.admsuporte.model.DriveArquivo;
+import br.com.silsys.admsuporte.model.DrivePasta;
 import br.com.silsys.admsuporte.model.UserType;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
@@ -17,14 +18,13 @@ import javax.servlet.http.HttpSession;
 /**
  * Lista os arquivos da pasta "ParaWeb" do Google Drive. Acesso liberado a qualquer usuario
  * logado. Administrador/zelador (nivel <= NIVEL_MAXIMO_SUBPASTA_PROCEDIMENTOS) tambem veem,
- * em secoes separadas, os arquivos das subpastas "procedimentos" e "plantas" dentro de "ParaWeb".
+ * em secoes separadas por pasta, todos os arquivos de todas as subpastas de "ParaWeb" (a
+ * qualquer profundidade).
  */
 public class ProcedimentosServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(ProcedimentosServlet.class.getName());
-    private static final String SUBPASTA_PROCEDIMENTOS = "procedimentos";
-    private static final String SUBPASTA_PLANTAS = "plantas";
 
     private final GoogleDriveClient driveClient = new GoogleDriveClient();
 
@@ -44,16 +44,10 @@ public class ProcedimentosServlet extends HttpServlet {
         int nivel = nivelAttr instanceof Integer ? (Integer) nivelAttr : Integer.MAX_VALUE;
         if (nivel <= UserType.NIVEL_MAXIMO_SUBPASTA_PROCEDIMENTOS) {
             try {
-                List<DriveArquivo> arquivosProcedimentos = driveClient.listarArquivosDaSubpasta(SUBPASTA_PROCEDIMENTOS);
-                request.setAttribute("arquivosProcedimentos", arquivosProcedimentos);
+                List<DrivePasta> pastas = driveClient.listarSubpastasComArquivosRecursivo();
+                request.setAttribute("pastas", pastas);
             } catch (IOException e) {
-                ErrorMessages.logErro(LOGGER, "documentos", "Listar arquivos da subpasta procedimentos", e);
-            }
-            try {
-                List<DriveArquivo> arquivosPlantas = driveClient.listarArquivosDaSubpasta(SUBPASTA_PLANTAS);
-                request.setAttribute("arquivosPlantas", arquivosPlantas);
-            } catch (IOException e) {
-                ErrorMessages.logErro(LOGGER, "documentos", "Listar arquivos da subpasta plantas", e);
+                ErrorMessages.logErro(LOGGER, "documentos", "Listar subpastas de ParaWeb", e);
             }
         }
 

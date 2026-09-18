@@ -42,6 +42,14 @@ body {
     box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08);
 }
 
+.condominio-nome {
+    font-weight: 700;
+    text-align: center;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin: 0 0 12px;
+}
+
 .logo {
     display: block;
     width: 100%;
@@ -71,6 +79,22 @@ label {
     font-weight: 600;
     color: var(--text);
     margin-bottom: 6px;
+}
+
+.field-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.field-inline label {
+    margin-bottom: 0;
+    white-space: nowrap;
+}
+
+.field-inline input {
+    flex: 1;
 }
 
 .field {
@@ -403,6 +427,21 @@ textarea:focus {
     }
 }
 
+.produto-descricao-row {
+    grid-template-columns: 2fr 1fr;
+}
+
+.produto-estoque-row {
+    grid-template-columns: repeat(5, 1fr);
+}
+
+@media (max-width: 560px) {
+    .produto-descricao-row,
+    .produto-estoque-row {
+        grid-template-columns: 1fr;
+    }
+}
+
 .veiculo-row {
     grid-template-columns: repeat(4, 1fr) 32px;
     align-items: end;
@@ -619,6 +658,11 @@ tr.selected-row:hover {
     padding: 10px 12px;
     border-bottom: 1px solid var(--border);
     vertical-align: top;
+}
+
+.veiculos-table th,
+.veiculos-table td {
+    padding: 8px 6px;
 }
 
 .data-table th {

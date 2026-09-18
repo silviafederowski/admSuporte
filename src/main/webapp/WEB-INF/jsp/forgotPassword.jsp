@@ -6,11 +6,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Recuperar senha - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
 </head>
 <body>
 <div class="page">
     <div class="card">
+        <p class="condominio-nome">${nomeCondominio}</p>
         <h1 class="title">Esqueci minha senha</h1>
         <p class="subtitle">Escolha como deseja receber o código de verificação</p>
 

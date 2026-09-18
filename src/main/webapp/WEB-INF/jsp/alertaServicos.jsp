@@ -8,11 +8,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Avisos de serviços - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
 </head>
 <body>
 <div class="page">
     <div class="card ${multiplasColunas ? 'card-wide' : ''}">
+        <p class="condominio-nome">${nomeCondominio}</p>
         <h1 class="title">Atenção</h1>
 
         <div class="alerta-grid">

@@ -86,14 +86,14 @@ public final class ListaComprasPdfGenerator {
                 primeiroGrupo = false;
             }
 
-            int quantidade = p.getComprar() != null ? p.getComprar() : 0;
+            BigDecimal quantidade = p.getComprar() != null ? p.getComprar() : BigDecimal.ZERO;
             BigDecimal valorPago = p.getValorUltimaCompra();
 
             addCell(table, p.getDescricao());
             addCell(table, p.getUnidade() != null ? p.getUnidade().getLabel() : "-");
-            addCell(table, String.valueOf(quantidade));
+            addCell(table, quantidade.setScale(2, RoundingMode.HALF_UP).toString());
             if (valorPago != null) {
-                BigDecimal valorTotal = valorPago.multiply(BigDecimal.valueOf(quantidade))
+                BigDecimal valorTotal = valorPago.multiply(quantidade)
                         .setScale(2, RoundingMode.HALF_UP);
                 totalGeral = totalGeral.add(valorTotal);
                 subtotalFornecedor = subtotalFornecedor.add(valorTotal);

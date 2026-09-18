@@ -8,11 +8,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Produto - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=11">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
 </head>
 <body>
 <div class="page">
     <div class="card card-wide">
+        <p class="condominio-nome" style="text-align:left;">${nomeCondominio}</p>
         <div class="toolbar">
             <h1 class="title" style="text-align:left;margin:0;">
                 <c:choose>
@@ -40,7 +41,7 @@
         <form id="produtoForm" method="post" action="${pageContext.request.contextPath}/produtos/form">
             <input type="hidden" name="id" value="${param.id}">
 
-            <div class="field-row" style="grid-template-columns: 2fr 1fr;">
+            <div class="field-row produto-descricao-row">
                 <div class="field">
                     <label for="descricao">Descrição</label>
                     <input type="text" id="descricao" name="descricao" value="${produto.descricao}" ${dis} required>
@@ -58,7 +59,7 @@
                 </div>
             </div>
 
-            <div class="field-row" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
+            <div class="field-row produto-estoque-row">
                 <div class="field">
                     <label for="unidade">Unidade</label>
                     <select id="unidade" name="unidade" ${dis} required>
@@ -71,47 +72,58 @@
                     <c:if test="${not empty errors.unidade}"><div class="field-error">${errors.unidade}</div></c:if>
                 </div>
                 <div class="field">
+                    <label for="conversaoUnidades">Conversão p/ unidades</label>
+                    <input type="number" id="conversaoUnidades" name="conversaoUnidades" step="0.01" min="0.01" ${dis}
+                           value="${produto.conversaoUnidades}" oninput="recalcularComprar()">
+                    <c:if test="${not empty errors.conversaoUnidades}"><div class="field-error">${errors.conversaoUnidades}</div></c:if>
+                </div>
+                <div class="field">
                     <label for="estoqueIdeal">Estoque ideal</label>
-                    <input type="number" id="estoqueIdeal" name="estoqueIdeal" min="0" ${dis}
+                    <input type="number" id="estoqueIdeal" name="estoqueIdeal" step="0.01" min="0" ${dis}
                            value="${produto.estoqueIdeal}" oninput="recalcularComprar()">
                     <c:if test="${not empty errors.estoqueIdeal}"><div class="field-error">${errors.estoqueIdeal}</div></c:if>
                 </div>
                 <div class="field">
                     <label for="estoqueMinimo">Estoque mínimo</label>
-                    <input type="number" id="estoqueMinimo" name="estoqueMinimo" min="0" ${dis}
+                    <input type="number" id="estoqueMinimo" name="estoqueMinimo" step="0.01" min="0" ${dis}
                            value="${produto.estoqueMinimo}" oninput="recalcularComprar()">
                     <c:if test="${not empty errors.estoqueMinimo}"><div class="field-error">${errors.estoqueMinimo}</div></c:if>
                 </div>
                 <div class="field">
                     <label for="estoqueAtual">Estoque atual</label>
-                    <input type="number" id="estoqueAtual" name="estoqueAtual" min="0" ${dis}
+                    <input type="number" id="estoqueAtual" name="estoqueAtual" step="0.01" min="0" ${dis}
                            value="${produto.estoqueAtual}" oninput="recalcularComprar()">
                     <c:if test="${not empty errors.estoqueAtual}"><div class="field-error">${errors.estoqueAtual}</div></c:if>
                 </div>
             </div>
 
-            <div class="field">
+            <div class="field-inline">
                 <label for="comprar">Comprar</label>
-                <input type="number" id="comprar" name="comprar" min="0" ${dis}
-                       value="${produto.comprar}">
-                <c:if test="${not empty errors.comprar}"><div class="field-error">${errors.comprar}</div></c:if>
+                <input type="number" id="comprar" name="comprar" step="0.01" min="0" ${dis}
+                       style="flex: 0 0 90px;" value="${produto.comprar}">
+                <span>${produto.unidade.label}</span>
             </div>
+            <c:if test="${not empty errors.comprar}"><div class="field-error">${errors.comprar}</div></c:if>
 
             <script>
                 function recalcularComprar() {
-                    var ideal = parseInt(document.getElementById('estoqueIdeal').value, 10);
-                    var minimo = parseInt(document.getElementById('estoqueMinimo').value, 10);
-                    var atual = parseInt(document.getElementById('estoqueAtual').value, 10);
-                    if (isNaN(ideal) || isNaN(minimo) || isNaN(atual)) {
+                    var ideal = parseFloat(document.getElementById('estoqueIdeal').value);
+                    var minimo = parseFloat(document.getElementById('estoqueMinimo').value);
+                    var atual = parseFloat(document.getElementById('estoqueAtual').value);
+                    var conversao = parseFloat(document.getElementById('conversaoUnidades').value);
+                    if (isNaN(ideal) || isNaN(minimo) || isNaN(atual) || isNaN(conversao) || conversao <= 0) {
                         return;
                     }
-                    var sugestao = atual < minimo ? Math.max(ideal - atual, 0) : 0;
+                    var sugestao = 0;
+                    if (atual < minimo * conversao) {
+                        sugestao = Math.max(Math.round(ideal - (atual / conversao)), 0);
+                    }
                     document.getElementById('comprar').value = sugestao;
                 }
             </script>
 
             <div class="field">
-                <label for="ultimoFornecedorId">Fornecedor da última atualização</label>
+                <label for="ultimoFornecedorId">Fornecedor da última compra</label>
                 <select id="ultimoFornecedorId" name="ultimoFornecedorId" ${dis}>
                     <option value="" ${empty produto.ultimoFornecedorId ? 'selected' : ''}>Não informado</option>
                     <c:forEach var="f" items="${fornecedores}">

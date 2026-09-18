@@ -59,6 +59,7 @@ public class VeiculoFormServlet extends HttpServlet {
             }
             request.setAttribute("unidade", unidade);
             request.setAttribute("veiculos", padToFive(veiculoDao.listByUnidade(unidadeChave)));
+            request.setAttribute("obs", String.join(", ", vagaDao.listObservacoesVagaAtual(unidadeChave)));
         } catch (SQLException e) {
             ErrorMessages.logErro(LOGGER, "veiculos", "Carregar veículos da unidade", e);
             response.sendRedirect(request.getContextPath() + "/veiculos");
@@ -87,6 +88,11 @@ public class VeiculoFormServlet extends HttpServlet {
         if (unidade == null) {
             response.sendRedirect(request.getContextPath() + "/veiculos");
             return;
+        }
+
+        String obs = ValidationUtil.toUpperOrNull(request.getParameter("obs"));
+        if (obs != null && obs.length() > 45) {
+            obs = obs.substring(0, 45);
         }
 
         Map<String, String> errors = new HashMap<>();
@@ -129,6 +135,7 @@ public class VeiculoFormServlet extends HttpServlet {
         if (errors.isEmpty()) {
             try {
                 veiculoDao.salvarPorUnidade(unidadeChave, paraSalvar);
+                vagaDao.atualizarObservacao(vagaDao.listChavesVagaAtual(unidadeChave), obs);
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 operacaoLogDao.registrar(usuarioLogado, "Veículos",
                         "Atualizar veículos da unidade: " + unidade.getCodigo());
@@ -142,6 +149,7 @@ public class VeiculoFormServlet extends HttpServlet {
 
         request.setAttribute("unidade", unidade);
         request.setAttribute("veiculos", linhas);
+        request.setAttribute("obs", obs);
         request.setAttribute("errors", errors);
         forward(request, response);
     }

@@ -2,6 +2,7 @@ package br.com.silsys.admsuporte.model;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,10 +14,11 @@ public class Produto implements Serializable {
     private String descricao;
     private Integer tipoId;
     private UnidadeMedidaProduto unidade;
-    private Integer estoqueIdeal;
-    private Integer estoqueMinimo;
-    private Integer estoqueAtual;
-    private Integer comprar;
+    private BigDecimal conversaoUnidades;
+    private BigDecimal estoqueIdeal;
+    private BigDecimal estoqueMinimo;
+    private BigDecimal estoqueAtual;
+    private BigDecimal comprar;
     private Integer ultimoFornecedorId;
     private BigDecimal valorUltimaCompra;
 
@@ -69,40 +71,63 @@ public class Produto implements Serializable {
         this.unidade = unidade;
     }
 
-    public Integer getEstoqueIdeal() {
+    /** Fator de conversao da unidade de medida deste produto para unidades (ex.: duzia = 12). */
+    public BigDecimal getConversaoUnidades() {
+        return conversaoUnidades;
+    }
+
+    public void setConversaoUnidades(BigDecimal conversaoUnidades) {
+        this.conversaoUnidades = conversaoUnidades;
+    }
+
+    public BigDecimal getEstoqueIdeal() {
         return estoqueIdeal;
     }
 
-    public void setEstoqueIdeal(Integer estoqueIdeal) {
+    public void setEstoqueIdeal(BigDecimal estoqueIdeal) {
         this.estoqueIdeal = estoqueIdeal;
     }
 
-    public Integer getEstoqueMinimo() {
+    public BigDecimal getEstoqueMinimo() {
         return estoqueMinimo;
     }
 
-    public void setEstoqueMinimo(Integer estoqueMinimo) {
+    public void setEstoqueMinimo(BigDecimal estoqueMinimo) {
         this.estoqueMinimo = estoqueMinimo;
     }
 
-    public Integer getEstoqueAtual() {
+    public BigDecimal getEstoqueAtual() {
         return estoqueAtual;
     }
 
-    public void setEstoqueAtual(Integer estoqueAtual) {
+    public void setEstoqueAtual(BigDecimal estoqueAtual) {
         this.estoqueAtual = estoqueAtual;
     }
 
     /**
-     * Quantidade sugerida para compra. Recalculada em tela (via JS) quando estoque ideal/minimo/
-     * atual mudam (estoqueIdeal - estoqueAtual, quando estoqueAtual &lt; estoqueMinimo), mas pode
-     * ser sobrescrita manualmente pelo usuario antes de salvar.
+     * Estoque minimo convertido para unidades (estoqueMinimo x conversaoUnidades), para exibicao.
+     * Estoque ideal e estoque minimo sao digitados na unidade de medida do produto (ex.: duzias);
+     * estoque atual e digitado direto em unidades (ver getComprar).
      */
-    public Integer getComprar() {
+    public BigDecimal getEstoqueMinimoUnidades() {
+        if (estoqueMinimo == null || conversaoUnidades == null) {
+            return null;
+        }
+        return estoqueMinimo.multiply(conversaoUnidades).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * Quantidade sugerida para compra, na unidade de medida do produto (ex.: duzias). Calculada
+     * quando estoqueAtual (digitado em unidades) for menor que estoqueMinimo x conversaoUnidades:
+     * arredonda ao inteiro mais proximo de (estoqueIdeal - (estoqueAtual / conversaoUnidades)).
+     * Recalculada em tela via JS quando estoque ideal/minimo/atual/conversao mudam, mas pode ser
+     * sobrescrita manualmente pelo usuario antes de salvar.
+     */
+    public BigDecimal getComprar() {
         return comprar;
     }
 
-    public void setComprar(Integer comprar) {
+    public void setComprar(BigDecimal comprar) {
         this.comprar = comprar;
     }
 

@@ -6,11 +6,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Entrar - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
 </head>
 <body>
 <div class="page">
     <div class="card">
+        <p class="condominio-nome">${nomeCondominio}</p>
         <img class="logo" src="${pageContext.request.contextPath}/logo" alt="Logotipo">
         <h1 class="title">Bem-vindo de volta</h1>
 

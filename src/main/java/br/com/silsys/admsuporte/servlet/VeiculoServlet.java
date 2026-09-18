@@ -39,9 +39,12 @@ public class VeiculoServlet extends HttpServlet {
         try {
             List<Veiculo> veiculos = veiculoDao.listAllComDetalhes();
             Map<Integer, String> vagasPorUnidade = new HashMap<>();
+            Map<Integer, String> observacoesPorUnidade = new HashMap<>();
             for (Veiculo v : veiculos) {
                 v.setVagaAtual(vagasPorUnidade.computeIfAbsent(v.getUnidadeChave(),
                         chave -> buscarVagaAtual(chave)));
+                v.setVagaObservacao(observacoesPorUnidade.computeIfAbsent(v.getUnidadeChave(),
+                        chave -> buscarVagaObservacao(chave)));
             }
             request.setAttribute("veiculos", veiculos);
         } catch (SQLException e) {
@@ -57,6 +60,15 @@ public class VeiculoServlet extends HttpServlet {
             return String.join(", ", vagaDao.listCodigosVagaAtual(unidadeChave));
         } catch (SQLException e) {
             ErrorMessages.logErro(LOGGER, "veiculos", "Carregar vaga atual da unidade", e);
+            return "";
+        }
+    }
+
+    private String buscarVagaObservacao(int unidadeChave) {
+        try {
+            return String.join(", ", vagaDao.listObservacoesVagaAtual(unidadeChave));
+        } catch (SQLException e) {
+            ErrorMessages.logErro(LOGGER, "veiculos", "Carregar observação da vaga atual da unidade", e);
             return "";
         }
     }

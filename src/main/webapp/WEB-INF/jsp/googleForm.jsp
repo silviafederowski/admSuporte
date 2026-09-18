@@ -6,11 +6,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Formulário Google - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
 </head>
 <body>
 <div class="page">
     <div class="card menu-page">
+        <p class="condominio-nome" style="text-align:left;">${nomeCondominio}</p>
         <img class="logo" src="${pageContext.request.contextPath}/logo" alt="Logotipo">
         <div class="toolbar">
             <h1 class="title" style="text-align:left;margin:0;">Formulário Google</h1>

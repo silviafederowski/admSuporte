@@ -8,11 +8,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tipo de usuário - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
 </head>
 <body>
 <div class="page">
     <div class="card card-wide">
+        <p class="condominio-nome" style="text-align:left;">${nomeCondominio}</p>
         <div class="toolbar">
             <h1 class="title" style="text-align:left;margin:0;">
                 <c:choose>

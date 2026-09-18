@@ -6,11 +6,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Produtos - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=11">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
 </head>
 <body>
 <div class="page">
     <div class="card card-wide">
+        <p class="condominio-nome" style="text-align:left;">${nomeCondominio}</p>
         <div class="toolbar">
             <div>
                 <h1 class="title" style="text-align:left;margin:0;">Cadastro de produtos</h1>
@@ -42,11 +43,12 @@
                             <th>Descrição</th>
                             <th>Tipo</th>
                             <th>Unidade</th>
+                            <th>Conversão</th>
                             <th>Est ideal</th>
-                            <th>Est min</th>
-                            <th>Est atual</th>
+                            <th>Est mínimo(unid)</th>
+                            <th>Est atual(unid)</th>
                             <th>Comprar</th>
-                            <th>Fornecedor da última atualização</th>
+                            <th>Fornecedor da última compra</th>
                             <th>Valor última compra</th>
                             <th>Fornecedores que oferecem</th>
                         </tr>
@@ -58,10 +60,18 @@
                                 <td>${p.descricao}</td>
                                 <td>${empty p.tipoDescricao ? '-' : p.tipoDescricao}</td>
                                 <td>${empty p.unidade ? '-' : p.unidade.label}</td>
+                                <td>${p.conversaoUnidades}</td>
                                 <td>${p.estoqueIdeal}</td>
-                                <td>${p.estoqueMinimo}</td>
+                                <td>${p.estoqueMinimoUnidades}</td>
                                 <td>${p.estoqueAtual}</td>
-                                <td><span class="badge ${p.comprar gt 0 ? 'badge-inativo' : 'badge-ativo'}">${p.comprar gt 0 ? p.comprar : 'Não'}</span></td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${p.comprar gt 0}">
+                                            <span class="badge badge-inativo">${p.comprar} ${p.unidade.label}</span>
+                                        </c:when>
+                                        <c:otherwise><span class="badge badge-ativo">Não</span></c:otherwise>
+                                    </c:choose>
+                                </td>
                                 <td>${empty p.ultimoFornecedorNome ? '-' : p.ultimoFornecedorNome}</td>
                                 <td><c:choose><c:when test="${empty p.valorUltimaCompra}">-</c:when><c:otherwise>R$ ${p.valorUltimaCompra}</c:otherwise></c:choose></td>
                                 <td>

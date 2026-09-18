@@ -6,11 +6,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Documentos - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=9">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
 </head>
 <body>
 <div class="page">
     <div class="card card-wide">
+        <p class="condominio-nome" style="text-align:left;">${nomeCondominio}</p>
         <div class="toolbar">
             <div>
                 <h1 class="title" style="text-align:left;margin:0;">Documentos</h1>
@@ -54,8 +55,8 @@
             </c:otherwise>
         </c:choose>
 
-        <c:if test="${not empty arquivosProcedimentos}">
-            <h2 class="subtitle" style="margin-top:24px;">Procedimentos</h2>
+        <c:forEach var="pasta" items="${pastas}">
+            <h2 class="subtitle" style="margin-top:24px;">${pasta.nome}</h2>
             <div class="table-wrap">
                 <table class="data-table" data-sortable>
                     <thead>
@@ -65,13 +66,13 @@
                     </tr>
                     </thead>
                     <tbody>
-                    <c:forEach var="ap" items="${arquivosProcedimentos}">
-                        <c:url var="verUrlProcedimento" value="/procedimentos/ver">
+                    <c:forEach var="ap" items="${pasta.arquivos}">
+                        <c:url var="verUrlPasta" value="/procedimentos/ver">
                             <c:param name="id" value="${ap.id}" />
                             <c:param name="nome" value="${ap.nome}" />
                             <c:param name="mimeType" value="${ap.mimeType}" />
                         </c:url>
-                        <tr class="clickable-row" onclick="window.location='${verUrlProcedimento}'">
+                        <tr class="clickable-row" onclick="window.location='${verUrlPasta}'">
                             <td style="text-align:left;">${ap.nome}</td>
                             <td>${ap.tipo}</td>
                         </tr>
@@ -79,34 +80,7 @@
                     </tbody>
                 </table>
             </div>
-        </c:if>
-
-        <c:if test="${not empty arquivosPlantas}">
-            <h2 class="subtitle" style="margin-top:24px;">Plantas</h2>
-            <div class="table-wrap">
-                <table class="data-table" data-sortable>
-                    <thead>
-                    <tr>
-                        <th style="text-align:left;">Nome</th>
-                        <th>Tipo</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <c:forEach var="ap" items="${arquivosPlantas}">
-                        <c:url var="verUrlPlanta" value="/procedimentos/ver">
-                            <c:param name="id" value="${ap.id}" />
-                            <c:param name="nome" value="${ap.nome}" />
-                            <c:param name="mimeType" value="${ap.mimeType}" />
-                        </c:url>
-                        <tr class="clickable-row" onclick="window.location='${verUrlPlanta}'">
-                            <td style="text-align:left;">${ap.nome}</td>
-                            <td>${ap.tipo}</td>
-                        </tr>
-                    </c:forEach>
-                    </tbody>
-                </table>
-            </div>
-        </c:if>
+        </c:forEach>
 
     </div>
 </div>

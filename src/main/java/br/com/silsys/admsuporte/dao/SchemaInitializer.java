@@ -141,20 +141,26 @@ public final class SchemaInitializer {
             ensurePeriodicidadePorDemanda(conn, "servicos");
             ensureProdutosTipoColumn(conn);
             migrarFornecedorProdutosParaTipo(conn);
+            limparTiposProdutoEspelho(conn);
             ensureProdutosRestructure(conn);
+            ensureProdutosCamposDecimais(conn);
             ensureUserAtivoColumn(conn);
             ensureClassificacaoNaoAvaliado(conn, "prestadores");
             ensureClassificacaoNaoAvaliado(conn, "fornecedores");
             ensureVagasColumnsRemoved(conn);
+            ensureVagaObservacaoAmpliada(conn);
             ensureServicoTipoColumn(conn);
             ensurePrestadorTipoColumn(conn);
             ensureModelosMarcaColumn(conn);
+            seedModeloFordKa(conn);
+            seedModeloHarleyDavidsonFXBB(conn);
             ensureVeiculosCorObrigatoria(conn);
             ensureServicoObservacaoColumn(conn);
             ensureEmailAceitaVarios(conn, "prestadores");
             ensureEmailAceitaVarios(conn, "fornecedores");
             ensurePendenciaServicoStatusColuna(conn);
             seedLogo(conn);
+            seedNomeCondominio(conn);
             seedPavimentoImagens(conn);
             seedAutorizacoesMenu(conn);
         }
@@ -320,10 +326,11 @@ public final class SchemaInitializer {
                 "  id INT PRIMARY KEY AUTO_INCREMENT," +
                 "  descricao VARCHAR(255) NOT NULL," +
                 "  unidade VARCHAR(20) NOT NULL DEFAULT 'unidades'," +
-                "  estoque_ideal INT NOT NULL DEFAULT 0," +
-                "  estoque_minimo INT NOT NULL DEFAULT 0," +
-                "  estoque_atual INT NOT NULL DEFAULT 0," +
-                "  comprar INT NOT NULL DEFAULT 0," +
+                "  conversao_unidades DECIMAL(10,2) NOT NULL DEFAULT 1.00," +
+                "  estoque_ideal DECIMAL(10,2) NOT NULL DEFAULT 0.00," +
+                "  estoque_minimo DECIMAL(10,2) NOT NULL DEFAULT 0.00," +
+                "  estoque_atual DECIMAL(10,2) NOT NULL DEFAULT 0.00," +
+                "  comprar DECIMAL(10,2) NOT NULL DEFAULT 0.00," +
                 "  ultimo_fornecedor_id INT NULL," +
                 "  valor_ultima_compra DECIMAL(10,2) NULL," +
                 "  CONSTRAINT chk_produtos_unidade " +
@@ -521,19 +528,21 @@ public final class SchemaInitializer {
     }
 
     /**
-     * Cria produtos_tipo (id, descricao) a partir das descricoes ja usadas em produtos.descricao
-     * (uma linha por descricao distinta), liga produtos a ela pela nova coluna
-     * produtos.produtos_tipo (FK) e preenche essa coluna casando pela descricao. Nao remove
-     * produtos.descricao. Idempotente: roda a cada start, so insere/preenche o que ainda faltar.
+     * Migracao unica (roda so na primeira vez, quando produtos.produtos_tipo ainda nao existe):
+     * cria produtos_tipo (id, descricao) a partir das descricoes ja usadas em produtos.descricao
+     * (uma linha por descricao distinta), cria a coluna produtos.produtos_tipo (FK) e preenche
+     * essa coluna casando pela descricao. Depois da primeira vez, novos produtos devem escolher
+     * um tipo ja existente na tela (nao cria mais tipo novo automaticamente a cada start).
      */
     private static void ensureProdutosTipoColumn(Connection conn) throws SQLException {
-        try (Statement stmt = conn.createStatement()) {
-            stmt.executeUpdate(
-                "INSERT IGNORE INTO produtos_tipo (descricao) " +
-                "SELECT DISTINCT descricao FROM produtos WHERE descricao IS NOT NULL");
-        }
+        boolean colunaJaExiste = columnExists(conn, "produtos", "produtos_tipo");
 
-        if (!columnExists(conn, "produtos", "produtos_tipo")) {
+        if (!colunaJaExiste) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "INSERT IGNORE INTO produtos_tipo (descricao) " +
+                    "SELECT DISTINCT descricao FROM produtos WHERE descricao IS NOT NULL");
+            }
             try (Statement stmt = conn.createStatement()) {
                 stmt.executeUpdate("ALTER TABLE produtos ADD COLUMN produtos_tipo INT NULL AFTER descricao");
             }
@@ -547,10 +556,32 @@ public final class SchemaInitializer {
             }
         }
 
+        if (!colunaJaExiste) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "UPDATE produtos p JOIN produtos_tipo pt ON pt.descricao = p.descricao " +
+                    "SET p.produtos_tipo = pt.id WHERE p.produtos_tipo IS NULL");
+            }
+        }
+    }
+
+    /**
+     * Limpeza do efeito colateral do backfill antigo (que rodava a cada start, nao so uma vez):
+     * remove de produtos_tipo os tipos "espelho", cuja descricao e identica a descricao de algum
+     * produto (ou seja, tipos criados automaticamente para um unico produto, e nao uma categoria
+     * real usada por mais de um produto). Antes de excluir, desvincula produtos.produtos_tipo dos
+     * produtos que apontavam para o proprio tipo espelho. Idempotente: nao ha mais nada a fazer
+     * depois da primeira limpeza.
+     */
+    private static void limparTiposProdutoEspelho(Connection conn) throws SQLException {
         try (Statement stmt = conn.createStatement()) {
             stmt.executeUpdate(
-                "UPDATE produtos p JOIN produtos_tipo pt ON pt.descricao = p.descricao " +
-                "SET p.produtos_tipo = pt.id WHERE p.produtos_tipo IS NULL");
+                "UPDATE produtos p JOIN produtos_tipo pt ON pt.id = p.produtos_tipo " +
+                "SET p.produtos_tipo = NULL WHERE pt.descricao = p.descricao");
+        }
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(
+                "DELETE FROM produtos_tipo WHERE descricao IN (SELECT descricao FROM produtos)");
         }
     }
 
@@ -643,6 +674,30 @@ public final class SchemaInitializer {
             try (Statement stmt = conn.createStatement()) {
                 stmt.executeUpdate(
                     "ALTER TABLE produtos ADD COLUMN comprar INT NOT NULL DEFAULT 0 AFTER estoque_atual");
+            }
+        }
+    }
+
+    /**
+     * Adiciona produtos.conversao_unidades (fator de conversao da unidade de medida do produto
+     * para unidades, ex.: duzia = 12; usado para calculos que precisem do total em unidades) e
+     * amplia estoque_ideal/estoque_minimo/estoque_atual/comprar de INT para DECIMAL(10,2), para
+     * permitir quantidades fracionadas (ex.: 1,5 kg). Idempotente.
+     */
+    private static void ensureProdutosCamposDecimais(Connection conn) throws SQLException {
+        if (!columnExists(conn, "produtos", "conversao_unidades")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE produtos ADD COLUMN conversao_unidades DECIMAL(10,2) NOT NULL DEFAULT 1.00 " +
+                    "AFTER unidade");
+            }
+        }
+        for (String coluna : new String[] {"estoque_ideal", "estoque_minimo", "estoque_atual", "comprar"}) {
+            if (columnExists(conn, "produtos", coluna) && !columnIsDecimal(conn, "produtos", coluna)) {
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate(
+                        "ALTER TABLE produtos MODIFY COLUMN " + coluna + " DECIMAL(10,2) NOT NULL DEFAULT 0.00");
+                }
             }
         }
     }
@@ -748,6 +803,119 @@ public final class SchemaInitializer {
             stmt.executeUpdate(
                 "ALTER TABLE " + table + " ADD CONSTRAINT " + newConstraint +
                 " CHECK (classificacao IN ('nao_avaliado', 'muito_bom', 'bom', 'medio', 'ruim', 'muito_ruim'))");
+        }
+    }
+
+    /**
+     * Garante a marca Ford e o modelo Ka (faltava na lista de veiculos). Busca a marca por nome
+     * sem diferenciar maiusculas/minusculas para nao duplicar se ja existir com outra grafia;
+     * cria a marca se faltar. Idempotente: so insere o que ainda nao existir.
+     */
+    private static void seedModeloFordKa(Connection conn) throws SQLException {
+        Integer marcaId = null;
+        try (PreparedStatement check = conn.prepareStatement(
+                "SELECT id FROM marcas WHERE UPPER(descricao) = UPPER(?)")) {
+            check.setString(1, "Ford");
+            try (ResultSet rs = check.executeQuery()) {
+                if (rs.next()) {
+                    marcaId = rs.getInt(1);
+                }
+            }
+        }
+        if (marcaId == null) {
+            try (PreparedStatement insert = conn.prepareStatement(
+                    "INSERT INTO marcas (descricao) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
+                insert.setString(1, "Ford");
+                insert.executeUpdate();
+                try (ResultSet keys = insert.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        marcaId = keys.getInt(1);
+                    }
+                }
+            }
+        }
+        if (marcaId == null) {
+            return;
+        }
+
+        try (PreparedStatement check = conn.prepareStatement(
+                "SELECT 1 FROM modelos WHERE marca_id = ? AND UPPER(descricao) = UPPER(?)")) {
+            check.setInt(1, marcaId);
+            check.setString(2, "Ka");
+            try (ResultSet rs = check.executeQuery()) {
+                if (rs.next()) {
+                    return;
+                }
+            }
+        }
+        try (PreparedStatement insert = conn.prepareStatement(
+                "INSERT INTO modelos (marca_id, descricao) VALUES (?, ?)")) {
+            insert.setInt(1, marcaId);
+            insert.setString(2, "Ka");
+            insert.executeUpdate();
+        }
+    }
+
+    /**
+     * Garante a marca Harley Davidson e o modelo FX BB (faltava na lista de veiculos). Mesmo
+     * padrao de seedModeloFordKa: busca a marca por nome sem diferenciar maiusculas/minusculas
+     * para nao duplicar se ja existir com outra grafia; cria a marca se faltar. Idempotente.
+     */
+    private static void seedModeloHarleyDavidsonFXBB(Connection conn) throws SQLException {
+        Integer marcaId = null;
+        try (PreparedStatement check = conn.prepareStatement(
+                "SELECT id FROM marcas WHERE UPPER(descricao) = UPPER(?)")) {
+            check.setString(1, "Harley Davidson");
+            try (ResultSet rs = check.executeQuery()) {
+                if (rs.next()) {
+                    marcaId = rs.getInt(1);
+                }
+            }
+        }
+        if (marcaId == null) {
+            try (PreparedStatement insert = conn.prepareStatement(
+                    "INSERT INTO marcas (descricao) VALUES (?)", Statement.RETURN_GENERATED_KEYS)) {
+                insert.setString(1, "Harley Davidson");
+                insert.executeUpdate();
+                try (ResultSet keys = insert.getGeneratedKeys()) {
+                    if (keys.next()) {
+                        marcaId = keys.getInt(1);
+                    }
+                }
+            }
+        }
+        if (marcaId == null) {
+            return;
+        }
+
+        try (PreparedStatement check = conn.prepareStatement(
+                "SELECT 1 FROM modelos WHERE marca_id = ? AND UPPER(descricao) = UPPER(?)")) {
+            check.setInt(1, marcaId);
+            check.setString(2, "FX BB");
+            try (ResultSet rs = check.executeQuery()) {
+                if (rs.next()) {
+                    return;
+                }
+            }
+        }
+        try (PreparedStatement insert = conn.prepareStatement(
+                "INSERT INTO modelos (marca_id, descricao) VALUES (?, ?)")) {
+            insert.setInt(1, marcaId);
+            insert.setString(2, "FX BB");
+            insert.executeUpdate();
+        }
+    }
+
+    /**
+     * Amplia vagas.observacao de VARCHAR(15) para VARCHAR(45): a tela de Veiculos passou a
+     * permitir editar esse campo (campo "Obs:") com ate 45 caracteres.
+     */
+    private static void ensureVagaObservacaoAmpliada(Connection conn) throws SQLException {
+        if (columnLengthAtLeast(conn, "vagas", "observacao", 45)) {
+            return;
+        }
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("ALTER TABLE vagas MODIFY COLUMN observacao VARCHAR(45) NULL");
         }
     }
 
@@ -939,6 +1107,31 @@ public final class SchemaInitializer {
         }
     }
 
+    private static boolean columnIsDecimal(Connection conn, String table, String column) throws SQLException {
+        try (PreparedStatement check = conn.prepareStatement(
+                "SELECT data_type FROM information_schema.columns " +
+                "WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?")) {
+            check.setString(1, table);
+            check.setString(2, column);
+            try (ResultSet rs = check.executeQuery()) {
+                return rs.next() && "decimal".equalsIgnoreCase(rs.getString(1));
+            }
+        }
+    }
+
+    private static boolean columnLengthAtLeast(Connection conn, String table, String column, int minLength)
+            throws SQLException {
+        try (PreparedStatement check = conn.prepareStatement(
+                "SELECT character_maximum_length FROM information_schema.columns " +
+                "WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?")) {
+            check.setString(1, table);
+            check.setString(2, column);
+            try (ResultSet rs = check.executeQuery()) {
+                return rs.next() && rs.getInt(1) >= minLength;
+            }
+        }
+    }
+
     private static boolean constraintExists(Connection conn, String table, String constraintName) throws SQLException {
         try (PreparedStatement check = conn.prepareStatement(
                 "SELECT 1 FROM information_schema.table_constraints " +
@@ -1068,6 +1261,30 @@ public final class SchemaInitializer {
             try (Statement stmt = conn.createStatement()) {
                 stmt.executeUpdate("ALTER TABLE app_assets MODIFY data_base64 LONGTEXT NULL");
             }
+        }
+    }
+
+    private static final String NOME_CONDOMINIO_KEY = "nome_condominio";
+    private static final String NOME_CONDOMINIO_PADRAO = "Spotlight Pompéia";
+
+    /** Semeia o nome do condominio em app_assets (guardado como texto/bytes UTF-8), se ainda nao existir. */
+    private static void seedNomeCondominio(Connection conn) throws SQLException {
+        try (PreparedStatement check = conn.prepareStatement(
+                "SELECT 1 FROM app_assets WHERE asset_key = ?")) {
+            check.setString(1, NOME_CONDOMINIO_KEY);
+            try (ResultSet rs = check.executeQuery()) {
+                if (rs.next()) {
+                    return;
+                }
+            }
+        }
+
+        try (PreparedStatement insert = conn.prepareStatement(
+                "INSERT INTO app_assets (asset_key, mime_type, data) VALUES (?, ?, ?)")) {
+            insert.setString(1, NOME_CONDOMINIO_KEY);
+            insert.setString(2, "text/plain");
+            insert.setBytes(3, NOME_CONDOMINIO_PADRAO.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            insert.executeUpdate();
         }
     }
 

@@ -6,11 +6,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Veículos - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=10">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=17">
 </head>
 <body>
 <div class="page">
     <div class="card card-wide">
+        <p class="condominio-nome" style="text-align:left;">${nomeCondominio}</p>
         <div class="toolbar">
             <h1 class="title" style="text-align:left;margin:0;">
                 Veículos da unidade ${unidade.codigo}
@@ -22,7 +23,10 @@
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
-        <p class="subtitle">Informe até 5 veículos. Cor, marca, modelo e placas são obrigatórios; deixe a linha em branco para não usá-la.</p>
+        <div class="field-inline">
+            <label for="obs">Obs:</label>
+            <input type="text" id="obs" name="obs" form="veiculoForm" maxlength="45" value="${obs}">
+        </div>
 
         <c:if test="${not empty errors.form}">
             <p class="form-error">${errors.form}</p>

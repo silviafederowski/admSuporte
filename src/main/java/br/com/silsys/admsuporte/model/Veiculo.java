@@ -22,6 +22,9 @@ public class Veiculo implements Serializable {
     /** Codigo(s) da(s) vaga(s) atual(is) da unidade (ver VagaDao.listCodigosVagaAtual); preenchido no servlet. */
     private String vagaAtual;
 
+    /** Observacao(oes) da(s) vaga(s) atual(is) da unidade (ver VagaDao.listObservacoesVagaAtual); preenchido no servlet. */
+    private String vagaObservacao;
+
     public int getId() {
         return id;
     }
@@ -108,5 +111,13 @@ public class Veiculo implements Serializable {
 
     public void setVagaAtual(String vagaAtual) {
         this.vagaAtual = vagaAtual;
+    }
+
+    public String getVagaObservacao() {
+        return vagaObservacao;
+    }
+
+    public void setVagaObservacao(String vagaObservacao) {
+        this.vagaObservacao = vagaObservacao;
     }
 }

@@ -25,9 +25,9 @@ public class ProdutoDao {
     public int create(Produto p) throws SQLException {
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO produtos (descricao, produtos_tipo, unidade, estoque_ideal, estoque_minimo, " +
-                     "estoque_atual, comprar, ultimo_fornecedor_id, valor_ultima_compra) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     "INSERT INTO produtos (descricao, produtos_tipo, unidade, conversao_unidades, estoque_ideal, " +
+                     "estoque_minimo, estoque_atual, comprar, ultimo_fornecedor_id, valor_ultima_compra) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                      Statement.RETURN_GENERATED_KEYS)) {
             bindParams(stmt, p);
             stmt.executeUpdate();
@@ -43,9 +43,9 @@ public class ProdutoDao {
     public void update(Produto p) throws SQLException {
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
-                     "UPDATE produtos SET descricao = ?, produtos_tipo = ?, unidade = ?, estoque_ideal = ?, " +
-                     "estoque_minimo = ?, estoque_atual = ?, comprar = ?, ultimo_fornecedor_id = ?, " +
-                     "valor_ultima_compra = ? WHERE id = ?")) {
+                     "UPDATE produtos SET descricao = ?, produtos_tipo = ?, unidade = ?, conversao_unidades = ?, " +
+                     "estoque_ideal = ?, estoque_minimo = ?, estoque_atual = ?, comprar = ?, " +
+                     "ultimo_fornecedor_id = ?, valor_ultima_compra = ? WHERE id = ?")) {
             int nextIndex = bindParams(stmt, p);
             stmt.setInt(nextIndex, p.getId());
             stmt.executeUpdate();
@@ -136,13 +136,14 @@ public class ProdutoDao {
         stmt.setString(1, ValidationUtil.toUpperOrNull(p.getDescricao()));
         setNullableInt(stmt, 2, p.getTipoId());
         stmt.setString(3, p.getUnidade().dbValue());
-        setNullableInt(stmt, 4, p.getEstoqueIdeal());
-        setNullableInt(stmt, 5, p.getEstoqueMinimo());
-        setNullableInt(stmt, 6, p.getEstoqueAtual());
-        setNullableInt(stmt, 7, p.getComprar());
-        setNullableInt(stmt, 8, p.getUltimoFornecedorId());
-        setNullableDecimal(stmt, 9, p.getValorUltimaCompra());
-        return 10;
+        setNullableDecimal(stmt, 4, p.getConversaoUnidades());
+        setNullableDecimal(stmt, 5, p.getEstoqueIdeal());
+        setNullableDecimal(stmt, 6, p.getEstoqueMinimo());
+        setNullableDecimal(stmt, 7, p.getEstoqueAtual());
+        setNullableDecimal(stmt, 8, p.getComprar());
+        setNullableInt(stmt, 9, p.getUltimoFornecedorId());
+        setNullableDecimal(stmt, 10, p.getValorUltimaCompra());
+        return 11;
     }
 
     private void setNullableInt(PreparedStatement stmt, int index, Integer value) throws SQLException {
@@ -169,14 +170,11 @@ public class ProdutoDao {
         p.setTipoId(rs.wasNull() ? null : tipoId);
         p.setTipoDescricao(rs.getString("tipo_descricao"));
         p.setUnidade(UnidadeMedidaProduto.fromDbValue(rs.getString("unidade")));
-        int estoqueIdeal = rs.getInt("estoque_ideal");
-        p.setEstoqueIdeal(rs.wasNull() ? null : estoqueIdeal);
-        int estoqueMinimo = rs.getInt("estoque_minimo");
-        p.setEstoqueMinimo(rs.wasNull() ? null : estoqueMinimo);
-        int estoqueAtual = rs.getInt("estoque_atual");
-        p.setEstoqueAtual(rs.wasNull() ? null : estoqueAtual);
-        int comprar = rs.getInt("comprar");
-        p.setComprar(rs.wasNull() ? null : comprar);
+        p.setConversaoUnidades(rs.getBigDecimal("conversao_unidades"));
+        p.setEstoqueIdeal(rs.getBigDecimal("estoque_ideal"));
+        p.setEstoqueMinimo(rs.getBigDecimal("estoque_minimo"));
+        p.setEstoqueAtual(rs.getBigDecimal("estoque_atual"));
+        p.setComprar(rs.getBigDecimal("comprar"));
         int ultimoFornecedorId = rs.getInt("ultimo_fornecedor_id");
         p.setUltimoFornecedorId(rs.wasNull() ? null : ultimoFornecedorId);
         p.setUltimoFornecedorNome(rs.getString("ultimo_fornecedor_nome"));
