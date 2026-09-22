@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Menu - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=19">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=30">
 </head>
 <body>
 <div class="page">
@@ -40,6 +40,9 @@
             <c:if test="${telasPermitidas.contains('pendencias-servico')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/pendencias-servico">Histórico de serviços</a>
             </c:if>
+            <c:if test="${telasPermitidas.contains('vagas')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/vagas">Histórico de vagas</a>
+            </c:if>
             <c:if test="${telasPermitidas.contains('operacoes')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/operacoes">Log de operações</a>
             </c:if>
@@ -52,17 +55,20 @@
             <c:if test="${telasPermitidas.contains('servicos')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/servicos">Serviços</a>
             </c:if>
+            <c:if test="${telasPermitidas.contains('sorteio-vagas')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/sorteio-vagas">Sorteio vagas</a>
+            </c:if>
             <c:if test="${telasPermitidas.contains('tipos-produtos')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/tipos-produtos">Tipos de produtos</a>
             </c:if>
             <c:if test="${telasPermitidas.contains('tipos-usuario')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/tipos-usuario">Tipos de usuário</a>
             </c:if>
+            <c:if test="${telasPermitidas.contains('unidades')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/unidades">Unidades</a>
+            </c:if>
             <c:if test="${telasPermitidas.contains('usuarios')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/usuarios">Usuários</a>
-            </c:if>
-            <c:if test="${telasPermitidas.contains('vagas')}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/vagas">Vagas</a>
             </c:if>
             <c:if test="${telasPermitidas.contains('veiculos')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/veiculos">Veículos</a>

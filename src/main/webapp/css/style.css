@@ -385,6 +385,14 @@ textarea:focus {
     cursor: default;
 }
 
+/* Icone tipo liga/desliga (ex.: filtro de anos recentes na tela de vagas): fundo destacado
+   enquanto o filtro estiver ativo. */
+.menu-icon-link-active {
+    background: rgba(79, 70, 229, 0.14);
+    border-radius: 8px;
+    padding: 2px 6px;
+}
+
 .filter-bar {
     display: flex;
     align-items: center;
@@ -988,4 +996,174 @@ tr.selected-row:hover {
     background:
         linear-gradient(135deg, transparent 0 40%, var(--border) 40% 55%, transparent 55% 100%),
         linear-gradient(135deg, transparent 0 65%, var(--border) 65% 80%, transparent 80% 100%);
+}
+
+/* Tela de Sorteio de vagas: 4 colunas verticais iguais; a 2a dividida em legenda + 3 andares. */
+.card-sorteio {
+    max-width: 1600px;
+}
+
+.sorteio-colunas {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    align-items: stretch;
+}
+
+.sorteio-coluna {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.sorteio-coluna-dividida {
+    gap: 6px;
+}
+
+.sorteio-coluna-corpo {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 14px;
+}
+
+.sorteio-coluna-corpo-distribuido {
+    justify-content: space-between;
+}
+
+@media (max-width: 640px) {
+    .sorteio-colunas {
+        grid-template-columns: 1fr;
+    }
+
+    .card-sorteio .toolbar {
+        flex-wrap: wrap;
+    }
+
+    .sorteio-legenda-toolbar {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+.sorteio-secao-titulo {
+    font-size: 12px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    color: var(--text);
+}
+
+.sorteio-secao-titulo-principal {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    color: var(--text);
+}
+
+.sorteio-legenda {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 10px;
+    font-size: 11px;
+}
+
+.sorteio-legenda-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    font-size: 12px;
+}
+
+.sorteio-legenda-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.sorteio-swatch {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    flex-shrink: 0;
+}
+
+.sorteio-table th,
+.sorteio-table td {
+    padding: 4px 3px;
+    font-size: 10px;
+}
+
+.sorteio-vagas-flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+}
+
+.sorteio-vaga-chip {
+    display: inline-block;
+    padding: 2px 4px;
+    font-size: 10px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+}
+
+.sorteio-interna {
+    background: #cfe2f3;
+    color: #1b3a52;
+}
+
+.sorteio-externa {
+    background: #fff2cc;
+    color: #5c4a00;
+}
+
+.sorteio-borda-individual {
+    border: 2px solid #000000;
+}
+
+.sorteio-preferencial {
+    background: #ea4335;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.sorteio-emergencia {
+    background: #ead1dc;
+    color: #4c1130;
+}
+
+.sorteio-zelador {
+    background: #ffe599;
+    color: #543f00;
+}
+
+.sorteio-texto-live {
+    font-size: 13px;
+    text-align: center;
+    margin: 0 0 8px;
+}
+
+.sorteio-ja-sorteada {
+    background: #ffffff;
+}
+
+.sorteio-vaga-riscada {
+    text-decoration: line-through;
+}
+
+.sorteio-log {
+    max-height: 220px;
+    overflow-y: auto;
+    margin: 0 0 8px;
+}
+
+.sorteio-log .sorteio-texto-live {
+    margin: 0 0 4px;
 }

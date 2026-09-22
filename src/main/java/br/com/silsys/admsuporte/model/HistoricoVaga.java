@@ -24,6 +24,13 @@ public class HistoricoVaga implements Serializable {
     private String vagaEspecial;
     private String vagaObservacao;
 
+    /**
+     * "I" ou "E": sugestao para o proximo ano, calculada no servlet (ver VagaServlet). "E" se a
+     * unidade teve todas as vagas internas ("I") no ano desta linha e nos 2 anos anteriores;
+     * "I" caso contrario.
+     */
+    private String proximo;
+
     public int getChave() {
         return chave;
     }
@@ -134,5 +141,13 @@ public class HistoricoVaga implements Serializable {
 
     public void setVagaObservacao(String vagaObservacao) {
         this.vagaObservacao = vagaObservacao;
+    }
+
+    public String getProximo() {
+        return proximo;
+    }
+
+    public void setProximo(String proximo) {
+        this.proximo = proximo;
     }
 }

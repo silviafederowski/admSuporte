@@ -10,6 +10,8 @@ public class Unidade implements Serializable {
     private int chave;
     private String codigo;
     private Integer quantasVagas;
+    private boolean candidataIdoso;
+    private Integer vagasGaragem;
 
     public int getChave() {
         return chave;
@@ -33,5 +35,22 @@ public class Unidade implements Serializable {
 
     public void setQuantasVagas(Integer quantasVagas) {
         this.quantasVagas = quantasVagas;
+    }
+
+    public boolean isCandidataIdoso() {
+        return candidataIdoso;
+    }
+
+    public void setCandidataIdoso(boolean candidataIdoso) {
+        this.candidataIdoso = candidataIdoso;
+    }
+
+    /** Quantas vagas de garagem a unidade tem: 1 ou 2. */
+    public Integer getVagasGaragem() {
+        return vagasGaragem;
+    }
+
+    public void setVagasGaragem(Integer vagasGaragem) {
+        this.vagasGaragem = vagasGaragem;
     }
 }

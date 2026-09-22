@@ -5,8 +5,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Vagas - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=19">
+    <title>Histórico de vagas - admSuporte</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=30">
 </head>
 <body>
 <div class="page">
@@ -14,9 +14,17 @@
         <p class="condominio-nome" style="text-align:left;">${nomeCondominio}</p>
         <div class="toolbar">
             <div>
-                <h1 class="title" style="text-align:left;margin:0;">Vagas</h1>
+                <h1 class="title" style="text-align:left;margin:0;">Histórico de vagas</h1>
             </div>
             <div class="toolbar-actions">
+                <c:choose>
+                    <c:when test="${recentes}">
+                        <a class="menu-icon-link menu-icon-link-active" href="${pageContext.request.contextPath}/vagas" title="Mostrando só os últimos 4 anos - clique para ver todos" aria-label="Mostrar todos os anos">🕓</a>
+                    </c:when>
+                    <c:otherwise>
+                        <a class="menu-icon-link" href="${pageContext.request.contextPath}/vagas?recentes=1" title="Mostrar só o ano atual e os 3 anteriores" aria-label="Mostrar só os últimos 4 anos">🕓</a>
+                    </c:otherwise>
+                </c:choose>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
@@ -39,6 +47,7 @@
                             <th>Vaga</th>
                             <th>Pavimento</th>
                             <th>Int/Ext</th>
+                            <th>Prox</th>
                             <th>Especial</th>
                             <th>Observação</th>
                             <th data-no-sort>Veículos</th>
@@ -52,6 +61,7 @@
                                 <td>${h.vagaCodigo}</td>
                                 <td class="pavimento-cell" title="Ver imagem do pavimento">${h.vagaPavimento}</td>
                                 <td>${h.vagaInternaExterna}</td>
+                                <td>${h.proximo}</td>
                                 <td>${h.vagaEspecial}</td>
                                 <td>${h.observacaoHistorico}</td>
                                 <td>

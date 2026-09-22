@@ -5,7 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Log de operações - admSuporte</title>
+    <title>Unidades - admSuporte</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=30">
 </head>
 <body>
@@ -14,39 +14,46 @@
         <p class="condominio-nome" style="text-align:left;">${nomeCondominio}</p>
         <div class="toolbar">
             <div>
-                <h1 class="title" style="text-align:left;margin:0;">Log de operações</h1>
+                <h1 class="title" style="text-align:left;margin:0;">Unidades</h1>
             </div>
             <div class="toolbar-actions">
+                <c:if test="${!readOnly}">
+                    <a class="menu-icon-link" href="${pageContext.request.contextPath}/unidades/form" title="Nova unidade" aria-label="Nova unidade">➕</a>
+                </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
 
+        <c:if test="${not empty infoMessage}">
+            <p class="form-info">${infoMessage}</p>
+        </c:if>
         <c:if test="${not empty formError}">
             <p class="form-error">${formError}</p>
         </c:if>
 
         <c:choose>
-            <c:when test="${empty operacoes}">
-                <p class="empty-state">Nenhuma operação registrada ainda.</p>
+            <c:when test="${empty unidades}">
+                <p class="empty-state">Nenhuma unidade cadastrada ainda.</p>
             </c:when>
             <c:otherwise>
                 <div class="table-wrap">
                     <table class="data-table" data-sortable>
                         <thead>
                         <tr>
-                            <th>Usuário</th>
-                            <th>Tela</th>
-                            <th>Operação</th>
-                            <th>Data/hora</th>
+                            <th>Código</th>
+                            <th>Vagas de garagem</th>
+                            <th>Candidata a vaga de idoso</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <c:forEach var="log" items="${operacoes}">
-                            <tr>
-                                <td>${log.usuario}</td>
-                                <td>${log.tela}</td>
-                                <td>${log.operacao}</td>
-                                <td>${log.dataHoraFormatada}</td>
+                        <c:forEach var="u" items="${unidades}">
+                            <tr class="clickable-row"
+                                onclick="window.location='${pageContext.request.contextPath}/unidades/form?id=${u.chave}'">
+                                <td>${u.codigo}</td>
+                                <td>${u.vagasGaragem}</td>
+                                <td>
+                                    <span class="badge ${u.candidataIdoso ? 'badge-ativo' : 'badge-inativo'}">${u.candidataIdoso ? 'Sim' : 'Não'}</span>
+                                </td>
                             </tr>
                         </c:forEach>
                         </tbody>

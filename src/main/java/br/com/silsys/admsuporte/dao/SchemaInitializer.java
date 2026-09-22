@@ -72,6 +72,14 @@ public final class SchemaInitializer {
         {"vagas", "Consulta de vagas de garagem", "5", "consulta"},
         {"vagas", "Consulta de vagas de garagem", "10", "consulta"},
         {"vagas", "Consulta de vagas de garagem", "15", "consulta"},
+        {"sorteio-vagas", "Sorteio de vagas", "0", "edicao"},
+        {"sorteio-vagas", "Sorteio de vagas", "5", "consulta"},
+        {"sorteio-vagas", "Sorteio de vagas", "10", "consulta"},
+        {"sorteio-vagas", "Sorteio de vagas", "15", "consulta"},
+        {"unidades", "Cadastro de unidades", "0", "edicao"},
+        {"unidades", "Cadastro de unidades", "5", "consulta"},
+        {"unidades", "Cadastro de unidades", "10", "consulta"},
+        {"unidades", "Cadastro de unidades", "15", "consulta"},
         {"veiculos", "Cadastro de veículos por unidade", "0", "edicao"},
         {"veiculos", "Cadastro de veículos por unidade", "5", "edicao"},
         {"veiculos", "Cadastro de veículos por unidade", "10", "edicao"},
@@ -146,6 +154,8 @@ public final class SchemaInitializer {
             ensureProdutosCamposDecimais(conn);
             ensureProdutosEstoqueMinimoAtualInteiros(conn);
             ensureUserAtivoColumn(conn);
+            ensureUnidadeCandidataIdosoColumn(conn);
+            seedVagasGaragemChaveMaiorQue8(conn);
             ensureClassificacaoNaoAvaliado(conn, "prestadores");
             ensureClassificacaoNaoAvaliado(conn, "fornecedores");
             ensureVagasColumnsRemoved(conn);
@@ -392,7 +402,11 @@ public final class SchemaInitializer {
                 "CREATE TABLE IF NOT EXISTS unidades (" +
                 "  chave INT(11) PRIMARY KEY," +
                 "  codigo VARCHAR(15) NULL," +
-                "  quantasVagas INT(2) NULL" +
+                "  quantasVagas INT(2) NULL," +
+                "  candidata_idoso CHAR(1) NOT NULL DEFAULT 'N'," +
+                "  vagas_garagem TINYINT NOT NULL DEFAULT 1," +
+                "  CONSTRAINT chk_unidades_candidata_idoso CHECK (candidata_idoso IN ('S', 'N'))," +
+                "  CONSTRAINT chk_unidades_vagas_garagem CHECK (vagas_garagem IN (1, 2))" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
             stmt.executeUpdate(
@@ -1110,6 +1124,68 @@ public final class SchemaInitializer {
             try (Statement stmt = conn.createStatement()) {
                 stmt.executeUpdate("ALTER TABLE users ADD CONSTRAINT chk_users_ativo CHECK (ativo IN ('S', 'N'))");
             }
+        }
+    }
+
+    /**
+     * Marca se a unidade e candidata a vaga de idoso, e quantas vagas de garagem tem (1 ou 2) -
+     * campos da tela "Unidades" (que agora permite incluir/excluir/alterar qualquer unidade).
+     */
+    private static void ensureUnidadeCandidataIdosoColumn(Connection conn) throws SQLException {
+        if (!columnExists(conn, "unidades", "candidata_idoso")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE unidades ADD COLUMN candidata_idoso CHAR(1) NOT NULL DEFAULT 'N'");
+            }
+        }
+        if (!constraintExists(conn, "unidades", "chk_unidades_candidata_idoso")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE unidades ADD CONSTRAINT chk_unidades_candidata_idoso " +
+                    "CHECK (candidata_idoso IN ('S', 'N'))");
+            }
+        }
+        if (!columnExists(conn, "unidades", "vagas_garagem")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE unidades ADD COLUMN vagas_garagem TINYINT NOT NULL DEFAULT 1");
+            }
+        }
+        if (!constraintExists(conn, "unidades", "chk_unidades_vagas_garagem")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE unidades ADD CONSTRAINT chk_unidades_vagas_garagem " +
+                    "CHECK (vagas_garagem IN (1, 2))");
+            }
+        }
+    }
+
+    /**
+     * Migracao unica (nao repete em deploys seguintes, para nao sobrescrever edicoes manuais
+     * feitas depois pela tela Unidades): marca vagas_garagem = 2 para toda unidade com chave > 8.
+     * Usa uma linha marcadora em app_assets para saber se ja rodou (mesmo mecanismo de
+     * seedNomeCondominio/seedLogo).
+     */
+    private static void seedVagasGaragemChaveMaiorQue8(Connection conn) throws SQLException {
+        String chaveMarcador = "migracao_vagas_garagem_chave_maior_8";
+        try (PreparedStatement check = conn.prepareStatement(
+                "SELECT 1 FROM app_assets WHERE asset_key = ?")) {
+            check.setString(1, chaveMarcador);
+            try (ResultSet rs = check.executeQuery()) {
+                if (rs.next()) {
+                    return;
+                }
+            }
+        }
+
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("UPDATE unidades SET vagas_garagem = 2 WHERE chave > 8");
+        }
+
+        try (PreparedStatement insert = conn.prepareStatement(
+                "INSERT INTO app_assets (asset_key, mime_type, data) VALUES (?, ?, ?)")) {
+            insert.setString(1, chaveMarcador);
+            insert.setString(2, "text/plain");
+            insert.setBytes(3, "1".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            insert.executeUpdate();
         }
     }
 

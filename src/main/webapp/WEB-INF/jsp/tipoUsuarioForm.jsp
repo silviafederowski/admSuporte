@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tipo de usuário - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=19">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=30">
 </head>
 <body>
 <div class="page">
