@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Histórico / Pendências de serviços - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=32">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
 </head>
 <body>
 <div class="page">
@@ -17,14 +17,7 @@
                 <h1 class="title" style="text-align:left;margin:0;">Histórico / Pendências de serviços</h1>
             </div>
             <div class="toolbar-actions">
-                <c:if test="${!readOnly}">
-                    <c:url var="novoRegistroUrl" value="/pendencias-servico/form">
-                        <c:if test="${not empty servicoIdFiltro}">
-                            <c:param name="servicoId" value="${servicoIdFiltro}" />
-                        </c:if>
-                    </c:url>
-                    <a class="menu-icon-link" href="${novoRegistroUrl}" title="Novo registro" aria-label="Novo registro">➕</a>
-                </c:if>
+                <a class="menu-icon-link" href="${pageContext.request.contextPath}/servicos" title="Voltar para serviços" aria-label="Voltar para serviços">↩️</a>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
@@ -69,49 +62,45 @@
         </c:if>
 
         <c:choose>
-            <c:when test="${empty pendencias}">
+            <c:when test="${empty registros}">
                 <p class="empty-state">${filtroAtivo ? 'Nenhum registro encontrado com esses filtros.' : 'Nenhum registro no histórico ainda.'}</p>
             </c:when>
             <c:otherwise>
-                <c:forEach var="p" items="${pendencias}">
-                    <div class="pendencia-bloco">
-                        <a class="pendencia-cabecalho"
-                           href="${pageContext.request.contextPath}/pendencias-servico/form?id=${p.id}">
-                            <strong>${p.dataFormatada}</strong> — ${p.servicoDescricao}
-                            <c:if test="${not empty p.prestadorNome || not empty p.nomeTecnico}">
-                                <span class="pendencia-detalhe">
-                                    <c:if test="${not empty p.prestadorNome}">Prestador: ${p.prestadorNome}</c:if>
-                                    <c:if test="${not empty p.prestadorNome && not empty p.nomeTecnico}"> · </c:if>
-                                    <c:if test="${not empty p.nomeTecnico}">Técnico: ${p.nomeTecnico}</c:if>
-                                </span>
-                            </c:if>
-                        </a>
-                        <div class="table-wrap">
-                            <table class="data-table">
-                                <thead>
-                                <tr>
-                                    <th style="text-align:left;">Descrição</th>
-                                    <th style="width:110px;" title="Ponto focal">P. focal</th>
-                                    <th style="width:140px;">Situação</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                <c:forEach var="item" items="${p.itens}">
-                                    <tr>
-                                        <td style="text-align:left;">${item.descricao}</td>
-                                        <td>${item.pontoFocal}</td>
-                                        <td><span class="badge badge-${item.status.dbValue}">${item.status.label}</span></td>
-                                    </tr>
-                                </c:forEach>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </c:forEach>
+                <%-- Compromissos da agenda ligados a servico; ja vem do servidor em ordem decrescente de data. --%>
+                <div class="table-wrap">
+                    <table class="data-table" data-sortable>
+                        <thead>
+                        <tr>
+                            <th data-sort-desc style="width:90px;">Data</th>
+                            <c:if test="${empty servicoIdFiltro}"><th>Serviço</th></c:if>
+                            <th>Prestador</th>
+                            <th style="text-align:left;">Descrição</th>
+                            <th style="width:110px;" title="Ponto focal">P. focal</th>
+                            <th style="width:120px;">Situação</th>
+                            <th style="width:110px;">Data resolução</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <c:forEach var="a" items="${registros}">
+                            <tr class="clickable-row" title="Abrir compromisso na agenda"
+                                onclick="window.location='${pageContext.request.contextPath}/agenda/form?id=${a.id}'">
+                                <td>${a.dataFormatada}</td>
+                                <c:if test="${empty servicoIdFiltro}"><td>${a.servicoDescricao}</td></c:if>
+                                <td>${empty a.prestadorNome ? '-' : a.prestadorNome}</td>
+                                <td style="text-align:left;">${a.assunto}</td>
+                                <td>${empty a.pontoFocal ? '-' : a.pontoFocal}</td>
+                                <td><span class="badge badge-${a.status.dbValue}">${a.status.label}</span></td>
+                                <td>${a.status.dbValue == 'resolvido' && not empty a.dataStatus ? a.dataStatusFormatada : '-'}</td>
+                            </tr>
+                        </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
             </c:otherwise>
         </c:choose>
 
     </div>
 </div>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=7"></script>
 </body>
 </html>

@@ -15,6 +15,16 @@ public class Agenda implements Serializable {
     private String pontoFocal;
     private String assunto;
     private String observacao;
+    private Integer servicoId;
+    private Integer prestadorId;
+    private StatusPendencia status = StatusPendencia.PENDENTE;
+    private LocalDate dataStatus;
+
+    /** Preenchido via join na leitura; nao corresponde a uma coluna propria. */
+    private String servicoDescricao;
+
+    /** Preenchido via join na leitura; nao corresponde a uma coluna propria. */
+    private String prestadorNome;
 
     public int getId() {
         return id;
@@ -74,7 +84,61 @@ public class Agenda implements Serializable {
         this.observacao = observacao;
     }
 
+    public Integer getServicoId() {
+        return servicoId;
+    }
+
+    public void setServicoId(Integer servicoId) {
+        this.servicoId = servicoId;
+    }
+
+    public Integer getPrestadorId() {
+        return prestadorId;
+    }
+
+    public void setPrestadorId(Integer prestadorId) {
+        this.prestadorId = prestadorId;
+    }
+
+    public StatusPendencia getStatus() {
+        return status;
+    }
+
+    public void setStatus(StatusPendencia status) {
+        this.status = status != null ? status : StatusPendencia.PENDENTE;
+    }
+
+    public LocalDate getDataStatus() {
+        return dataStatus;
+    }
+
+    public void setDataStatus(LocalDate dataStatus) {
+        this.dataStatus = dataStatus;
+    }
+
+    /** Formatada dd/mm/aa, para exibicao em tela. */
+    public String getDataStatusFormatada() {
+        return DateFormatUtil.formatar(dataStatus);
+    }
+
+    public String getServicoDescricao() {
+        return servicoDescricao;
+    }
+
+    public void setServicoDescricao(String servicoDescricao) {
+        this.servicoDescricao = servicoDescricao;
+    }
+
+    public String getPrestadorNome() {
+        return prestadorNome;
+    }
+
+    public void setPrestadorNome(String prestadorNome) {
+        this.prestadorNome = prestadorNome;
+    }
+
+    /** Compromisso pendente marcado para hoje (os ja resolvidos nao precisam mais de aviso). */
     public boolean isHoje() {
-        return data != null && data.isEqual(LocalDate.now());
+        return status != StatusPendencia.RESOLVIDO && data != null && data.isEqual(LocalDate.now());
     }
 }

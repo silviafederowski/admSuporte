@@ -1,15 +1,15 @@
 package br.com.silsys.admsuporte.servlet;
 
-import br.com.silsys.admsuporte.dao.PendenciaServicoDao;
+import br.com.silsys.admsuporte.dao.AgendaDao;
 import br.com.silsys.admsuporte.dao.ServicoDao;
-import br.com.silsys.admsuporte.model.ItemPendenciaServico;
-import br.com.silsys.admsuporte.model.PendenciaServico;
+import br.com.silsys.admsuporte.model.Agenda;
 import br.com.silsys.admsuporte.model.StatusPendencia;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 import java.util.logging.Logger;
@@ -20,71 +20,58 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 /**
- * Lista de historico/pendencias de servicos de manutencao, com filtros opcionais por servico
- * (?servicoId=, tambem usado pelo icone da tela de Servicos), ponto focal (?pontoFocal=) e
- * situacao (?status=pendente|resolvido). Servico filtra o registro; ponto focal e situacao
- * filtram as pendencias: so aparecem registros com pendencias que atendam ao filtro, e nelas
- * so as linhas que atendem.
+ * Historico de servicos de manutencao, somente para consulta: sao os compromissos da agenda
+ * ligados a um servico, em ordem decrescente de data. Filtros opcionais por servico
+ * (?servicoId=, usado pelo icone da tela de Servicos), ponto focal (?pontoFocal=) e situacao
+ * (?status=pendente|resolvido).
  */
 public class PendenciaServicoServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(PendenciaServicoServlet.class.getName());
 
-    private final PendenciaServicoDao pendenciaServicoDao = new PendenciaServicoDao();
+    private final AgendaDao agendaDao = new AgendaDao();
     private final ServicoDao servicoDao = new ServicoDao();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (request.getParameter("criado") != null) {
-            request.setAttribute("infoMessage", "Registro cadastrado com sucesso.");
-        } else if (request.getParameter("atualizado") != null) {
-            request.setAttribute("infoMessage", "Registro atualizado com sucesso.");
-        } else if (request.getParameter("excluido") != null) {
-            request.setAttribute("infoMessage", "Registro excluído com sucesso.");
-        }
-
         Integer servicoId = parseServicoId(request.getParameter("servicoId"));
         String pontoFocal = trimOrNull(request.getParameter("pontoFocal"));
         StatusPendencia status = parseStatus(request.getParameter("status"));
 
         try {
-            List<PendenciaServico> todas = pendenciaServicoDao.listAll();
+            List<Agenda> doServico = new ArrayList<>();
+            for (Agenda a : agendaDao.listAll()) {
+                if (a.getServicoId() != null) {
+                    doServico.add(a);
+                }
+            }
 
             TreeSet<String> pontosFocais = new TreeSet<>();
-            for (PendenciaServico p : todas) {
-                for (ItemPendenciaServico item : p.getItens()) {
-                    if (item.getPontoFocal() != null && !item.getPontoFocal().trim().isEmpty()) {
-                        pontosFocais.add(item.getPontoFocal().trim());
-                    }
+            for (Agenda a : doServico) {
+                if (a.getPontoFocal() != null && !a.getPontoFocal().trim().isEmpty()) {
+                    pontosFocais.add(a.getPontoFocal().trim());
                 }
             }
             request.setAttribute("pontosFocais", pontosFocais);
 
-            List<PendenciaServico> filtradas = new ArrayList<>();
-            for (PendenciaServico p : todas) {
-                if (servicoId != null && !servicoId.equals(p.getServicoId())) {
+            List<Agenda> filtrados = new ArrayList<>();
+            for (Agenda a : doServico) {
+                if (servicoId != null && !servicoId.equals(a.getServicoId())) {
                     continue;
                 }
-                if (pontoFocal != null || status != null) {
-                    List<ItemPendenciaServico> itens = new ArrayList<>();
-                    for (ItemPendenciaServico item : p.getItens()) {
-                        boolean pontoOk = pontoFocal == null || pontoFocal.equalsIgnoreCase(
-                                item.getPontoFocal() == null ? "" : item.getPontoFocal().trim());
-                        boolean statusOk = status == null || status == item.getStatus();
-                        if (pontoOk && statusOk) {
-                            itens.add(item);
-                        }
-                    }
-                    if (itens.isEmpty()) {
-                        continue;
-                    }
-                    p.setItens(itens);
+                if (pontoFocal != null && !pontoFocal.equalsIgnoreCase(
+                        a.getPontoFocal() == null ? "" : a.getPontoFocal().trim())) {
+                    continue;
                 }
-                filtradas.add(p);
+                if (status != null && status != a.getStatus()) {
+                    continue;
+                }
+                filtrados.add(a);
             }
-            request.setAttribute("pendencias", filtradas);
+            filtrados.sort(Comparator.comparing(Agenda::getData, Comparator.nullsLast(Comparator.reverseOrder())));
+            request.setAttribute("registros", filtrados);
         } catch (SQLException e) {
             request.setAttribute("formError", "Não foi possível carregar o histórico: "
                     + ErrorMessages.friendly(LOGGER, "pendencias-servico", "Listar histórico de serviço", e));

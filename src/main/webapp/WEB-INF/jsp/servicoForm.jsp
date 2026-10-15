@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Serviço de manutenção - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=30">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
 </head>
 <body>
 <div class="page">
@@ -120,31 +120,6 @@
             </div>
 
             <div class="field">
-                <label for="dataAgendadaProximaExecucao">Data agendada da próxima execução</label>
-                <input type="date" id="dataAgendadaProximaExecucao" name="dataAgendadaProximaExecucao" ${dis}
-                       value="${servico.dataAgendadaProximaExecucao}">
-                <c:if test="${not empty errors.dataAgendadaProximaExecucao}"><div class="field-error">${errors.dataAgendadaProximaExecucao}</div></c:if>
-            </div>
-
-            <div class="field">
-                <label for="prestadorProximaExecucaoId">Prestador da próxima execução</label>
-                <select id="prestadorProximaExecucaoId" name="prestadorProximaExecucaoId" ${dis}>
-                    <option value="" ${empty servico.prestadorProximaExecucaoId ? 'selected' : ''}>Não informado</option>
-                    <c:forEach var="p" items="${prestadores}">
-                        <option value="${p.id}" ${servico.prestadorProximaExecucaoId == p.id ? 'selected' : ''}>${p.nomeRazaoSocial}</option>
-                    </c:forEach>
-                </select>
-                <c:if test="${not empty errors.prestadorProximaExecucaoId}"><div class="field-error">${errors.prestadorProximaExecucaoId}</div></c:if>
-            </div>
-
-            <div class="field">
-                <label for="valorOrcadoProximaExecucao">Valor orçado da próxima execução</label>
-                <input type="number" id="valorOrcadoProximaExecucao" name="valorOrcadoProximaExecucao" step="0.01" min="0" ${dis}
-                       value="${servico.valorOrcadoProximaExecucao}">
-                <c:if test="${not empty errors.valorOrcadoProximaExecucao}"><div class="field-error">${errors.valorOrcadoProximaExecucao}</div></c:if>
-            </div>
-
-            <div class="field">
                 <label for="observacao">Observação</label>
                 <textarea id="observacao" name="observacao" style="min-height:160px;" ${dis}>${servico.observacao}</textarea>
             </div>
@@ -159,5 +134,6 @@
         </c:if>
     </div>
 </div>
+<script src="${pageContext.request.contextPath}/js/dataLimpar.js"></script>
 </body>
 </html>

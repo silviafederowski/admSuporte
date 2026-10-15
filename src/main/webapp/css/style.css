@@ -133,6 +133,17 @@ input:focus {
     border-color: var(--primary);
 }
 
+.date-clear {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.date-clear input {
+    flex: 1;
+    min-width: 0;
+}
+
 .field-error {
     color: var(--error);
     font-size: 12px;
@@ -1208,7 +1219,7 @@ tr.selected-row:hover {
     font-size: 14px;
 }
 
-.pendencia-cabecalho:hover {
+a.pendencia-cabecalho:hover {
     border-color: var(--primary);
 }
 

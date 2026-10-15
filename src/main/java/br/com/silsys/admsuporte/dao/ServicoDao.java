@@ -21,19 +21,15 @@ public class ServicoDao {
 
     private static final String SELECT_BASE =
             "SELECT s.*, up.nome_razao_social AS ultimo_prestador_nome, " +
-            "up.classificacao AS ultimo_prestador_classificacao, " +
-            "pp.nome_razao_social AS prestador_proxima_execucao_nome FROM servicos s " +
-            "LEFT JOIN prestadores up ON s.ultimo_prestador_id = up.id " +
-            "LEFT JOIN prestadores pp ON s.prestador_proxima_execucao_id = pp.id ";
+            "up.classificacao AS ultimo_prestador_classificacao FROM servicos s " +
+            "LEFT JOIN prestadores up ON s.ultimo_prestador_id = up.id ";
 
     public int create(Servico s) throws SQLException {
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "INSERT INTO servicos (descricao, periodicidade, unidade_periodicidade, " +
-                     "tipo, ultima_execucao, ultimo_prestador_id, valor_pago_ultima_execucao, " +
-                     "data_agendada_proxima_execucao, prestador_proxima_execucao_id, valor_orcado_proxima_execucao, " +
-                     "observacao) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     "tipo, ultima_execucao, ultimo_prestador_id, valor_pago_ultima_execucao, observacao) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
                      Statement.RETURN_GENERATED_KEYS)) {
             bindParams(stmt, s);
             stmt.executeUpdate();
@@ -51,9 +47,7 @@ public class ServicoDao {
              PreparedStatement stmt = conn.prepareStatement(
                      "UPDATE servicos SET descricao = ?, periodicidade = ?, unidade_periodicidade = ?, " +
                      "tipo = ?, ultima_execucao = ?, ultimo_prestador_id = ?, " +
-                     "valor_pago_ultima_execucao = ?, data_agendada_proxima_execucao = ?, " +
-                     "prestador_proxima_execucao_id = ?, valor_orcado_proxima_execucao = ?, " +
-                     "observacao = ? WHERE id = ?")) {
+                     "valor_pago_ultima_execucao = ?, observacao = ? WHERE id = ?")) {
             int nextIndex = bindParams(stmt, s);
             stmt.setInt(nextIndex, s.getId());
             stmt.executeUpdate();
@@ -101,26 +95,16 @@ public class ServicoDao {
     }
 
     /**
-     * Usado ao registrar uma pendencia de servico marcada como "alterar cadastro": se a data
-     * informada for futura, vira a proxima execucao agendada do servico; se for hoje ou passada,
-     * some como proxima execucao (ja aconteceu) e vira a ultima execucao registrada.
+     * Usado ao salvar um compromisso da agenda resolvido com "atualizar servico": a data em que foi
+     * resolvido e o prestador passam a ser a ultima execucao e o ultimo prestador do servico.
      */
-    public void atualizarExecucaoAPartirDePendencia(int servicoId, java.time.LocalDate data, Integer prestadorId)
+    public void atualizarUltimaExecucao(int servicoId, java.time.LocalDate data, Integer prestadorId)
             throws SQLException {
-        boolean futura = data.isAfter(java.time.LocalDate.now());
-        String sql = futura
-                ? "UPDATE servicos SET data_agendada_proxima_execucao = ?, prestador_proxima_execucao_id = ? " +
-                  "WHERE id = ?"
-                : "UPDATE servicos SET data_agendada_proxima_execucao = NULL, prestador_proxima_execucao_id = NULL, " +
-                  "ultima_execucao = ?, ultimo_prestador_id = ? WHERE id = ?";
         try (Connection conn = ConnectionProvider.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setDate(1, Date.valueOf(data));
-            if (prestadorId == null) {
-                stmt.setNull(2, java.sql.Types.INTEGER);
-            } else {
-                stmt.setInt(2, prestadorId);
-            }
+             PreparedStatement stmt = conn.prepareStatement(
+                     "UPDATE servicos SET ultima_execucao = ?, ultimo_prestador_id = ? WHERE id = ?")) {
+            setNullableDate(stmt, 1, data);
+            setNullableInt(stmt, 2, prestadorId);
             stmt.setInt(3, servicoId);
             stmt.executeUpdate();
         }
@@ -153,11 +137,8 @@ public class ServicoDao {
         setNullableDate(stmt, 5, s.getUltimaExecucao());
         setNullableInt(stmt, 6, s.getUltimoPrestadorId());
         setNullableDecimal(stmt, 7, s.getValorPagoUltimaExecucao());
-        setNullableDate(stmt, 8, s.getDataAgendadaProximaExecucao());
-        setNullableInt(stmt, 9, s.getPrestadorProximaExecucaoId());
-        setNullableDecimal(stmt, 10, s.getValorOrcadoProximaExecucao());
-        stmt.setString(11, ValidationUtil.toUpperOrNull(s.getObservacao()));
-        return 12;
+        stmt.setString(8, ValidationUtil.toUpperOrNull(s.getObservacao()));
+        return 9;
     }
 
     private void setNullableDate(PreparedStatement stmt, int index, java.time.LocalDate value) throws SQLException {
@@ -199,12 +180,6 @@ public class ServicoDao {
         s.setUltimoPrestadorNome(rs.getString("ultimo_prestador_nome"));
         s.setUltimoPrestadorClassificacao(Classificacao.fromDbValue(rs.getString("ultimo_prestador_classificacao")));
         s.setValorPagoUltimaExecucao(rs.getBigDecimal("valor_pago_ultima_execucao"));
-        Date dataAgendada = rs.getDate("data_agendada_proxima_execucao");
-        s.setDataAgendadaProximaExecucao(dataAgendada != null ? dataAgendada.toLocalDate() : null);
-        int prestadorProximaExecucaoId = rs.getInt("prestador_proxima_execucao_id");
-        s.setPrestadorProximaExecucaoId(rs.wasNull() ? null : prestadorProximaExecucaoId);
-        s.setPrestadorProximaExecucaoNome(rs.getString("prestador_proxima_execucao_nome"));
-        s.setValorOrcadoProximaExecucao(rs.getBigDecimal("valor_orcado_proxima_execucao"));
         s.setObservacao(rs.getString("observacao"));
         return s;
     }

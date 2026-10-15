@@ -113,8 +113,9 @@
             });
         }
 
-        function sortByColumn(index) {
-            var ascending = sortState.column === index ? !sortState.ascending : true;
+        function sortByColumn(index, forceAscending) {
+            var ascending = typeof forceAscending === 'boolean' ? forceAscending
+                : (sortState.column === index ? !sortState.ascending : true);
             sortState = { column: index, ascending: ascending };
 
             var rows = getRows();
@@ -133,6 +134,13 @@
                 }
             });
         }
+
+        // Coluna marcada com data-sort-desc no <th>: a tabela ja abre ordenada por ela, decrescente.
+        Array.prototype.forEach.call(headerRow.cells, function (th, index) {
+            if (th.hasAttribute('data-sort-desc')) {
+                sortByColumn(index, false);
+            }
+        });
     }
 
     /**

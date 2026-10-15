@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Autorizações - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=30">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
 </head>
 <body>
 <div class="page">
@@ -89,7 +89,7 @@
     <ul id="nivelPopupList"></ul>
 </div>
 
-<script src="${pageContext.request.contextPath}/js/dataTable.js?v=6"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=7"></script>
 <script>
     var TIPOS_POR_NIVEL = {};
     <c:forEach var="ut" items="${userTypes}">

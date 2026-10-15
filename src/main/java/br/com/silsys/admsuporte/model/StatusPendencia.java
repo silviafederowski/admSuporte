@@ -1,6 +1,6 @@
 package br.com.silsys.admsuporte.model;
 
-/** Situacao de um registro do historico de servico (coluna "status" de pendencias_servico). */
+/** Situacao de um compromisso da agenda (coluna "status" de agenda): pendente ou resolvido. */
 public enum StatusPendencia {
     PENDENTE,
     RESOLVIDO;

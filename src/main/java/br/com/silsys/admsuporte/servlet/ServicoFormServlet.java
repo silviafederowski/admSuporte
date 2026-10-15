@@ -64,9 +64,6 @@ public class ServicoFormServlet extends HttpServlet {
         String ultimaExecucaoParam = request.getParameter("ultimaExecucao");
         String ultimoPrestadorIdParam = request.getParameter("ultimoPrestadorId");
         String valorPagoUltimaExecucaoParam = request.getParameter("valorPagoUltimaExecucao");
-        String dataAgendadaProximaExecucaoParam = request.getParameter("dataAgendadaProximaExecucao");
-        String prestadorProximaExecucaoIdParam = request.getParameter("prestadorProximaExecucaoId");
-        String valorOrcadoProximaExecucaoParam = request.getParameter("valorOrcadoProximaExecucao");
         String observacao = request.getParameter("observacao");
 
         Map<String, String> errors = new HashMap<>();
@@ -140,33 +137,6 @@ public class ServicoFormServlet extends HttpServlet {
             }
         }
 
-        LocalDate dataAgendadaProximaExecucao = null;
-        if (!ValidationUtil.isBlank(dataAgendadaProximaExecucaoParam)) {
-            try {
-                dataAgendadaProximaExecucao = LocalDate.parse(dataAgendadaProximaExecucaoParam.trim());
-            } catch (DateTimeParseException e) {
-                errors.put("dataAgendadaProximaExecucao", "Data invalida.");
-            }
-        }
-
-        Integer prestadorProximaExecucaoId = null;
-        if (!ValidationUtil.isBlank(prestadorProximaExecucaoIdParam)) {
-            try {
-                prestadorProximaExecucaoId = Integer.parseInt(prestadorProximaExecucaoIdParam.trim());
-            } catch (NumberFormatException e) {
-                errors.put("prestadorProximaExecucaoId", "Prestador inválido.");
-            }
-        }
-
-        BigDecimal valorOrcadoProximaExecucao = null;
-        if (!ValidationUtil.isBlank(valorOrcadoProximaExecucaoParam)) {
-            try {
-                valorOrcadoProximaExecucao = new BigDecimal(valorOrcadoProximaExecucaoParam.trim());
-            } catch (NumberFormatException e) {
-                errors.put("valorOrcadoProximaExecucao", "Valor inválido.");
-            }
-        }
-
         Servico servico = new Servico();
         servico.setDescricao(descricao);
         servico.setPeriodicidade(periodicidade);
@@ -175,9 +145,6 @@ public class ServicoFormServlet extends HttpServlet {
         servico.setUltimaExecucao(ultimaExecucao);
         servico.setUltimoPrestadorId(ultimoPrestadorId);
         servico.setValorPagoUltimaExecucao(valorPagoUltimaExecucao);
-        servico.setDataAgendadaProximaExecucao(dataAgendadaProximaExecucao);
-        servico.setPrestadorProximaExecucaoId(prestadorProximaExecucaoId);
-        servico.setValorOrcadoProximaExecucao(valorOrcadoProximaExecucao);
         servico.setObservacao(observacao);
 
         boolean isEdit = idParam != null && !idParam.trim().isEmpty();

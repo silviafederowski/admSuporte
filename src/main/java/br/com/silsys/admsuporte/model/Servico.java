@@ -20,9 +20,6 @@ public class Servico implements Serializable {
     private LocalDate ultimaExecucao;
     private Integer ultimoPrestadorId;
     private BigDecimal valorPagoUltimaExecucao;
-    private LocalDate dataAgendadaProximaExecucao;
-    private Integer prestadorProximaExecucaoId;
-    private BigDecimal valorOrcadoProximaExecucao;
     private String observacao;
 
     /** Preenchido via join na leitura; nao corresponde a uma coluna propria. */
@@ -30,9 +27,6 @@ public class Servico implements Serializable {
 
     /** Preenchido via join na leitura; nao corresponde a uma coluna propria. */
     private Classificacao ultimoPrestadorClassificacao;
-
-    /** Preenchido via join na leitura; nao corresponde a uma coluna propria. */
-    private String prestadorProximaExecucaoNome;
 
     /** Preenchido via prestador_servicos na leitura; somente para exibicao na tela. */
     private List<Prestador> prestadoresQueOferecem = new ArrayList<>();
@@ -122,43 +116,6 @@ public class Servico implements Serializable {
         this.valorPagoUltimaExecucao = valorPagoUltimaExecucao;
     }
 
-    public LocalDate getDataAgendadaProximaExecucao() {
-        return dataAgendadaProximaExecucao;
-    }
-
-    public void setDataAgendadaProximaExecucao(LocalDate dataAgendadaProximaExecucao) {
-        this.dataAgendadaProximaExecucao = dataAgendadaProximaExecucao;
-    }
-
-    /** Formatada dd/mm/aa, para exibicao em tela. */
-    public String getDataAgendadaProximaExecucaoFormatada() {
-        return DateFormatUtil.formatar(dataAgendadaProximaExecucao);
-    }
-
-    public Integer getPrestadorProximaExecucaoId() {
-        return prestadorProximaExecucaoId;
-    }
-
-    public void setPrestadorProximaExecucaoId(Integer prestadorProximaExecucaoId) {
-        this.prestadorProximaExecucaoId = prestadorProximaExecucaoId;
-    }
-
-    public String getPrestadorProximaExecucaoNome() {
-        return prestadorProximaExecucaoNome;
-    }
-
-    public void setPrestadorProximaExecucaoNome(String prestadorProximaExecucaoNome) {
-        this.prestadorProximaExecucaoNome = prestadorProximaExecucaoNome;
-    }
-
-    public BigDecimal getValorOrcadoProximaExecucao() {
-        return valorOrcadoProximaExecucao;
-    }
-
-    public void setValorOrcadoProximaExecucao(BigDecimal valorOrcadoProximaExecucao) {
-        this.valorOrcadoProximaExecucao = valorOrcadoProximaExecucao;
-    }
-
     public String getObservacao() {
         return observacao;
     }
@@ -217,10 +174,5 @@ public class Servico implements Serializable {
         }
         Long diasFaltantes = getDiasFaltantes();
         return diasFaltantes != null && diasFaltantes < 0;
-    }
-
-    /** Calculado em tela: data agendada da proxima execucao e hoje. */
-    public boolean isAgendadoParaHoje() {
-        return dataAgendadaProximaExecucao != null && dataAgendadaProximaExecucao.isEqual(LocalDate.now());
     }
 }

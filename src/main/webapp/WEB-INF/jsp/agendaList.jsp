@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Agenda - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=30">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
 </head>
 <body>
 <div class="page">
@@ -40,11 +40,14 @@
                     <table class="data-table" data-sortable>
                         <thead>
                         <tr>
-                            <th>Data</th>
+                            <th data-sort-desc>Data</th>
                             <th>Hora</th>
                             <th>Ponto focal</th>
                             <th>Assunto</th>
+                            <th>Serviço</th>
+                            <th>Status</th>
                             <th style="min-width: 320px;">Observação</th>
+                            <c:if test="${!readOnly}"><th data-no-sort></th></c:if>
                         </tr>
                         </thead>
                         <tbody>
@@ -55,7 +58,29 @@
                                 <td>${a.horaFormatada}</td>
                                 <td>${a.pontoFocal}</td>
                                 <td>${a.assunto}</td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${empty a.servicoDescricao}">-</c:when>
+                                        <c:otherwise>
+                                            ${a.servicoDescricao}
+                                            <c:if test="${not empty a.prestadorNome}"><br>${a.prestadorNome}</c:if>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
+                                <td>
+                                    <span class="badge badge-${a.status.dbValue}">${a.status.label}</span>
+                                    <c:if test="${not empty a.dataStatus}"><br>${a.dataStatusFormatada}</c:if>
+                                </td>
                                 <td>${empty a.observacao ? '-' : a.observacao}</td>
+                                <c:if test="${!readOnly}">
+                                    <td onclick="event.stopPropagation();">
+                                        <form method="post" action="${pageContext.request.contextPath}/agenda/excluir"
+                                              onsubmit="return confirm('Excluir este compromisso?');">
+                                            <input type="hidden" name="id" value="${a.id}">
+                                            <button type="submit" class="menu-icon-link" title="Excluir compromisso" aria-label="Excluir compromisso">🗑️</button>
+                                        </form>
+                                    </td>
+                                </c:if>
                             </tr>
                         </c:forEach>
                         </tbody>
@@ -66,6 +91,6 @@
 
     </div>
 </div>
-<script src="${pageContext.request.contextPath}/js/dataTable.js?v=6"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=7"></script>
 </body>
 </html>

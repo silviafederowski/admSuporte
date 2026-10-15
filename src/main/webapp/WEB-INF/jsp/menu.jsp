@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Menu - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=30">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
 </head>
 <body>
 <div class="page">
@@ -36,9 +36,6 @@
             </c:if>
             <c:if test="${telasPermitidas.contains('fornecedores')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/fornecedores">Fornecedores</a>
-            </c:if>
-            <c:if test="${telasPermitidas.contains('pendencias-servico')}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/pendencias-servico">Histórico / Pendências de serviços</a>
             </c:if>
             <c:if test="${telasPermitidas.contains('vagas')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/vagas">Histórico de vagas</a>

@@ -111,14 +111,6 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
-        <url-pattern>/pendencias-servico/form</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>AuthFilter</filter-name>
-        <url-pattern>/pendencias-servico/excluir</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>AuthFilter</filter-name>
         <url-pattern>/agenda</url-pattern>
     </filter-mapping>
     <filter-mapping>
@@ -319,14 +311,6 @@
     <filter-mapping>
         <filter-name>Autorizacao_pendenciasServico</filter-name>
         <url-pattern>/pendencias-servico</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>Autorizacao_pendenciasServico</filter-name>
-        <url-pattern>/pendencias-servico/form</url-pattern>
-    </filter-mapping>
-    <filter-mapping>
-        <filter-name>Autorizacao_pendenciasServico</filter-name>
-        <url-pattern>/pendencias-servico/excluir</url-pattern>
     </filter-mapping>
 
     <filter>
@@ -674,24 +658,6 @@
     <servlet-mapping>
         <servlet-name>PendenciaServicoServlet</servlet-name>
         <url-pattern>/pendencias-servico</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>PendenciaServicoFormServlet</servlet-name>
-        <servlet-class>br.com.silsys.admsuporte.servlet.PendenciaServicoFormServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>PendenciaServicoFormServlet</servlet-name>
-        <url-pattern>/pendencias-servico/form</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>PendenciaServicoDeleteServlet</servlet-name>
-        <servlet-class>br.com.silsys.admsuporte.servlet.PendenciaServicoDeleteServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>PendenciaServicoDeleteServlet</servlet-name>
-        <url-pattern>/pendencias-servico/excluir</url-pattern>
     </servlet-mapping>
 
     <servlet>

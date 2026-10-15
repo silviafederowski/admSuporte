@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Serviços de manutenção - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=30">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
 </head>
 <body>
 <div class="page">
@@ -45,12 +45,9 @@
                             <th>Tipo</th>
                             <th>Últ exec</th>
                             <th>Ult prest</th>
-                            <th>Agend</th>
                             <th>Data limite</th>
                             <th style="min-width: 320px;">Observação</th>
                             <th>Dias</th>
-                            <th>Prestador prox</th>
-                            <th>Valor orçado</th>
                             <th>Histórico</th>
                         </tr>
                         </thead>
@@ -80,17 +77,6 @@
                                 </td>
                                 <td>
                                     <c:choose>
-                                        <c:when test="${empty s.dataAgendadaProximaExecucao}">-</c:when>
-                                        <c:otherwise>
-                                            ${s.dataAgendadaProximaExecucaoFormatada}
-                                            <c:if test="${not empty s.prestadorProximaExecucaoNome}">
-                                                <br>${s.prestadorProximaExecucaoNome}
-                                            </c:if>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </td>
-                                <td>
-                                    <c:choose>
                                         <c:when test="${s.unidadePeriodicidade == 'POR_DEMANDA'}">Demanda</c:when>
                                         <c:when test="${empty s.proximaExecucao}">Nunca executado</c:when>
                                         <c:otherwise>${s.proximaExecucaoFormatada}</c:otherwise>
@@ -105,8 +91,6 @@
                                         <c:otherwise>${s.diasFaltantes} dia(s)</c:otherwise>
                                     </c:choose>
                                 </td>
-                                <td>${empty s.prestadorProximaExecucaoNome ? '-' : s.prestadorProximaExecucaoNome}</td>
-                                <td><c:choose><c:when test="${empty s.valorOrcadoProximaExecucao}">-</c:when><c:otherwise>R$ ${s.valorOrcadoProximaExecucao}</c:otherwise></c:choose></td>
                                 <td>
                                     <a class="icon-link" title="Histórico deste serviço" aria-label="Histórico deste serviço"
                                        href="${pageContext.request.contextPath}/pendencias-servico?servicoId=${s.id}"
@@ -122,6 +106,6 @@
 
     </div>
 </div>
-<script src="${pageContext.request.contextPath}/js/dataTable.js?v=6"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=7"></script>
 </body>
 </html>

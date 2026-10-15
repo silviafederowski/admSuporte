@@ -143,7 +143,8 @@ public final class SchemaInitializer {
             backfillUserTypes(conn);
             promoteBuiltinAdmin(conn);
             ensureServicoUltimoPrestadorColumn(conn);
-            ensureServicoProximaExecucaoColumns(conn);
+            ensureServicoValorPagoColumn(conn);
+            dropServicoProximaExecucaoColumns(conn);
             ensureAppAssetsDataColumn(conn);
             ensureAppAssetsKeyUnique(conn);
             ensurePrestadorFornecedorContatoColumns(conn);
@@ -171,9 +172,10 @@ public final class SchemaInitializer {
             ensureServicoObservacaoColumn(conn);
             ensureEmailAceitaVarios(conn, "prestadores");
             ensureEmailAceitaVarios(conn, "fornecedores");
-            ensurePendenciaServicoStatusColuna(conn);
-            migrarPendenciasParaItens(conn);
-            ensurePendenciaServicoPrestadorTecnicoOpcionais(conn);
+            ensureAgendaDataHoraOpcionais(conn);
+            ensureAgendaServicoPrestadorColumns(conn);
+            ensureAgendaStatusColumns(conn);
+            migrarHistoricoServicosParaAgenda(conn);
             seedLogo(conn);
             seedNomeCondominio(conn);
             seedPavimentoImagens(conn);
@@ -235,9 +237,6 @@ public final class SchemaInitializer {
                 "  ultima_execucao DATE NULL," +
                 "  ultimo_prestador_id INT NULL," +
                 "  valor_pago_ultima_execucao DECIMAL(10,2) NULL," +
-                "  data_agendada_proxima_execucao DATE NULL," +
-                "  prestador_proxima_execucao_id INT NULL," +
-                "  valor_orcado_proxima_execucao DECIMAL(10,2) NULL," +
                 "  tipo VARCHAR(15) NOT NULL DEFAULT 'contratado'," +
                 "  observacao LONGTEXT NULL," +
                 "  CONSTRAINT chk_servicos_unidade_periodicidade_v2 " +
@@ -281,38 +280,10 @@ public final class SchemaInitializer {
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
             stmt.executeUpdate(
-                "CREATE TABLE IF NOT EXISTS pendencias_servico (" +
-                "  id INT PRIMARY KEY AUTO_INCREMENT," +
-                "  servico_id INT NOT NULL," +
-                "  prestador_id INT NULL," +
-                "  data DATE NOT NULL," +
-                "  nome_tecnico VARCHAR(255) NULL," +
-                "  descricao_ocorrencia LONGTEXT NULL," +
-                "  status VARCHAR(10) NOT NULL DEFAULT 'pendente'," +
-                "  CONSTRAINT fk_pendencias_servico_servico FOREIGN KEY (servico_id) " +
-                "    REFERENCES servicos(id) ON DELETE CASCADE," +
-                "  CONSTRAINT fk_pendencias_servico_prestador FOREIGN KEY (prestador_id) " +
-                "    REFERENCES prestadores(id) ON DELETE CASCADE," +
-                "  CONSTRAINT chk_pendencias_servico_status CHECK (status IN ('pendente', 'resolvido'))" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-            stmt.executeUpdate(
-                "CREATE TABLE IF NOT EXISTS pendencias_servico_itens (" +
-                "  id INT PRIMARY KEY AUTO_INCREMENT," +
-                "  pendencia_id INT NOT NULL," +
-                "  descricao TEXT NOT NULL," +
-                "  ponto_focal VARCHAR(10) NULL," +
-                "  status VARCHAR(10) NOT NULL DEFAULT 'pendente'," +
-                "  CONSTRAINT fk_pendencias_itens_pendencia FOREIGN KEY (pendencia_id) " +
-                "    REFERENCES pendencias_servico(id) ON DELETE CASCADE," +
-                "  CONSTRAINT chk_pendencias_itens_status CHECK (status IN ('pendente', 'resolvido'))" +
-                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
-            stmt.executeUpdate(
                 "CREATE TABLE IF NOT EXISTS agenda (" +
                 "  id INT PRIMARY KEY AUTO_INCREMENT," +
-                "  data DATE NOT NULL," +
-                "  hora TIME NOT NULL," +
+                "  data DATE NULL," +
+                "  hora TIME NULL," +
                 "  ponto_focal VARCHAR(255) NOT NULL," +
                 "  assunto VARCHAR(255) NOT NULL," +
                 "  observacao LONGTEXT NULL" +
@@ -520,7 +491,7 @@ public final class SchemaInitializer {
         }
     }
 
-    private static void ensureServicoProximaExecucaoColumns(Connection conn) throws SQLException {
+    private static void ensureServicoValorPagoColumn(Connection conn) throws SQLException {
         if (!columnExists(conn, "servicos", "valor_pago_ultima_execucao")) {
             try (Statement stmt = conn.createStatement()) {
                 stmt.executeUpdate(
@@ -528,34 +499,18 @@ public final class SchemaInitializer {
                     "AFTER ultimo_prestador_id");
             }
         }
-        if (!columnExists(conn, "servicos", "data_agendada_proxima_execucao")) {
+    }
+
+    /** Data, prestador e valor orcado da proxima execucao deixaram de existir no cadastro de servicos. */
+    private static void dropServicoProximaExecucaoColumns(Connection conn) throws SQLException {
+        if (constraintExists(conn, "servicos", "fk_servicos_prestador_proxima_execucao")) {
             try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate(
-                    "ALTER TABLE servicos ADD COLUMN data_agendada_proxima_execucao DATE NULL " +
-                    "AFTER valor_pago_ultima_execucao");
+                stmt.executeUpdate("ALTER TABLE servicos DROP FOREIGN KEY fk_servicos_prestador_proxima_execucao");
             }
         }
-        if (!columnExists(conn, "servicos", "prestador_proxima_execucao_id")) {
-            try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate(
-                    "ALTER TABLE servicos ADD COLUMN prestador_proxima_execucao_id INT NULL " +
-                    "AFTER data_agendada_proxima_execucao");
-            }
-        }
-        if (!columnExists(conn, "servicos", "valor_orcado_proxima_execucao")) {
-            try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate(
-                    "ALTER TABLE servicos ADD COLUMN valor_orcado_proxima_execucao DECIMAL(10,2) NULL " +
-                    "AFTER prestador_proxima_execucao_id");
-            }
-        }
-        if (!constraintExists(conn, "servicos", "fk_servicos_prestador_proxima_execucao")) {
-            try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate(
-                    "ALTER TABLE servicos ADD CONSTRAINT fk_servicos_prestador_proxima_execucao " +
-                    "FOREIGN KEY (prestador_proxima_execucao_id) REFERENCES prestadores(id) ON DELETE SET NULL");
-            }
-        }
+        dropColumnIfExists(conn, "servicos", "data_agendada_proxima_execucao");
+        dropColumnIfExists(conn, "servicos", "prestador_proxima_execucao_id");
+        dropColumnIfExists(conn, "servicos", "valor_orcado_proxima_execucao");
     }
 
     /**
@@ -1124,54 +1079,122 @@ public final class SchemaInitializer {
         }
     }
 
-    /** Coluna adicionada apos a criacao inicial da tabela (bancos ja em producao). */
-    /**
-     * Registros antigos do historico tinham uma unica descricao (uma pendencia por linha do
-     * texto) e uma situacao unica. Cada linha nao vazia vira um item em pendencias_servico_itens,
-     * com a situacao que o registro tinha. So converte registros que ainda nao tem nenhum item;
-     * o texto antigo em descricao_ocorrencia permanece como copia de seguranca.
-     */
-    private static void migrarPendenciasParaItens(Connection conn) throws SQLException {
-        if (!columnExists(conn, "pendencias_servico_itens", "ponto_focal")) {
+    /** A data e a hora do compromisso da agenda podem ficar sem informar. */
+    private static void ensureAgendaDataHoraOpcionais(Connection conn) throws SQLException {
+        if (!columnIsNullable(conn, "agenda", "data")) {
             try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate(
-                    "ALTER TABLE pendencias_servico_itens ADD COLUMN ponto_focal VARCHAR(10) NULL AFTER descricao");
+                stmt.executeUpdate("ALTER TABLE agenda MODIFY COLUMN data DATE NULL");
             }
         }
-        try (Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(
-                 "SELECT p.id, p.descricao_ocorrencia, p.status FROM pendencias_servico p " +
-                 "WHERE p.descricao_ocorrencia IS NOT NULL AND TRIM(p.descricao_ocorrencia) <> '' " +
-                 "AND NOT EXISTS (SELECT 1 FROM pendencias_servico_itens i WHERE i.pendencia_id = p.id)");
-             PreparedStatement insert = conn.prepareStatement(
-                 "INSERT INTO pendencias_servico_itens (pendencia_id, descricao, status) VALUES (?, ?, ?)")) {
-            while (rs.next()) {
-                int pendenciaId = rs.getInt("id");
-                String status = rs.getString("status");
-                for (String linha : rs.getString("descricao_ocorrencia").split("\\r?\\n")) {
-                    String aparada = linha.trim();
-                    if (!aparada.isEmpty()) {
-                        insert.setInt(1, pendenciaId);
-                        insert.setString(2, aparada);
-                        insert.setString(3, status);
-                        insert.addBatch();
-                    }
-                }
+        if (!columnIsNullable(conn, "agenda", "hora")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE agenda MODIFY COLUMN hora TIME NULL");
             }
-            insert.executeBatch();
         }
     }
 
-    /** Prestador e tecnico deixaram de ser obrigatorios no historico/pendencias de servico. */
-    private static void ensurePendenciaServicoPrestadorTecnicoOpcionais(Connection conn) throws SQLException {
-        if (!columnIsNullable(conn, "pendencias_servico", "prestador_id")) {
-            try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate("ALTER TABLE pendencias_servico MODIFY COLUMN prestador_id INT NULL");
+    /**
+     * Migracao unica: o historico de servicos passou a ser a propria agenda. Cada pendencia de
+     * pendencias_servico_itens vira um compromisso (com o servico, prestador, data, ponto focal e
+     * status do registro; resolvidos ganham a data do registro como data do status). Registros sem
+     * nenhuma pendencia viram um compromisso so. Tecnico e descricoes maiores que o assunto vao para
+     * a observacao. Depois as duas tabelas sao renomeadas com sufixo _bkp (dados preservados ate
+     * serem apagados manualmente). So roda enquanto pendencias_servico existir.
+     */
+    private static void migrarHistoricoServicosParaAgenda(Connection conn) throws SQLException {
+        if (!tableExists(conn, "pendencias_servico")) {
+            return;
+        }
+        boolean temItens = tableExists(conn, "pendencias_servico_itens");
+        String descricao = temItens ? "COALESCE(i.descricao, p.descricao_ocorrencia)" : "p.descricao_ocorrencia";
+        String status = temItens ? "COALESCE(i.status, p.status)" : "p.status";
+        String pontoFocal = temItens ? "i.ponto_focal" : "NULL";
+        String sql =
+            "INSERT INTO agenda (data, hora, ponto_focal, assunto, observacao, servico_id, prestador_id, " +
+            "status, data_status) " +
+            "SELECT p.data, NULL, UPPER(COALESCE(TRIM(" + pontoFocal + "), '')), " +
+            "UPPER(COALESCE(NULLIF(LEFT(TRIM(" + descricao + "), 255), ''), 'SEM DESCRIÇÃO')), " +
+            "UPPER(CONCAT_WS('\n', 'Migrado do histórico de serviços.', " +
+            "  CASE WHEN TRIM(p.nome_tecnico) <> '' THEN CONCAT('Técnico: ', TRIM(p.nome_tecnico)) END, " +
+            "  CASE WHEN CHAR_LENGTH(TRIM(" + descricao + ")) > 255 THEN TRIM(" + descricao + ") END)), " +
+            "p.servico_id, p.prestador_id, " + status + ", " +
+            "CASE WHEN " + status + " = 'resolvido' THEN p.data END " +
+            "FROM pendencias_servico p " +
+            (temItens ? "LEFT JOIN pendencias_servico_itens i ON i.pendencia_id = p.id " : "") +
+            "ORDER BY p.data, p.id" + (temItens ? ", i.id" : "");
+
+        boolean autoCommit = conn.getAutoCommit();
+        conn.setAutoCommit(false);
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(sql);
+            conn.commit();
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            conn.setAutoCommit(autoCommit);
+        }
+
+        try (Statement stmt = conn.createStatement()) {
+            String renomear = "RENAME TABLE pendencias_servico TO pendencias_servico_bkp";
+            if (temItens) {
+                renomear += ", pendencias_servico_itens TO pendencias_servico_itens_bkp";
+            }
+            stmt.executeUpdate(renomear);
+        }
+    }
+
+    private static boolean tableExists(Connection conn, String table) throws SQLException {
+        try (PreparedStatement check = conn.prepareStatement(
+                "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?")) {
+            check.setString(1, table);
+            try (ResultSet rs = check.executeQuery()) {
+                return rs.next();
             }
         }
-        if (!columnIsNullable(conn, "pendencias_servico", "nome_tecnico")) {
+    }
+
+    /** Compromisso da agenda pode ser ligado a um servico e ao prestador que vai executa-lo. */
+    private static void ensureAgendaServicoPrestadorColumns(Connection conn) throws SQLException {
+        if (!columnExists(conn, "agenda", "servico_id")) {
             try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate("ALTER TABLE pendencias_servico MODIFY COLUMN nome_tecnico VARCHAR(255) NULL");
+                stmt.executeUpdate("ALTER TABLE agenda ADD COLUMN servico_id INT NULL AFTER assunto");
+            }
+        }
+        if (!columnExists(conn, "agenda", "prestador_id")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE agenda ADD COLUMN prestador_id INT NULL AFTER servico_id");
+            }
+        }
+        if (!constraintExists(conn, "agenda", "fk_agenda_servico")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE agenda ADD CONSTRAINT fk_agenda_servico " +
+                    "FOREIGN KEY (servico_id) REFERENCES servicos(id) ON DELETE SET NULL");
+            }
+        }
+        if (!constraintExists(conn, "agenda", "fk_agenda_prestador")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE agenda ADD CONSTRAINT fk_agenda_prestador " +
+                    "FOREIGN KEY (prestador_id) REFERENCES prestadores(id) ON DELETE SET NULL");
+            }
+        }
+    }
+
+    /** Situacao do compromisso da agenda (pendente/resolvido) e a data em que passou a essa situacao. */
+    private static void ensureAgendaStatusColumns(Connection conn) throws SQLException {
+        if (!columnExists(conn, "agenda", "status")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE agenda ADD COLUMN status VARCHAR(10) NOT NULL DEFAULT 'pendente' AFTER prestador_id");
+                stmt.executeUpdate(
+                    "ALTER TABLE agenda ADD CONSTRAINT chk_agenda_status CHECK (status IN ('pendente', 'resolvido'))");
+            }
+        }
+        if (!columnExists(conn, "agenda", "data_status")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE agenda ADD COLUMN data_status DATE NULL AFTER status");
             }
         }
     }
@@ -1184,23 +1207,6 @@ public final class SchemaInitializer {
             check.setString(2, column);
             try (ResultSet rs = check.executeQuery()) {
                 return !rs.next() || "YES".equalsIgnoreCase(rs.getString(1));
-            }
-        }
-    }
-
-    private static void ensurePendenciaServicoStatusColuna(Connection conn) throws SQLException {
-        if (!columnExists(conn, "pendencias_servico", "status")) {
-            try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate(
-                    "ALTER TABLE pendencias_servico ADD COLUMN status VARCHAR(10) NOT NULL DEFAULT 'pendente' " +
-                    "AFTER descricao_ocorrencia");
-            }
-        }
-        if (!constraintExists(conn, "pendencias_servico", "chk_pendencias_servico_status")) {
-            try (Statement stmt = conn.createStatement()) {
-                stmt.executeUpdate(
-                    "ALTER TABLE pendencias_servico ADD CONSTRAINT chk_pendencias_servico_status " +
-                    "CHECK (status IN ('pendente', 'resolvido'))");
             }
         }
     }

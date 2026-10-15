@@ -2,7 +2,11 @@ package br.com.silsys.admsuporte.servlet;
 
 import br.com.silsys.admsuporte.dao.AgendaDao;
 import br.com.silsys.admsuporte.dao.OperacaoLogDao;
+import br.com.silsys.admsuporte.dao.ServicoDao;
 import br.com.silsys.admsuporte.model.Agenda;
+import br.com.silsys.admsuporte.model.Prestador;
+import br.com.silsys.admsuporte.model.Servico;
+import br.com.silsys.admsuporte.model.StatusPendencia;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -10,6 +14,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -27,6 +32,7 @@ public class AgendaFormServlet extends HttpServlet {
 
     private final AgendaDao agendaDao = new AgendaDao();
     private final OperacaoLogDao operacaoLogDao = new OperacaoLogDao();
+    private final ServicoDao servicoDao = new ServicoDao();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -46,8 +52,7 @@ public class AgendaFormServlet extends HttpServlet {
                 return;
             }
         }
-        RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/agendaForm.jsp");
-        dispatcher.forward(request, response);
+        forward(request, response);
     }
 
     @Override
@@ -59,13 +64,16 @@ public class AgendaFormServlet extends HttpServlet {
         String pontoFocal = request.getParameter("pontoFocal");
         String assunto = request.getParameter("assunto");
         String observacao = request.getParameter("observacao");
+        String servicoIdParam = request.getParameter("servicoId");
+        String prestadorIdParam = request.getParameter("prestadorId");
+        boolean atualizarServico = "sim".equals(request.getParameter("atualizarServico"));
+        String statusParam = request.getParameter("status");
+        String dataStatusParam = request.getParameter("dataStatus");
 
         Map<String, String> errors = new HashMap<>();
 
         LocalDate data = null;
-        if (ValidationUtil.isBlank(dataParam)) {
-            errors.put("data", "Informe a data.");
-        } else {
+        if (!ValidationUtil.isBlank(dataParam)) {
             try {
                 data = LocalDate.parse(dataParam.trim());
             } catch (DateTimeParseException e) {
@@ -74,9 +82,7 @@ public class AgendaFormServlet extends HttpServlet {
         }
 
         LocalTime hora = null;
-        if (ValidationUtil.isBlank(horaParam)) {
-            errors.put("hora", "Informe a hora.");
-        } else {
+        if (!ValidationUtil.isBlank(horaParam)) {
             try {
                 hora = LocalTime.parse(horaParam.trim());
             } catch (DateTimeParseException e) {
@@ -92,12 +98,71 @@ public class AgendaFormServlet extends HttpServlet {
             errors.put("assunto", "Informe o assunto.");
         }
 
+        StatusPendencia status = StatusPendencia.PENDENTE;
+        if (!ValidationUtil.isBlank(statusParam)) {
+            try {
+                status = StatusPendencia.fromDbValue(statusParam);
+            } catch (IllegalArgumentException e) {
+                errors.put("status", "Status inválido.");
+            }
+        }
+
+        LocalDate dataStatus = null;
+        if (!ValidationUtil.isBlank(dataStatusParam)) {
+            try {
+                dataStatus = LocalDate.parse(dataStatusParam.trim());
+            } catch (DateTimeParseException e) {
+                errors.put("dataStatus", "Data inválida.");
+            }
+        }
+
+        Integer servicoId = null;
+        if (!ValidationUtil.isBlank(servicoIdParam)) {
+            try {
+                servicoId = Integer.parseInt(servicoIdParam.trim());
+            } catch (NumberFormatException e) {
+                errors.put("servicoId", "Serviço inválido.");
+            }
+        }
+
+        Integer prestadorId = null;
+        if (servicoId != null) {
+            if (ValidationUtil.isBlank(prestadorIdParam)) {
+                errors.put("prestadorId", "Selecione o prestador do serviço.");
+            } else {
+                try {
+                    prestadorId = Integer.parseInt(prestadorIdParam.trim());
+                    if (!prestadorOfereceServico(servicoId, prestadorId)) {
+                        errors.put("prestadorId", "Este prestador não oferece o serviço escolhido.");
+                    }
+                } catch (NumberFormatException e) {
+                    errors.put("prestadorId", "Prestador inválido.");
+                } catch (SQLException e) {
+                    errors.put("prestadorId", "Não foi possível verificar o prestador: "
+                            + ErrorMessages.friendly(LOGGER, "agenda", "Verificar prestador do serviço", e));
+                }
+            }
+            if (atualizarServico) {
+                if (status != StatusPendencia.RESOLVIDO) {
+                    errors.put("status", "Para atualizar o serviço, o status deve ser Resolvido.");
+                } else if (dataStatus == null && !errors.containsKey("dataStatus")) {
+                    errors.put("dataStatus", "Informe a data em que foi resolvido para atualizar o serviço.");
+                }
+            }
+        } else {
+            atualizarServico = false;
+        }
+
         Agenda agenda = new Agenda();
         agenda.setData(data);
         agenda.setHora(hora);
         agenda.setPontoFocal(pontoFocal);
         agenda.setAssunto(assunto);
         agenda.setObservacao(observacao);
+        agenda.setServicoId(servicoId);
+        agenda.setPrestadorId(prestadorId);
+        agenda.setStatus(status);
+        agenda.setDataStatus(dataStatus);
 
         boolean isEdit = idParam != null && !idParam.trim().isEmpty();
         if (isEdit) {
@@ -115,13 +180,25 @@ public class AgendaFormServlet extends HttpServlet {
                     agendaDao.update(agenda);
                     operacaoLogDao.registrar(usuarioLogado, "Agenda",
                             "Editar compromisso: " + agenda.getAssunto());
-                    response.sendRedirect(request.getContextPath() + "/agenda?atualizado=1");
                 } else {
                     agendaDao.create(agenda);
                     operacaoLogDao.registrar(usuarioLogado, "Agenda",
                             "Criar compromisso: " + agenda.getAssunto());
-                    response.sendRedirect(request.getContextPath() + "/agenda?criado=1");
                 }
+
+                if (atualizarServico) {
+                    try {
+                        servicoDao.atualizarUltimaExecucao(servicoId, dataStatus, prestadorId);
+                        operacaoLogDao.registrar(usuarioLogado, "Serviços",
+                                "Atualizar cadastro a partir da agenda: " + agenda.getAssunto());
+                    } catch (SQLException e) {
+                        ErrorMessages.logErro(LOGGER, "servicos",
+                                "Atualizar cadastro do serviço a partir da agenda", e);
+                    }
+                }
+
+                response.sendRedirect(request.getContextPath() + "/agenda?"
+                        + (isEdit ? "atualizado=1" : "criado=1"));
                 return;
             } catch (SQLException e) {
                 errors.put("form", "Não foi possível salvar o compromisso: "
@@ -131,6 +208,30 @@ public class AgendaFormServlet extends HttpServlet {
 
         request.setAttribute("errors", errors);
         request.setAttribute("agendaItem", agenda);
+        forward(request, response);
+    }
+
+    private boolean prestadorOfereceServico(int servicoId, int prestadorId) throws SQLException {
+        Servico servico = servicoDao.findById(servicoId);
+        if (servico == null) {
+            return false;
+        }
+        for (Prestador p : servico.getPrestadoresQueOferecem()) {
+            if (p.getId() == prestadorId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void forward(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            request.setAttribute("servicos", servicoDao.listAll());
+        } catch (SQLException e) {
+            ErrorMessages.logErro(LOGGER, "agenda", "Carregar serviços para formulário", e);
+            request.setAttribute("servicos", Collections.emptyList());
+        }
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/agendaForm.jsp");
         dispatcher.forward(request, response);
     }
