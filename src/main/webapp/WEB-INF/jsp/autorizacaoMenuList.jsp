@@ -89,7 +89,7 @@
     <ul id="nivelPopupList"></ul>
 </div>
 
-<script src="${pageContext.request.contextPath}/js/dataTable.js?v=5"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=6"></script>
 <script>
     var TIPOS_POR_NIVEL = {};
     <c:forEach var="ut" items="${userTypes}">

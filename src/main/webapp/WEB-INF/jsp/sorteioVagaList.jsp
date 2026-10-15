@@ -18,12 +18,11 @@
             </div>
             <div class="sorteio-legenda sorteio-legenda-toolbar">
                 <span class="sorteio-legenda-item"><span class="sorteio-swatch sorteio-interna"></span> Interna</span>
-                <span class="sorteio-legenda-item"><span class="sorteio-swatch sorteio-borda-individual"></span> Individual (borda preta)</span>
                 <span class="sorteio-legenda-item"><span class="sorteio-swatch sorteio-externa"></span> Externa</span>
                 <span class="sorteio-legenda-item"><span class="sorteio-swatch"></span> Dupla (sem borda)</span>
-                <span class="sorteio-legenda-item"><span class="sorteio-swatch sorteio-preferencial"></span> Preferencial (idosos)</span>
-                <span class="sorteio-legenda-item"><span class="sorteio-swatch sorteio-emergencia"></span> Emergência</span>
-                <span class="sorteio-legenda-item"><span class="sorteio-swatch sorteio-zelador"></span> Zelador</span>
+                <span class="sorteio-legenda-item"><span class="sorteio-swatch sorteio-borda-individual"></span> Individual (borda preta)</span>
+                <span class="sorteio-legenda-item"><span class="sorteio-swatch sorteio-especial"></span> Especial</span>
+                <span class="sorteio-legenda-item"><span class="sorteio-swatch sorteio-preferencial"></span> Idoso</span>
             </div>
             <div class="toolbar-actions">
                 <c:if test="${!readOnly}">
@@ -32,6 +31,10 @@
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
+
+        <form id="sorteioPdfForm" method="post" action="${pageContext.request.contextPath}/sorteio-vagas/pdf" style="display:none;">
+            <textarea name="linhas"></textarea>
+        </form>
 
         <c:if test="${not empty formError}">
             <p class="form-error">${formError}</p>
@@ -192,6 +195,45 @@
     };
 
     var sorteioEmAndamento = false;
+    var sorteioEstado = null;
+
+    // Trava a altura da 3a coluna (Sorteio) na medida inicial, para que só ela role
+    // verticalmente conforme o conteúdo cresce, em vez de esticar a linha inteira da grade.
+    (function travarAlturaSorteioPainel() {
+        var painel = document.getElementById('sorteioPainel');
+        if (painel) {
+            painel.style.maxHeight = painel.clientHeight + 'px';
+        }
+    })();
+
+    // Junta o texto de todas as linhas ja exibidas na coluna "Sorteio" (titulos de fase e
+    // resultados por unidade), na ordem em que apareceram, sem o texto dos botoes "OK".
+    function sorteioColetarLinhas() {
+        var painel = document.getElementById('sorteioPainel');
+        var elementos = painel.querySelectorAll('.sorteio-texto-live, .sorteio-secao-titulo');
+        var linhas = [];
+        elementos.forEach(function (el) {
+            var clone = el.cloneNode(true);
+            var botoes = clone.querySelectorAll('button');
+            botoes.forEach(function (b) { b.parentNode.removeChild(b); });
+            var texto = clone.textContent.replace(/\s+/g, ' ').trim();
+            if (texto) {
+                linhas.push(texto);
+            }
+        });
+        return linhas;
+    }
+
+    // Chamado automaticamente ao final do sorteio (finalizarSorteio), sem exigir clique do
+    // usuário: baixa o PDF com a transcrição completa da coluna "Sorteio".
+    function gerarPdfSorteio() {
+        var linhas = sorteioColetarLinhas();
+        if (!linhas.length) {
+            return;
+        }
+        document.querySelector('#sorteioPdfForm textarea[name="linhas"]').value = linhas.join('\n');
+        document.getElementById('sorteioPdfForm').submit();
+    }
 
     function embaralhar(array) {
         for (var i = array.length - 1; i > 0; i--) {
@@ -211,6 +253,44 @@
         return linha;
     }
 
+    function sorteioRiscarVaga(codigoVaga) {
+        var chip = document.querySelector('[data-vaga="' + codigoVaga + '"]');
+        if (chip) {
+            chip.classList.add('sorteio-vaga-riscada');
+        }
+    }
+
+    // Marca a unidade na Prévia com borda vermelha quando o sorteio não conseguiu vaga para ela.
+    function sorteioMarcarPreviaInsuficiente(codigoUnidade) {
+        var celulaPrevia = document.querySelector('[data-unidade-previa="' + codigoUnidade + '"]');
+        if (celulaPrevia) {
+            celulaPrevia.classList.add('sorteio-previa-insuficiente');
+        }
+    }
+
+    // Aplica o resultado (grade de prévia, grade de posição e tachado das vagas) no momento em
+    // que a unidade é sorteada, e não apenas depois do OK final da fase. Recebe um ARRAY com os
+    // codigos das vagas sorteadas (cada um ja e o codigo completo do chip, mesmo que contenha
+    // "|" — vaga dupla propria ja usa "|" no proprio codigo, ex. "021|022" — por isso nunca se
+    // reconstroi essa lista fazendo split('|') de volta, só join('|') para exibição).
+    function sorteioAplicarResultadoVisual(codigoUnidade, vagasArray, cssPreviaClasse) {
+        var textoExibicao = vagasArray.join('|');
+        var celulaPrevia = document.querySelector('[data-unidade-previa="' + codigoUnidade + '"]');
+        if (celulaPrevia) {
+            celulaPrevia.textContent = textoExibicao;
+            if (cssPreviaClasse) {
+                celulaPrevia.className = cssPreviaClasse;
+            }
+            celulaPrevia.classList.add('sorteio-previa-atribuida');
+            celulaPrevia.classList.remove('sorteio-previa-insuficiente');
+        }
+        var celulaPosicao = document.querySelector('[data-unidade-posicao="' + codigoUnidade + '"]');
+        if (celulaPosicao) {
+            celulaPosicao.className = 'sorteio-ja-sorteada';
+        }
+        vagasArray.forEach(sorteioRiscarVaga);
+    }
+
     // ---- Fase 1: sorteio da vaga de idoso ----
     function iniciarSorteioIdoso() {
         if (sorteioEmAndamento) {
@@ -221,21 +301,20 @@
         painel.innerHTML = '<p class="sorteio-secao-titulo">Fase 1 — Sorteio da vaga de idoso</p>';
 
         if (!sorteioCandidatos.length) {
-            sorteioAdicionarLinha('Nenhuma unidade candidata a vaga de idoso.');
-            sorteioAdicionarConfirmar('Prosseguir para a fase 2?', function () {
+            sorteioAdicionarLinhaComBotao('Nenhuma unidade candidata a vaga de idoso.', function () {
                 iniciarSorteioGeral(null);
             });
             return;
         }
 
-        var textoEl = sorteioAdicionarLinha('Sorteando unidade para vaga de idoso: ');
+        var textoEl = sorteioAdicionarLinha('Candidatos: ');
         var codigosRevelados = [];
         var indice = 0;
 
         function revelarProxima() {
             codigosRevelados.push(sorteioCandidatos[indice].codigo);
             var ultimaDaVez = indice === sorteioCandidatos.length - 1;
-            textoEl.textContent = 'Sorteando unidade para vaga de idoso: '
+            textoEl.textContent = 'Candidatos: '
                     + codigosRevelados.join(', ') + (ultimaDaVez ? '' : ' ...');
             indice++;
             if (indice < sorteioCandidatos.length) {
@@ -247,64 +326,112 @@
 
         function mostrarResultadoIdoso() {
             var vencedor = sorteioCandidatos[sorteioCandidatos.length - 1];
-            var vagaAtribuida = (vencedor.vagasGaragem >= 2 && sorteioVagasIdoso.length >= 2)
-                    ? (sorteioVagasIdoso[0] + '|' + sorteioVagasIdoso[1])
-                    : sorteioVagasIdoso[0];
+            var vagasArray = (vencedor.vagasGaragem >= 2 && sorteioVagasIdoso.length >= 2)
+                    ? [sorteioVagasIdoso[0], sorteioVagasIdoso[1]]
+                    : [sorteioVagasIdoso[0]];
 
-            sorteioAdicionarLinha('Unidade sorteada: ' + vencedor.codigo + ' — vaga(s): ' + vagaAtribuida);
-            sorteioAdicionarConfirmar('OK?', function () {
-                aplicarResultadoIdoso(vencedor.codigo, vagaAtribuida);
+            sorteioAplicarResultadoVisual(vencedor.codigo, vagasArray, 'sorteio-preferencial');
+            sorteioAdicionarLinhaComBotao('Contemplada: ' + vencedor.codigo + ' — vaga(s): ' + vagasArray.join('|'), function () {
+                iniciarSorteioGeral(vencedor.codigo);
             });
         }
 
         revelarProxima();
     }
 
-    function sorteioAdicionarConfirmar(pergunta, aoConfirmar) {
-        var painel = document.getElementById('sorteioPainel');
-        var bloco = document.createElement('div');
-        bloco.innerHTML = '<p>' + pergunta + '</p>'
-                + '<button type="button" class="btn btn-primary sorteio-btn-confirmar">OK</button>';
-        painel.appendChild(bloco);
-        bloco.querySelector('.sorteio-btn-confirmar').addEventListener('click', function () {
-            bloco.querySelector('.sorteio-btn-confirmar').disabled = true;
+    // Adiciona uma linha com o botão de confirmação ao final do próprio texto (sem pergunta
+    // "OK?" nem bloco separado); se não couber, o botão quebra para a linha seguinte sozinho.
+    function sorteioMontarLinhaComBotao(linha, texto, aoConfirmar) {
+        linha.classList.add('sorteio-linha-inline');
+        linha.textContent = '';
+        var span = document.createElement('span');
+        span.textContent = texto;
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn btn-primary btn-small sorteio-btn-confirmar';
+        btn.textContent = 'OK';
+        linha.appendChild(span);
+        linha.appendChild(btn);
+        btn.addEventListener('click', function () {
+            btn.disabled = true;
             aoConfirmar();
         });
     }
 
-    function aplicarResultadoIdoso(codigoUnidade, vagaAtribuida) {
-        var celulaPrevia = document.querySelector('[data-unidade-previa="' + codigoUnidade + '"]');
-        if (celulaPrevia) {
-            celulaPrevia.textContent = vagaAtribuida;
-            celulaPrevia.className = 'sorteio-preferencial';
-        }
-        var celulaPosicao = document.querySelector('[data-unidade-posicao="' + codigoUnidade + '"]');
-        if (celulaPosicao) {
-            celulaPosicao.className = 'sorteio-ja-sorteada';
-        }
-        vagaAtribuida.split('|').forEach(function (codigoVaga) {
-            var chip = document.querySelector('[data-vaga="' + codigoVaga + '"]');
-            if (chip) {
-                chip.classList.add('sorteio-vaga-riscada');
-            }
-        });
-
-        sorteioAdicionarLinha('Aplicado: unidade ' + codigoUnidade + ' → vaga(s) ' + vagaAtribuida + '.');
-        setTimeout(function () {
-            iniciarSorteioGeral(codigoUnidade);
-        }, 900);
+    function sorteioAdicionarLinhaComBotao(texto, aoConfirmar, container) {
+        var alvo = container || document.getElementById('sorteioPainel');
+        var linha = document.createElement('p');
+        linha.className = 'sorteio-texto-live';
+        alvo.appendChild(linha);
+        sorteioMontarLinhaComBotao(linha, texto, aoConfirmar);
+        alvo.scrollTop = alvo.scrollHeight;
+        return linha;
     }
 
-    // ---- Fase 2: sorteio das vagas internas/externas para as demais unidades ----
-    function iniciarSorteioGeral(codigoExcluido) {
+    // Roda uma fase: sorteia, uma a uma, as unidades candidatas, aplicando o resultado
+    // (tachado + grade) imediatamente a cada sorteio. Ao terminar, em vez de uma linha de
+    // resumo separada, o botão de confirmação é anexado ao final da própria última linha.
+    function sorteioExecutarFase(tituloFase, unidadesCandidatas, sortear, aoConcluir) {
         var painel = document.getElementById('sorteioPainel');
-        sorteioAdicionarLinha('Fase 2 — Sorteio das vagas internas/externas').className = 'sorteio-secao-titulo';
+        sorteioAdicionarLinha(tituloFase).className = 'sorteio-secao-titulo';
+
+        if (!unidadesCandidatas.length) {
+            sorteioAdicionarLinhaComBotao('Nenhuma unidade pendente para esta fase.', aoConcluir);
+            return;
+        }
 
         var log = document.createElement('div');
         log.className = 'sorteio-log';
-        log.id = 'sorteioLogGeral';
         painel.appendChild(log);
 
+        // A partir da fase 2, as unidades são percorridas em ordem crescente de código — só a
+        // vaga sorteada para cada uma é que vem de um valor aleatório (pool já embaralhada).
+        unidadesCandidatas.sort(function (a, b) {
+            return parseInt(a.codigo, 10) - parseInt(b.codigo, 10);
+        });
+
+        var indice = 0;
+
+        function proxima() {
+            var u = unidadesCandidatas[indice];
+            var linha = document.createElement('p');
+            linha.className = 'sorteio-texto-live';
+
+            // Nunca deve travar o sorteio no meio: um erro inesperado numa unidade fica
+            // registrado na própria linha e no console, e o processamento segue para a próxima.
+            try {
+                var resultado = sortear(u);
+                linha.textContent = resultado.texto;
+                if (resultado.ok) {
+                    u.atendida = true;
+                    sorteioAplicarResultadoVisual(u.codigo, u.sorteadas, null);
+                } else {
+                    sorteioMarcarPreviaInsuficiente(u.codigo);
+                }
+            } catch (erro) {
+                linha.textContent = 'Erro ao processar a unidade ' + u.codigo + ' — pulando para a próxima.';
+                sorteioMarcarPreviaInsuficiente(u.codigo);
+                if (window.console && console.error) {
+                    console.error('Sorteio: erro ao processar unidade', u.codigo, erro);
+                }
+            }
+
+            log.appendChild(linha);
+            log.scrollTop = log.scrollHeight;
+
+            indice++;
+            if (indice < unidadesCandidatas.length) {
+                setTimeout(proxima, 700);
+            } else {
+                sorteioMontarLinhaComBotao(linha, linha.textContent, aoConcluir);
+                log.scrollTop = log.scrollHeight;
+            }
+        }
+
+        proxima();
+    }
+
+    function iniciarSorteioGeral(codigoExcluido) {
         var celulasPrevia = Array.prototype.slice.call(document.querySelectorAll('[data-unidade-previa]'));
         var unidades = [];
         celulasPrevia.forEach(function (cel) {
@@ -312,17 +439,17 @@
             if (!codigo || codigo === codigoExcluido) {
                 return;
             }
+            var celulaPosicao = document.querySelector('[data-unidade-posicao="' + codigo + '"]');
             unidades.push({
                 codigo: codigo,
                 isExterna: cel.classList.contains('sorteio-externa'),
+                hojeInterna: !!(celulaPosicao && celulaPosicao.classList.contains('sorteio-interna')),
                 qtd: sorteioUnidadesVagasGaragem[codigo] || 1,
-                sorteadas: []
+                sorteadas: [],
+                atendida: false
             });
         });
-        embaralhar(unidades);
 
-        // Uma vaga dupla equivale as duas vagas de uma unidade que tem vagasGaragem=2: tenta
-        // sortear uma dupla primeiro, e só cai para duas individuais se nao houver dupla sobrando.
         var individuaisInternas = sorteioVagasInternasIndividuais.slice();
         var duplasInternas = sorteioVagasInternasDuplas.slice();
         var individuaisExternas = sorteioVagasExternasIndividuais.slice();
@@ -332,102 +459,177 @@
         embaralhar(individuaisExternas);
         embaralhar(duplasExternas);
 
-        if (!unidades.length) {
-            sorteioAdicionarLinha('Nenhuma unidade pendente para esta fase.');
+        sorteioEstado = {
+            unidades: unidades,
+            individuaisInternas: individuaisInternas,
+            duplasInternas: duplasInternas,
+            individuaisExternas: individuaisExternas,
+            duplasExternas: duplasExternas,
+            fase7Unidades: []
+        };
+
+        iniciarFase2Externas();
+    }
+
+    // ---- Fase 2: vagas externas para unidades com uma vaga ----
+    function iniciarFase2Externas() {
+        var candidatas = sorteioEstado.unidades.filter(function (u) {
+            return !u.atendida && u.qtd < 2 && u.isExterna;
+        });
+        sorteioExecutarFase('Fase 2 — Vagas externas (unidades com uma vaga)', candidatas,
+            function (u) {
+                var vaga = sorteioEstado.individuaisExternas.shift();
+                if (!vaga) {
+                    return { texto: 'Vaga externa insuficiente para a unidade ' + u.codigo + '.', ok: false };
+                }
+                u.sorteadas.push(vaga);
+                return { texto: 'Unidade ' + u.codigo + ' → vaga ' + vaga, ok: true };
+            },
+            iniciarFase3Internas);
+    }
+
+    // ---- Fase 3: vagas internas para unidades com uma vaga ----
+    function iniciarFase3Internas() {
+        var candidatas = sorteioEstado.unidades.filter(function (u) {
+            return !u.atendida && u.qtd < 2 && !u.isExterna;
+        });
+        sorteioExecutarFase('Fase 3 — Vagas internas (unidades com uma vaga)', candidatas,
+            function (u) {
+                var vaga = sorteioEstado.individuaisInternas.shift();
+                if (!vaga) {
+                    return { texto: 'Vaga interna insuficiente para a unidade ' + u.codigo + '.', ok: false };
+                }
+                u.sorteadas.push(vaga);
+                return { texto: 'Unidade ' + u.codigo + ' → vaga ' + vaga, ok: true };
+            },
+            iniciarFase4DuplasHojeInternaParaExterna);
+    }
+
+    // Se não houver vaga dupla externa para uma unidade hoje interna que deveria ir para
+    // externa, ela passa a ser tratada como interna (atualiza a cor na Prévia) e continua
+    // concorrendo nas próximas fases, em vez de ficar simplesmente sem vaga.
+    function sorteioReclassificarComoInterna(u) {
+        u.isExterna = false;
+        var celulaPrevia = document.querySelector('[data-unidade-previa="' + u.codigo + '"]');
+        if (celulaPrevia) {
+            celulaPrevia.classList.remove('sorteio-externa');
+            celulaPrevia.classList.add('sorteio-interna');
+        }
+    }
+
+    // ---- Fase 4: unidades hoje internas que devem ir para externas (duplas) recebem vaga dupla externa ----
+    function iniciarFase4DuplasHojeInternaParaExterna() {
+        var candidatas = sorteioEstado.unidades.filter(function (u) {
+            return !u.atendida && u.qtd >= 2 && u.hojeInterna && u.isExterna;
+        });
+        sorteioExecutarFase('Fase 4 — Vagas duplas (interna → externa)', candidatas,
+            function (u) {
+                var vaga = sorteioEstado.duplasExternas.shift();
+                if (!vaga) {
+                    sorteioReclassificarComoInterna(u);
+                    return {
+                        texto: 'Vaga dupla externa insuficiente para a unidade ' + u.codigo
+                                + ' — passa a concorrer como interna nas próximas fases.',
+                        ok: false
+                    };
+                }
+                u.sorteadas.push(vaga);
+                return { texto: 'Unidade ' + u.codigo + ' → vaga ' + vaga, ok: true };
+            },
+            iniciarFase5DuplasHojeExternaParaInterna);
+    }
+
+    // ---- Fase 5: unidades hoje externas que devem ir para internas (duplas) recebem vaga dupla interna ----
+    function iniciarFase5DuplasHojeExternaParaInterna() {
+        var candidatas = sorteioEstado.unidades.filter(function (u) {
+            return !u.atendida && u.qtd >= 2 && !u.hojeInterna && !u.isExterna;
+        });
+        sorteioExecutarFase('Fase 5 — Vagas duplas (externa → interna)', candidatas,
+            function (u) {
+                var vaga = sorteioEstado.duplasInternas.shift();
+                if (!vaga) {
+                    return { texto: 'Vaga dupla interna insuficiente para a unidade ' + u.codigo + '.', ok: false };
+                }
+                u.sorteadas.push(vaga);
+                return { texto: 'Unidade ' + u.codigo + ' → vaga ' + vaga, ok: true };
+            },
+            iniciarFase6DuplasHojeInternaPreviaInterna);
+    }
+
+    // ---- Fase 6: unidades hoje internas que continuam internas (duplas) recebem vaga dupla interna ----
+    function iniciarFase6DuplasHojeInternaPreviaInterna() {
+        var candidatas = sorteioEstado.unidades.filter(function (u) {
+            return !u.atendida && u.qtd >= 2 && u.hojeInterna && !u.isExterna;
+        });
+        sorteioExecutarFase('Fase 6 — Vagas duplas (interna → interna)', candidatas,
+            function (u) {
+                var vaga = sorteioEstado.duplasInternas.shift();
+                if (!vaga) {
+                    return { texto: 'Vaga dupla interna insuficiente para a unidade ' + u.codigo + '.', ok: false };
+                }
+                u.sorteadas.push(vaga);
+                return { texto: 'Unidade ' + u.codigo + ' → vaga ' + vaga, ok: true };
+            },
+            iniciarFase7Empate);
+    }
+
+    function sorteioRemoverDoPool(pool, codigo) {
+        var idx = pool.indexOf(codigo);
+        if (idx === -1) {
+            return false;
+        }
+        pool.splice(idx, 1);
+        return true;
+    }
+
+    // ---- Fase 7: se sobrarem duas vagas simples e faltar uma vaga dupla, une os códigos com | ----
+    function iniciarFase7Empate() {
+        var pendentes = sorteioEstado.unidades.filter(function (u) {
+            return !u.atendida && u.qtd >= 2;
+        });
+
+        if (!pendentes.length) {
             finalizarSorteio();
             return;
         }
 
-        var indice = 0;
-        var faltantes = [];
-
-        function proximaUnidade() {
-            if (indice >= unidades.length) {
-                var mensagem = 'Sorteio das vagas internas/externas concluído.';
-                if (faltantes.length) {
-                    mensagem += ' Sem vaga suficiente para: ' + faltantes.join(', ') + '.';
+        sorteioExecutarFase('Fase 7 — Ajuste final (união de vagas simples restantes)', pendentes,
+            function (u) {
+                var sobrasSimples = sorteioEstado.individuaisInternas.concat(sorteioEstado.individuaisExternas);
+                if (sobrasSimples.length < 2) {
+                    return { texto: 'Sem vagas simples suficientes para unir na unidade ' + u.codigo + '.', ok: false };
                 }
-                sorteioAdicionarConfirmar(mensagem + ' OK?', finalizarSorteio);
-                return;
-            }
-            var u = unidades[indice];
-            var poolIndividual = u.isExterna ? individuaisExternas : individuaisInternas;
-            var poolDupla = u.isExterna ? duplasExternas : duplasInternas;
-            var linha = document.createElement('p');
-            linha.className = 'sorteio-texto-live';
-            var tipoTexto = u.isExterna ? 'externa' : 'interna';
-
-            if (u.qtd >= 2 && poolDupla.length) {
-                var vagaDupla = poolDupla.shift();
-                u.sorteadas.push(vagaDupla);
-                linha.textContent = 'Unidade ' + u.codigo + ' → vaga ' + vagaDupla + ' (dupla)';
-            } else if (u.qtd >= 2) {
-                var v1 = poolIndividual.shift();
-                if (v1) {
-                    u.sorteadas.push(v1);
-                }
-                var v2 = poolIndividual.shift();
-                if (v2) {
-                    u.sorteadas.push(v2);
-                }
-                if (u.sorteadas.length < u.qtd) {
-                    faltantes.push(u.codigo);
-                    linha.textContent = u.sorteadas.length
-                            ? ('Unidade ' + u.codigo + ' → vaga ' + u.sorteadas.join('/') + ' (incompleto, faltou vaga ' + tipoTexto + ')')
-                            : ('Vaga ' + tipoTexto + ' insuficiente para a unidade ' + u.codigo + '.');
-                } else {
-                    linha.textContent = 'Unidade ' + u.codigo + ' → vagas ' + u.sorteadas.join('/');
-                }
-            } else {
-                var vaga = poolIndividual.shift();
-                if (!vaga) {
-                    faltantes.push(u.codigo);
-                    linha.textContent = 'Vaga ' + tipoTexto + ' insuficiente para a unidade ' + u.codigo + '.';
-                } else {
-                    u.sorteadas.push(vaga);
-                    linha.textContent = 'Unidade ' + u.codigo + ' → vaga ' + vaga;
-                }
-            }
-
-            log.appendChild(linha);
-            log.scrollTop = log.scrollHeight;
-
-            indice++;
-            setTimeout(proximaUnidade, 700);
-        }
-
-        proximaUnidade();
-
-        // Guarda as unidades para aplicar tudo de uma vez quando o usuário confirmar.
-        iniciarSorteioGeral.unidadesPendentes = unidades;
+                var v1 = sobrasSimples[0];
+                var v2 = sobrasSimples[1];
+                sorteioRemoverDoPool(sorteioEstado.individuaisInternas, v1)
+                        || sorteioRemoverDoPool(sorteioEstado.individuaisExternas, v1);
+                sorteioRemoverDoPool(sorteioEstado.individuaisInternas, v2)
+                        || sorteioRemoverDoPool(sorteioEstado.individuaisExternas, v2);
+                u.sorteadas.push(v1, v2);
+                sorteioEstado.fase7Unidades.push(u.codigo);
+                return { texto: 'Unidade ' + u.codigo + ' → vagas ' + v1 + '|' + v2 + ' (união de vagas simples)', ok: true };
+            },
+            finalizarSorteio);
     }
 
     function finalizarSorteio() {
-        var unidades = iniciarSorteioGeral.unidadesPendentes || [];
-        unidades.forEach(function (u) {
-            if (!u.sorteadas.length) {
-                return;
-            }
-
-            var celulaPrevia = document.querySelector('[data-unidade-previa="' + u.codigo + '"]');
-            if (celulaPrevia) {
-                celulaPrevia.textContent = u.sorteadas.join('/');
-            }
-            var celulaPosicao = document.querySelector('[data-unidade-posicao="' + u.codigo + '"]');
-            if (celulaPosicao) {
-                celulaPosicao.className = 'sorteio-ja-sorteada';
-            }
-            u.sorteadas.forEach(function (vaga) {
-                var chip = document.querySelector('[data-vaga="' + vaga + '"]');
-                if (chip) {
-                    chip.classList.add('sorteio-vaga-riscada');
-                }
-            });
+        var faltantes = sorteioEstado.unidades.filter(function (u) {
+            return !u.atendida;
+        }).map(function (u) {
+            return u.codigo;
         });
-        iniciarSorteioGeral.unidadesPendentes = [];
+        if (faltantes.length) {
+            sorteioAdicionarLinha('Atenção: unidades sem vaga sorteada ao final: ' + faltantes.join(', ') + '.');
+        }
+        if (sorteioEstado.fase7Unidades.length) {
+            sorteioAdicionarLinha('Atenção: foi necessário aplicar a Fase 7 (união de duas vagas simples com "|") para: '
+                    + sorteioEstado.fase7Unidades.join(', ') + '.');
+        }
 
         sorteioAdicionarLinha('Sorteio concluído.');
+        sorteioEstado = null;
         sorteioEmAndamento = false;
+        gerarPdfSorteio();
     }
 </script>
 </body>

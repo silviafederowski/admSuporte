@@ -29,7 +29,7 @@ public class PendenciaServicoDeleteServlet extends HttpServlet {
             int id = Integer.parseInt(idParam);
             PendenciaServico pendencia = pendenciaServicoDao.findById(id);
             pendenciaServicoDao.delete(id);
-            String descricao = pendencia != null ? pendencia.getNomeTecnico() : ("id " + id);
+            String descricao = pendencia != null ? pendencia.getResumoLog() : ("id " + id);
             String usuarioLogado = (String) request.getSession().getAttribute("userName");
             operacaoLogDao.registrar(usuarioLogado, "Histórico de serviços", "Excluir registro do histórico: " + descricao);
         } catch (NumberFormatException | SQLException e) {

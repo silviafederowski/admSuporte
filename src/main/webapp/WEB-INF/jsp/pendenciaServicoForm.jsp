@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Registro do histórico - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=30">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=31">
 </head>
 <body>
 <div class="page">
@@ -54,8 +54,8 @@
 
             <div class="field">
                 <label for="prestadorId">Prestador</label>
-                <select id="prestadorId" name="prestadorId" ${dis} required>
-                    <option value="" disabled ${empty pendencia.prestadorId ? 'selected' : ''}>Selecione...</option>
+                <select id="prestadorId" name="prestadorId" ${dis}>
+                    <option value="" ${empty pendencia.prestadorId ? 'selected' : ''}>Nenhum</option>
                     <c:forEach var="p" items="${prestadores}">
                         <option value="${p.id}" ${pendencia.prestadorId == p.id ? 'selected' : ''}>${p.nomeRazaoSocial}</option>
                     </c:forEach>
@@ -88,24 +88,45 @@
 
             <div class="field">
                 <label for="nomeTecnico">Nome do técnico</label>
-                <input type="text" id="nomeTecnico" name="nomeTecnico" value="${pendencia.nomeTecnico}" ${dis} required>
+                <input type="text" id="nomeTecnico" name="nomeTecnico" value="${pendencia.nomeTecnico}" ${dis}>
                 <c:if test="${not empty errors.nomeTecnico}"><div class="field-error">${errors.nomeTecnico}</div></c:if>
             </div>
 
             <div class="field">
-                <label for="status">Situação</label>
-                <select id="status" name="status" ${dis} required>
-                    <option value="" disabled ${empty pendencia.status ? 'selected' : ''}>Selecione...</option>
-                    <option value="pendente" ${pendencia.status == 'PENDENTE' ? 'selected' : ''}>Pendente</option>
-                    <option value="resolvido" ${pendencia.status == 'RESOLVIDO' ? 'selected' : ''}>Resolvido</option>
-                </select>
-                <c:if test="${not empty errors.status}"><div class="field-error">${errors.status}</div></c:if>
-            </div>
-
-            <div class="field">
-                <label for="descricaoOcorrencia">Descrição da ocorrência</label>
-                <textarea id="descricaoOcorrencia" name="descricaoOcorrencia" style="min-height:160px;" ${dis} required>${pendencia.descricaoOcorrencia}</textarea>
-                <c:if test="${not empty errors.descricaoOcorrencia}"><div class="field-error">${errors.descricaoOcorrencia}</div></c:if>
+                <label>Pendências desta data</label>
+                <div class="table-wrap">
+                    <table class="data-table" id="itensTabela">
+                        <thead>
+                        <tr>
+                            <th style="text-align:left;">Descrição</th>
+                            <th style="width:110px;" title="Ponto focal">P. focal</th>
+                            <th style="width:140px;">Situação</th>
+                            <c:if test="${!readOnly}"><th style="width:50px;"></th></c:if>
+                        </tr>
+                        </thead>
+                        <tbody id="itensCorpo">
+                        <c:forEach var="item" items="${pendencia.itens}">
+                            <tr>
+                                <td><input type="text" name="itemDescricao" value="${item.descricao}" ${dis}></td>
+                                <td><input type="text" name="itemPontoFocal" value="${item.pontoFocal}" maxlength="10" ${dis}></td>
+                                <td>
+                                    <select name="itemStatus" ${dis}>
+                                        <option value="pendente" ${item.status == 'PENDENTE' ? 'selected' : ''}>Pendente</option>
+                                        <option value="resolvido" ${item.status == 'RESOLVIDO' ? 'selected' : ''}>Resolvido</option>
+                                    </select>
+                                </td>
+                                <c:if test="${!readOnly}">
+                                    <td><button type="button" class="menu-icon-link" title="Remover linha" onclick="removerItem(this)">🗑️</button></td>
+                                </c:if>
+                            </tr>
+                        </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+                <c:if test="${!readOnly}">
+                    <button type="button" class="btn btn-secondary btn-small" onclick="adicionarItem()">➕ Adicionar pendência</button>
+                </c:if>
+                <c:if test="${not empty errors.itens}"><div class="field-error">${errors.itens}</div></c:if>
             </div>
 
         </form>
@@ -149,6 +170,32 @@
     }
 
     filtrarPrestadoresDoServico();
+
+    var READ_ONLY = ${readOnly ? 'true' : 'false'};
+
+    function adicionarItem() {
+        var corpo = document.getElementById('itensCorpo');
+        var linha = document.createElement('tr');
+        linha.innerHTML =
+            '<td><input type="text" name="itemDescricao"></td>' +
+            '<td><input type="text" name="itemPontoFocal" maxlength="10"></td>' +
+            '<td><select name="itemStatus">' +
+            '<option value="pendente" selected>Pendente</option>' +
+            '<option value="resolvido">Resolvido</option>' +
+            '</select></td>' +
+            '<td><button type="button" class="menu-icon-link" title="Remover linha" onclick="removerItem(this)">🗑️</button></td>';
+        corpo.appendChild(linha);
+        linha.querySelector('input').focus();
+    }
+
+    function removerItem(botao) {
+        var linha = botao.closest('tr');
+        linha.parentNode.removeChild(linha);
+    }
+
+    if (!READ_ONLY && document.querySelectorAll('#itensCorpo tr').length === 0) {
+        adicionarItem();
+    }
 </script>
 </body>
 </html>

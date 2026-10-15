@@ -42,12 +42,12 @@ public class SorteioVagaServlet extends HttpServlet {
             Integer ano = vagaDao.buscarAnoMaisRecente();
             request.setAttribute("ano", ano);
             if (ano != null) {
-                List<VagaDao.PosicaoVaga> posicao = vagaDao.listPosicaoPorAno(ano);
+                List<VagaDao.PosicaoVaga> posicao = vagaDao.listPosicaoMaisRecentePorUnidade();
                 request.setAttribute("grade", montarGrade(posicao));
 
                 request.setAttribute("anoSeguinte", ano + 1);
                 Map<Integer, Map<Integer, Boolean>> mapaUnidadeAno = vagaDao.mapUnidadeAnoTodasInternas();
-                request.setAttribute("gradePrevia", montarGradePrevia(posicao, mapaUnidadeAno, ano));
+                request.setAttribute("gradePrevia", montarGradePrevia(posicao, mapaUnidadeAno));
             }
 
             List<VagaDao.VagaSimples> vagasM2 = vagaDao.listVagasPorPavimento("-2");
@@ -66,9 +66,7 @@ public class SorteioVagaServlet extends HttpServlet {
             List<String> vagasExternasIndividuais = new ArrayList<>();
             List<String> vagasExternasDuplas = new ArrayList<>();
             for (VagaDao.VagaSimples v : todasVagas) {
-                String especialUpper = v.especial == null ? "" : v.especial.toUpperCase();
-                if (especialUpper.contains("IDOSO") || especialUpper.contains("PREFERENCIAL")
-                        || especialUpper.contains("EMERG") || especialUpper.contains("ZELADOR")) {
+                if (v.especial != null && !v.especial.trim().isEmpty()) {
                     continue;
                 }
                 boolean dupla = v.quantasVagas != null && v.quantasVagas >= 2;
@@ -88,7 +86,13 @@ public class SorteioVagaServlet extends HttpServlet {
             request.setAttribute("vagasExternasDuplas", vagasExternasDuplas);
             request.setAttribute("todasUnidades", unidadeDao.listAll());
 
-            List<Unidade> candidatasIdoso = unidadeDao.listCandidatasIdoso();
+            java.util.Set<Integer> jaBeneficiadas = vagaDao.listUnidadesChaveJaBeneficiadas();
+            List<Unidade> candidatasIdoso = new ArrayList<>();
+            for (Unidade u : unidadeDao.listCandidatasIdoso()) {
+                if (!jaBeneficiadas.contains(u.getChave())) {
+                    candidatasIdoso.add(u);
+                }
+            }
             Collections.shuffle(candidatasIdoso);
             request.setAttribute("candidatasIdoso", candidatasIdoso);
             request.setAttribute("vagasIdoso", vagaDao.listCodigosVagaIdoso());
@@ -126,11 +130,12 @@ public class SorteioVagaServlet extends HttpServlet {
     /**
      * Previa do ano seguinte: uma celula por unidade (mostrando o codigo da propria unidade, nao
      * da vaga), pintada pelo criterio invertido: se a unidade esteve interna nos ultimos 3 anos
-     * (incluindo o ano atual), fica externa na previa; caso contrario, fica interna. Nao
-     * distingue individual/dupla nem preferencial.
+     * (incluindo o ano mais recente registrado para ELA MESMA, nao um ano global — mesmo conceito
+     * usado na coluna "Prox" da tela de historico de vagas), fica externa na previa; caso
+     * contrario, fica interna. Nao distingue individual/dupla nem preferencial.
      */
     private Map<Integer, List<SorteioVagaCell>> montarGradePrevia(
-            List<VagaDao.PosicaoVaga> linhas, Map<Integer, Map<Integer, Boolean>> mapaUnidadeAno, int ano) {
+            List<VagaDao.PosicaoVaga> linhas, Map<Integer, Map<Integer, Boolean>> mapaUnidadeAno) {
         Map<String, VagaDao.PosicaoVaga> primeiraLinhaPorUnidade = new LinkedHashMap<>();
         for (VagaDao.PosicaoVaga linha : linhas) {
             primeiraLinhaPorUnidade.putIfAbsent(linha.unidadeCodigo, linha);
@@ -148,10 +153,13 @@ public class SorteioVagaServlet extends HttpServlet {
                 continue;
             }
             Map<Integer, Boolean> anosDaUnidade = mapaUnidadeAno.get(linha.unidadeChave);
-            boolean tresAnosInterna = anosDaUnidade != null
-                    && Boolean.TRUE.equals(anosDaUnidade.get(ano))
-                    && Boolean.TRUE.equals(anosDaUnidade.get(ano - 1))
-                    && Boolean.TRUE.equals(anosDaUnidade.get(ano - 2));
+            boolean tresAnosInterna = false;
+            if (anosDaUnidade != null && !anosDaUnidade.isEmpty()) {
+                int anoUnidade = Collections.max(anosDaUnidade.keySet());
+                tresAnosInterna = Boolean.TRUE.equals(anosDaUnidade.get(anoUnidade))
+                        && Boolean.TRUE.equals(anosDaUnidade.get(anoUnidade - 1))
+                        && Boolean.TRUE.equals(anosDaUnidade.get(anoUnidade - 2));
+            }
             String cssClass = tresAnosInterna ? "sorteio-externa" : "sorteio-interna";
 
             List<SorteioVagaCell> linhaAndar = grade.computeIfAbsent(andar, k -> criarLinhaVazia());
@@ -210,21 +218,22 @@ public class SorteioVagaServlet extends HttpServlet {
     }
 
     /**
-     * Categoria (classe CSS) de uma vaga, conforme a legenda "VAGAS POR TIPO": preferencial
-     * (idosos) e vermelha sem borda; senao, cor base pela interna(azul)/externa(amarelo), com
-     * borda preta se individual (quantasVagas &lt; 2) e sem borda se nao (dupla).
+     * Categoria (classe CSS) de uma vaga, conforme a legenda "VAGAS POR TIPO": vaga de idoso e
+     * vermelha (mesmo sendo especial); qualquer outra vaga com o campo especial preenchido
+     * (emergencia, zelador, carga/descarga etc.) e rosa; senao, cor base pela interna(azul)/
+     * externa(amarelo), com borda preta se individual (quantasVagas &lt; 2) e sem borda se nao
+     * (dupla).
      */
     private String categoriaCss(String internaExterna, Integer quantasVagas, String especial) {
         String especialUpper = especial == null ? "" : especial.toUpperCase();
         if (especialUpper.contains("IDOSO") || especialUpper.contains("PREFERENCIAL")) {
             return "sorteio-preferencial";
         }
+        if (!especialUpper.trim().isEmpty()) {
+            return "sorteio-especial";
+        }
         String base;
-        if (especialUpper.contains("EMERG")) {
-            base = "sorteio-emergencia";
-        } else if (especialUpper.contains("ZELADOR")) {
-            base = "sorteio-zelador";
-        } else if ("I".equalsIgnoreCase(internaExterna)) {
+        if ("I".equalsIgnoreCase(internaExterna)) {
             base = "sorteio-interna";
         } else if ("E".equalsIgnoreCase(internaExterna)) {
             base = "sorteio-externa";

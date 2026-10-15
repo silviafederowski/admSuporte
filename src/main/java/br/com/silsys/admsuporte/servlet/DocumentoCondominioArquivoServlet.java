@@ -30,6 +30,9 @@ public class DocumentoCondominioArquivoServlet extends HttpServlet {
             }
             response.setContentType(asset.mimeType);
             response.setContentLength(asset.data.length);
+            response.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
+            response.setHeader("Pragma", "no-cache");
+            response.setDateHeader("Expires", 0);
             response.setHeader("Content-Disposition", "inline; filename=\"documento-condominio.pdf\"");
             response.getOutputStream().write(asset.data);
         } catch (SQLException e) {

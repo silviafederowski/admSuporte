@@ -23,7 +23,7 @@ public class VagaDao {
             "v.especial AS vaga_especial, v.observacao AS vaga_observacao " +
             "FROM histvagas hv " +
             "LEFT JOIN unidades u ON hv.unidadesChave = u.chave " +
-            "LEFT JOIN vagas v ON hv.garagensChave = v.chave " +
+            "LEFT JOIN vagas v ON hv.vagasChave = v.chave " +
             "ORDER BY hv.ano DESC, u.codigo ASC";
 
     /**
@@ -35,7 +35,7 @@ public class VagaDao {
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT v.codigo FROM histvagas hv " +
-                     "JOIN vagas v ON v.chave = hv.garagensChave " +
+                     "JOIN vagas v ON v.chave = hv.vagasChave " +
                      "WHERE hv.unidadesChave = ? " +
                      "AND hv.ano = (SELECT MAX(ano) FROM histvagas WHERE unidadesChave = ?) " +
                      "ORDER BY v.codigo")) {
@@ -62,7 +62,7 @@ public class VagaDao {
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT v.observacao FROM histvagas hv " +
-                     "JOIN vagas v ON v.chave = hv.garagensChave " +
+                     "JOIN vagas v ON v.chave = hv.vagasChave " +
                      "WHERE hv.unidadesChave = ? " +
                      "AND hv.ano = (SELECT MAX(ano) FROM histvagas WHERE unidadesChave = ?) " +
                      "ORDER BY v.codigo")) {
@@ -89,7 +89,7 @@ public class VagaDao {
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "SELECT v.chave FROM histvagas hv " +
-                     "JOIN vagas v ON v.chave = hv.garagensChave " +
+                     "JOIN vagas v ON v.chave = hv.vagasChave " +
                      "WHERE hv.unidadesChave = ? " +
                      "AND hv.ano = (SELECT MAX(ano) FROM histvagas WHERE unidadesChave = ?) " +
                      "ORDER BY v.codigo")) {
@@ -138,7 +138,7 @@ public class VagaDao {
                      "COUNT(*) AS total, " +
                      "SUM(CASE WHEN v.internaExterna = 'I' THEN 1 ELSE 0 END) AS internas " +
                      "FROM histvagas hv " +
-                     "JOIN vagas v ON v.chave = hv.garagensChave " +
+                     "JOIN vagas v ON v.chave = hv.vagasChave " +
                      "WHERE hv.unidadesChave IS NOT NULL AND hv.ano IS NOT NULL " +
                      "GROUP BY hv.unidadesChave, hv.ano")) {
             try (ResultSet rs = stmt.executeQuery()) {
@@ -149,6 +149,26 @@ public class VagaDao {
                     int internas = rs.getInt("internas");
                     result.computeIfAbsent(unidadeChave, k -> new java.util.HashMap<>())
                             .put(ano, total > 0 && total == internas);
+                }
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Chaves das unidades que ja foram beneficiadas (histvagas.beneficiada = 'S') em algum ano.
+     * Usado para excluir do sorteio de vaga de idoso quem ja foi contemplado antes, dando a vez
+     * as demais unidades candidatas.
+     */
+    public java.util.Set<Integer> listUnidadesChaveJaBeneficiadas() throws SQLException {
+        java.util.Set<Integer> result = new java.util.HashSet<>();
+        try (Connection conn = ConnectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT DISTINCT unidadesChave FROM histvagas " +
+                     "WHERE beneficiada = 'S' AND unidadesChave IS NOT NULL")) {
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    result.add(rs.getInt(1));
                 }
             }
         }
@@ -240,8 +260,12 @@ public class VagaDao {
         return null;
     }
 
-    /** Vaga(s) atribuida(s) a cada unidade no ano informado. Usado no Sorteio de vagas. */
-    public List<PosicaoVaga> listPosicaoPorAno(int ano) throws SQLException {
+    /**
+     * Vaga(s) atribuida(s) a cada unidade no ano mais recente registrado para ELA (nao um ano
+     * global unico), para que unidades com "buracos" no historico (sem registro no ano mais
+     * recente geral) ainda apareçam nas grades e no Sorteio de vagas.
+     */
+    public List<PosicaoVaga> listPosicaoMaisRecentePorUnidade() throws SQLException {
         List<PosicaoVaga> result = new ArrayList<>();
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
@@ -249,10 +273,9 @@ public class VagaDao {
                      "v.internaExterna AS interna_externa, v.especial AS especial " +
                      "FROM histvagas hv " +
                      "JOIN unidades u ON u.chave = hv.unidadesChave " +
-                     "JOIN vagas v ON v.chave = hv.garagensChave " +
-                     "WHERE hv.ano = ? " +
+                     "JOIN vagas v ON v.chave = hv.vagasChave " +
+                     "WHERE hv.ano = (SELECT MAX(hv2.ano) FROM histvagas hv2 WHERE hv2.unidadesChave = hv.unidadesChave) " +
                      "ORDER BY u.codigo, v.codigo")) {
-            stmt.setInt(1, ano);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
                     result.add(new PosicaoVaga(

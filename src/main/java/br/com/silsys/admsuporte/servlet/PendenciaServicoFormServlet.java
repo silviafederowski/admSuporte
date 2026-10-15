@@ -4,6 +4,7 @@ import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.PendenciaServicoDao;
 import br.com.silsys.admsuporte.dao.PrestadorDao;
 import br.com.silsys.admsuporte.dao.ServicoDao;
+import br.com.silsys.admsuporte.model.ItemPendenciaServico;
 import br.com.silsys.admsuporte.model.PendenciaServico;
 import br.com.silsys.admsuporte.model.StatusPendencia;
 import br.com.silsys.admsuporte.util.ErrorMessages;
@@ -12,8 +13,10 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import javax.servlet.RequestDispatcher;
@@ -52,7 +55,6 @@ public class PendenciaServicoFormServlet extends HttpServlet {
             }
         } else {
             PendenciaServico pendencia = new PendenciaServico();
-            pendencia.setStatus(StatusPendencia.PENDENTE);
             String servicoIdParam = request.getParameter("servicoId");
             if (servicoIdParam != null && !servicoIdParam.trim().isEmpty()) {
                 try {
@@ -74,8 +76,9 @@ public class PendenciaServicoFormServlet extends HttpServlet {
         String prestadorIdParam = request.getParameter("prestadorId");
         String dataParam = request.getParameter("data");
         String nomeTecnico = request.getParameter("nomeTecnico");
-        String descricaoOcorrencia = request.getParameter("descricaoOcorrencia");
-        String statusParam = request.getParameter("status");
+        String[] itemDescricoes = request.getParameterValues("itemDescricao");
+        String[] itemPontoFocal = request.getParameterValues("itemPontoFocal");
+        String[] itemStatus = request.getParameterValues("itemStatus");
 
         Map<String, String> errors = new HashMap<>();
 
@@ -91,9 +94,7 @@ public class PendenciaServicoFormServlet extends HttpServlet {
         }
 
         Integer prestadorId = null;
-        if (ValidationUtil.isBlank(prestadorIdParam)) {
-            errors.put("prestadorId", "Selecione o prestador.");
-        } else {
+        if (!ValidationUtil.isBlank(prestadorIdParam)) {
             try {
                 prestadorId = Integer.parseInt(prestadorIdParam.trim());
             } catch (NumberFormatException e) {
@@ -112,23 +113,30 @@ public class PendenciaServicoFormServlet extends HttpServlet {
             }
         }
 
-        if (ValidationUtil.isBlank(nomeTecnico)) {
-            errors.put("nomeTecnico", "Informe o nome do técnico.");
-        }
-
-        if (ValidationUtil.isBlank(descricaoOcorrencia)) {
-            errors.put("descricaoOcorrencia", "Informe a descrição da ocorrência.");
-        }
-
-        StatusPendencia status = null;
-        if (ValidationUtil.isBlank(statusParam)) {
-            errors.put("status", "Selecione a situação.");
-        } else {
-            try {
-                status = StatusPendencia.fromDbValue(statusParam);
-            } catch (IllegalArgumentException e) {
-                errors.put("status", "Situação inválida.");
+        List<ItemPendenciaServico> itens = new ArrayList<>();
+        if (itemDescricoes != null) {
+            for (int i = 0; i < itemDescricoes.length; i++) {
+                if (ValidationUtil.isBlank(itemDescricoes[i])) {
+                    continue;
+                }
+                StatusPendencia itemSituacao = StatusPendencia.PENDENTE;
+                if (itemStatus != null && i < itemStatus.length && !ValidationUtil.isBlank(itemStatus[i])) {
+                    try {
+                        itemSituacao = StatusPendencia.fromDbValue(itemStatus[i]);
+                    } catch (IllegalArgumentException e) {
+                        errors.put("itens", "Situação inválida em uma das pendências.");
+                    }
+                }
+                String pontoFocal = itemPontoFocal != null && i < itemPontoFocal.length && itemPontoFocal[i] != null
+                        ? itemPontoFocal[i].trim() : "";
+                if (pontoFocal.length() > 10) {
+                    errors.put("itens", "O ponto focal deve ter no máximo 10 caracteres.");
+                }
+                itens.add(new ItemPendenciaServico(itemDescricoes[i].trim(), pontoFocal, itemSituacao));
             }
+        }
+        if (itens.isEmpty()) {
+            errors.put("itens", "Informe ao menos uma pendência.");
         }
 
         PendenciaServico pendencia = new PendenciaServico();
@@ -136,8 +144,7 @@ public class PendenciaServicoFormServlet extends HttpServlet {
         pendencia.setPrestadorId(prestadorId);
         pendencia.setData(data);
         pendencia.setNomeTecnico(nomeTecnico);
-        pendencia.setDescricaoOcorrencia(descricaoOcorrencia);
-        pendencia.setStatus(status);
+        pendencia.setItens(itens);
 
         boolean isEdit = idParam != null && !idParam.trim().isEmpty();
         if (isEdit) {
@@ -154,18 +161,18 @@ public class PendenciaServicoFormServlet extends HttpServlet {
                 if (isEdit) {
                     pendenciaServicoDao.update(pendencia);
                     operacaoLogDao.registrar(usuarioLogado, "Histórico de serviços",
-                            "Editar registro do histórico: " + pendencia.getNomeTecnico());
+                            "Editar registro do histórico: " + pendencia.getResumoLog());
                 } else {
                     pendenciaServicoDao.create(pendencia);
                     operacaoLogDao.registrar(usuarioLogado, "Histórico de serviços",
-                            "Criar registro do histórico: " + pendencia.getNomeTecnico());
+                            "Criar registro do histórico: " + pendencia.getResumoLog());
                 }
 
                 if ("sim".equals(request.getParameter("alterarCadastro"))) {
                     try {
                         servicoDao.atualizarExecucaoAPartirDePendencia(servicoId, data, prestadorId);
                         operacaoLogDao.registrar(usuarioLogado, "Serviços",
-                                "Atualizar cadastro a partir do histórico: " + pendencia.getNomeTecnico());
+                                "Atualizar cadastro a partir do histórico: " + pendencia.getResumoLog());
                     } catch (SQLException e) {
                         ErrorMessages.logErro(LOGGER, "servicos",
                                 "Atualizar cadastro do serviço a partir do histórico", e);

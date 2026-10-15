@@ -5,8 +5,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Histórico de serviços - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=30">
+    <title>Histórico / Pendências de serviços - admSuporte</title>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=32">
 </head>
 <body>
 <div class="page">
@@ -14,7 +14,7 @@
         <p class="condominio-nome" style="text-align:left;">${nomeCondominio}</p>
         <div class="toolbar">
             <div>
-                <h1 class="title" style="text-align:left;margin:0;">Histórico de serviços</h1>
+                <h1 class="title" style="text-align:left;margin:0;">Histórico / Pendências de serviços</h1>
             </div>
             <div class="toolbar-actions">
                 <c:if test="${!readOnly}">
@@ -29,11 +29,37 @@
             </div>
         </div>
 
-        <c:if test="${not empty servicoFiltro}">
-            <p class="form-info">Mostrando o histórico do serviço "${servicoFiltro.descricao}".
-                <a href="${pageContext.request.contextPath}/pendencias-servico">Ver todo o histórico</a>
-            </p>
-        </c:if>
+        <form method="get" action="${pageContext.request.contextPath}/pendencias-servico" class="filtro-form">
+            <div class="field">
+                <label for="filtroServico">Serviço</label>
+                <select id="filtroServico" name="servicoId" onchange="this.form.submit()">
+                    <option value="">Todos</option>
+                    <c:forEach var="s" items="${servicos}">
+                        <option value="${s.id}" ${servicoIdFiltro == s.id ? 'selected' : ''}>${s.descricao}</option>
+                    </c:forEach>
+                </select>
+            </div>
+            <div class="field">
+                <label for="filtroPontoFocal">Ponto focal</label>
+                <select id="filtroPontoFocal" name="pontoFocal" onchange="this.form.submit()">
+                    <option value="">Todos</option>
+                    <c:forEach var="pf" items="${pontosFocais}">
+                        <option value="${pf}" ${pontoFocalFiltro == pf ? 'selected' : ''}>${pf}</option>
+                    </c:forEach>
+                </select>
+            </div>
+            <div class="field">
+                <label for="filtroStatus">Situação</label>
+                <select id="filtroStatus" name="status" onchange="this.form.submit()">
+                    <option value="">Todas</option>
+                    <option value="pendente" ${statusFiltro == 'pendente' ? 'selected' : ''}>Pendente</option>
+                    <option value="resolvido" ${statusFiltro == 'resolvido' ? 'selected' : ''}>Resolvido</option>
+                </select>
+            </div>
+            <c:if test="${filtroAtivo}">
+                <a class="btn btn-secondary btn-small" href="${pageContext.request.contextPath}/pendencias-servico">Limpar filtros</a>
+            </c:if>
+        </form>
 
         <c:if test="${not empty infoMessage}">
             <p class="form-info">${infoMessage}</p>
@@ -44,45 +70,48 @@
 
         <c:choose>
             <c:when test="${empty pendencias}">
-                <p class="empty-state">Nenhum registro no histórico ainda.</p>
+                <p class="empty-state">${filtroAtivo ? 'Nenhum registro encontrado com esses filtros.' : 'Nenhum registro no histórico ainda.'}</p>
             </c:when>
             <c:otherwise>
-                <div class="table-wrap">
-                    <table class="data-table" data-sortable>
-                        <thead>
-                        <tr>
-                            <th>Serviço</th>
-                            <th>Prestador</th>
-                            <th>Data</th>
-                            <th>Técnico</th>
-                            <th style="min-width: 320px; text-align:left;">Descrição da ocorrência</th>
-                            <th>Situação</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <c:forEach var="p" items="${pendencias}">
-                            <tr class="clickable-row"
-                                onclick="window.location='${pageContext.request.contextPath}/pendencias-servico/form?id=${p.id}'">
-                                <td>${p.servicoDescricao}</td>
-                                <td>${p.prestadorNome}</td>
-                                <td>${p.dataFormatada}</td>
-                                <td>${p.nomeTecnico}</td>
-                                <td style="text-align:left;">
-                                    <c:forEach var="linha" items="${p.descricaoOcorrenciaLinhas}" varStatus="ls">
-                                        <c:if test="${!ls.first}"><br></c:if>${linha}
-                                    </c:forEach>
-                                </td>
-                                <td><span class="badge badge-${p.status.dbValue}">${p.status.label}</span></td>
-                            </tr>
-                        </c:forEach>
-                        </tbody>
-                    </table>
-                </div>
+                <c:forEach var="p" items="${pendencias}">
+                    <div class="pendencia-bloco">
+                        <a class="pendencia-cabecalho"
+                           href="${pageContext.request.contextPath}/pendencias-servico/form?id=${p.id}">
+                            <strong>${p.dataFormatada}</strong> — ${p.servicoDescricao}
+                            <c:if test="${not empty p.prestadorNome || not empty p.nomeTecnico}">
+                                <span class="pendencia-detalhe">
+                                    <c:if test="${not empty p.prestadorNome}">Prestador: ${p.prestadorNome}</c:if>
+                                    <c:if test="${not empty p.prestadorNome && not empty p.nomeTecnico}"> · </c:if>
+                                    <c:if test="${not empty p.nomeTecnico}">Técnico: ${p.nomeTecnico}</c:if>
+                                </span>
+                            </c:if>
+                        </a>
+                        <div class="table-wrap">
+                            <table class="data-table">
+                                <thead>
+                                <tr>
+                                    <th style="text-align:left;">Descrição</th>
+                                    <th style="width:110px;" title="Ponto focal">P. focal</th>
+                                    <th style="width:140px;">Situação</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <c:forEach var="item" items="${p.itens}">
+                                    <tr>
+                                        <td style="text-align:left;">${item.descricao}</td>
+                                        <td>${item.pontoFocal}</td>
+                                        <td><span class="badge badge-${item.status.dbValue}">${item.status.label}</span></td>
+                                    </tr>
+                                </c:forEach>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </c:forEach>
             </c:otherwise>
         </c:choose>
 
     </div>
 </div>
-<script src="${pageContext.request.contextPath}/js/dataTable.js?v=5"></script>
 </body>
 </html>

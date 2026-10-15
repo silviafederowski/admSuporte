@@ -145,6 +145,7 @@ public final class SchemaInitializer {
             ensureServicoUltimoPrestadorColumn(conn);
             ensureServicoProximaExecucaoColumns(conn);
             ensureAppAssetsDataColumn(conn);
+            ensureAppAssetsKeyUnique(conn);
             ensurePrestadorFornecedorContatoColumns(conn);
             ensurePeriodicidadePorDemanda(conn, "servicos");
             ensureProdutosTipoColumn(conn);
@@ -160,6 +161,7 @@ public final class SchemaInitializer {
             ensureClassificacaoNaoAvaliado(conn, "fornecedores");
             ensureVagasColumnsRemoved(conn);
             ensureVagaObservacaoAmpliada(conn);
+            ensureHistvagasVagasChaveColumn(conn);
             ensureServicoTipoColumn(conn);
             ensurePrestadorTipoColumn(conn);
             ensureModelosMarcaColumn(conn);
@@ -170,6 +172,8 @@ public final class SchemaInitializer {
             ensureEmailAceitaVarios(conn, "prestadores");
             ensureEmailAceitaVarios(conn, "fornecedores");
             ensurePendenciaServicoStatusColuna(conn);
+            migrarPendenciasParaItens(conn);
+            ensurePendenciaServicoPrestadorTecnicoOpcionais(conn);
             seedLogo(conn);
             seedNomeCondominio(conn);
             seedPavimentoImagens(conn);
@@ -280,9 +284,9 @@ public final class SchemaInitializer {
                 "CREATE TABLE IF NOT EXISTS pendencias_servico (" +
                 "  id INT PRIMARY KEY AUTO_INCREMENT," +
                 "  servico_id INT NOT NULL," +
-                "  prestador_id INT NOT NULL," +
+                "  prestador_id INT NULL," +
                 "  data DATE NOT NULL," +
-                "  nome_tecnico VARCHAR(255) NOT NULL," +
+                "  nome_tecnico VARCHAR(255) NULL," +
                 "  descricao_ocorrencia LONGTEXT NULL," +
                 "  status VARCHAR(10) NOT NULL DEFAULT 'pendente'," +
                 "  CONSTRAINT fk_pendencias_servico_servico FOREIGN KEY (servico_id) " +
@@ -290,6 +294,18 @@ public final class SchemaInitializer {
                 "  CONSTRAINT fk_pendencias_servico_prestador FOREIGN KEY (prestador_id) " +
                 "    REFERENCES prestadores(id) ON DELETE CASCADE," +
                 "  CONSTRAINT chk_pendencias_servico_status CHECK (status IN ('pendente', 'resolvido'))" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS pendencias_servico_itens (" +
+                "  id INT PRIMARY KEY AUTO_INCREMENT," +
+                "  pendencia_id INT NOT NULL," +
+                "  descricao TEXT NOT NULL," +
+                "  ponto_focal VARCHAR(10) NULL," +
+                "  status VARCHAR(10) NOT NULL DEFAULT 'pendente'," +
+                "  CONSTRAINT fk_pendencias_itens_pendencia FOREIGN KEY (pendencia_id) " +
+                "    REFERENCES pendencias_servico(id) ON DELETE CASCADE," +
+                "  CONSTRAINT chk_pendencias_itens_status CHECK (status IN ('pendente', 'resolvido'))" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
             stmt.executeUpdate(
@@ -413,7 +429,7 @@ public final class SchemaInitializer {
                 "CREATE TABLE IF NOT EXISTS histvagas (" +
                 "  chave INT(11) PRIMARY KEY AUTO_INCREMENT," +
                 "  unidadesChave INT(11) NULL," +
-                "  garagensChave INT(11) NULL," +
+                "  vagasChave INT(11) NULL," +
                 "  ano INT(4) NULL," +
                 "  internaExterna VARCHAR(1) NULL," +
                 "  observacao VARCHAR(20) NULL" +
@@ -951,6 +967,18 @@ public final class SchemaInitializer {
         }
     }
 
+    /**
+     * O campo "garagensChave" (histvagas -> tabela vagas) foi renomeado para "vagasChave", para
+     * refletir melhor que ele aponta para a tabela "vagas", nao "garagens".
+     */
+    private static void ensureHistvagasVagasChaveColumn(Connection conn) throws SQLException {
+        if (columnExists(conn, "histvagas", "garagensChave") && !columnExists(conn, "histvagas", "vagasChave")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE histvagas CHANGE COLUMN garagensChave vagasChave INT(11) NULL");
+            }
+        }
+    }
+
     private static void ensureVagasColumnsRemoved(Connection conn) throws SQLException {
         if (columnExists(conn, "vagas", "sistemasChave")) {
             try (Statement stmt = conn.createStatement()) {
@@ -1097,6 +1125,69 @@ public final class SchemaInitializer {
     }
 
     /** Coluna adicionada apos a criacao inicial da tabela (bancos ja em producao). */
+    /**
+     * Registros antigos do historico tinham uma unica descricao (uma pendencia por linha do
+     * texto) e uma situacao unica. Cada linha nao vazia vira um item em pendencias_servico_itens,
+     * com a situacao que o registro tinha. So converte registros que ainda nao tem nenhum item;
+     * o texto antigo em descricao_ocorrencia permanece como copia de seguranca.
+     */
+    private static void migrarPendenciasParaItens(Connection conn) throws SQLException {
+        if (!columnExists(conn, "pendencias_servico_itens", "ponto_focal")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE pendencias_servico_itens ADD COLUMN ponto_focal VARCHAR(10) NULL AFTER descricao");
+            }
+        }
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                 "SELECT p.id, p.descricao_ocorrencia, p.status FROM pendencias_servico p " +
+                 "WHERE p.descricao_ocorrencia IS NOT NULL AND TRIM(p.descricao_ocorrencia) <> '' " +
+                 "AND NOT EXISTS (SELECT 1 FROM pendencias_servico_itens i WHERE i.pendencia_id = p.id)");
+             PreparedStatement insert = conn.prepareStatement(
+                 "INSERT INTO pendencias_servico_itens (pendencia_id, descricao, status) VALUES (?, ?, ?)")) {
+            while (rs.next()) {
+                int pendenciaId = rs.getInt("id");
+                String status = rs.getString("status");
+                for (String linha : rs.getString("descricao_ocorrencia").split("\\r?\\n")) {
+                    String aparada = linha.trim();
+                    if (!aparada.isEmpty()) {
+                        insert.setInt(1, pendenciaId);
+                        insert.setString(2, aparada);
+                        insert.setString(3, status);
+                        insert.addBatch();
+                    }
+                }
+            }
+            insert.executeBatch();
+        }
+    }
+
+    /** Prestador e tecnico deixaram de ser obrigatorios no historico/pendencias de servico. */
+    private static void ensurePendenciaServicoPrestadorTecnicoOpcionais(Connection conn) throws SQLException {
+        if (!columnIsNullable(conn, "pendencias_servico", "prestador_id")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE pendencias_servico MODIFY COLUMN prestador_id INT NULL");
+            }
+        }
+        if (!columnIsNullable(conn, "pendencias_servico", "nome_tecnico")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE pendencias_servico MODIFY COLUMN nome_tecnico VARCHAR(255) NULL");
+            }
+        }
+    }
+
+    private static boolean columnIsNullable(Connection conn, String table, String column) throws SQLException {
+        try (PreparedStatement check = conn.prepareStatement(
+                "SELECT is_nullable FROM information_schema.columns " +
+                "WHERE table_schema = DATABASE() AND table_name = ? AND column_name = ?")) {
+            check.setString(1, table);
+            check.setString(2, column);
+            try (ResultSet rs = check.executeQuery()) {
+                return !rs.next() || "YES".equalsIgnoreCase(rs.getString(1));
+            }
+        }
+    }
+
     private static void ensurePendenciaServicoStatusColuna(Connection conn) throws SQLException {
         if (!columnExists(conn, "pendencias_servico", "status")) {
             try (Statement stmt = conn.createStatement()) {
@@ -1355,6 +1446,55 @@ public final class SchemaInitializer {
             try (Statement stmt = conn.createStatement()) {
                 stmt.executeUpdate("ALTER TABLE app_assets MODIFY data_base64 LONGTEXT NULL");
             }
+        }
+    }
+
+    /**
+     * Versoes antigas de app_assets foram criadas sem chave primaria em asset_key, entao o
+     * "ON DUPLICATE KEY UPDATE" do AppAssetDao.salvar nunca disparava: cada envio inseria uma
+     * linha nova e a leitura devolvia sempre a mais antiga. Deixa so a linha mais recente de
+     * cada chave (a ultima na varredura, que segue a ordem de insercao) e cria a chave primaria.
+     */
+    private static void ensureAppAssetsKeyUnique(Connection conn) throws SQLException {
+        if (constraintExists(conn, "app_assets", "PRIMARY")) {
+            return;
+        }
+        java.util.List<String> chavesDuplicadas = new java.util.ArrayList<>();
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                 "SELECT asset_key FROM app_assets GROUP BY asset_key HAVING COUNT(*) > 1")) {
+            while (rs.next()) {
+                chavesDuplicadas.add(rs.getString(1));
+            }
+        }
+        for (String chave : chavesDuplicadas) {
+            String mimeType = null;
+            byte[] data = null;
+            try (PreparedStatement select = conn.prepareStatement(
+                    "SELECT mime_type, data FROM app_assets WHERE asset_key = ?")) {
+                select.setString(1, chave);
+                try (ResultSet rs = select.executeQuery()) {
+                    while (rs.next()) {
+                        mimeType = rs.getString("mime_type");
+                        data = rs.getBytes("data");
+                    }
+                }
+            }
+            try (PreparedStatement delete = conn.prepareStatement(
+                    "DELETE FROM app_assets WHERE asset_key = ?")) {
+                delete.setString(1, chave);
+                delete.executeUpdate();
+            }
+            try (PreparedStatement insert = conn.prepareStatement(
+                    "INSERT INTO app_assets (asset_key, mime_type, data) VALUES (?, ?, ?)")) {
+                insert.setString(1, chave);
+                insert.setString(2, mimeType);
+                insert.setBytes(3, data);
+                insert.executeUpdate();
+            }
+        }
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("ALTER TABLE app_assets ADD PRIMARY KEY (asset_key)");
         }
     }
 

@@ -45,15 +45,17 @@
     }
 
     function compareValues(a, b) {
-        var numA = parseNumber(a);
-        var numB = parseNumber(b);
-        if (numA !== null && numB !== null) {
-            return numA - numB;
-        }
+        // parseDate primeiro: parseNumber usa um regex sem ancora e "casaria" so com o dia de
+        // uma data tipo "30/09/26" (pegando "30"), ordenando so pelo dia e ignorando mes/ano.
         var dateA = parseDate(a);
         var dateB = parseDate(b);
         if (dateA !== null && dateB !== null) {
             return dateA - dateB;
+        }
+        var numA = parseNumber(a);
+        var numB = parseNumber(b);
+        if (numA !== null && numB !== null) {
+            return numA - numB;
         }
         return normalize(a).localeCompare(normalize(b), 'pt-BR');
     }

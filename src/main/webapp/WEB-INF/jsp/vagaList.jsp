@@ -96,7 +96,7 @@
     <div id="pavimentoPopupResize" class="image-popup-resize-handle" title="Arraste para redimensionar"></div>
 </div>
 
-<script src="${pageContext.request.contextPath}/js/dataTable.js?v=5"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=6"></script>
 <script>
     (function () {
         var contextPath = '${pageContext.request.contextPath}';

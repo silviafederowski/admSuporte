@@ -27,7 +27,7 @@
 
         <c:choose>
             <c:when test="${temArquivo}">
-                <a class="btn btn-secondary" href="${pageContext.request.contextPath}/documento-condominio/arquivo" target="_blank">
+                <a class="btn btn-secondary" href="${pageContext.request.contextPath}/documento-condominio/arquivo?v=<%= System.currentTimeMillis() %>" target="_blank">
                     Ver arquivo atual
                 </a>
             </c:when>

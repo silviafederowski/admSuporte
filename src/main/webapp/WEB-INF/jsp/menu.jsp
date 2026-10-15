@@ -38,7 +38,7 @@
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/fornecedores">Fornecedores</a>
             </c:if>
             <c:if test="${telasPermitidas.contains('pendencias-servico')}">
-                <a class="btn btn-primary" href="${pageContext.request.contextPath}/pendencias-servico">Histórico de serviços</a>
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/pendencias-servico">Histórico / Pendências de serviços</a>
             </c:if>
             <c:if test="${telasPermitidas.contains('vagas')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/vagas">Histórico de vagas</a>

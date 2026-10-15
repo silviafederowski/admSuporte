@@ -15,8 +15,7 @@ public class PendenciaServico implements Serializable {
     private Integer prestadorId;
     private LocalDate data;
     private String nomeTecnico;
-    private String descricaoOcorrencia;
-    private StatusPendencia status;
+    private List<ItemPendenciaServico> itens = new ArrayList<>();
 
     /** Preenchido via join na leitura; nao corresponde a uma coluna propria. */
     private String servicoDescricao;
@@ -61,6 +60,16 @@ public class PendenciaServico implements Serializable {
         return DateFormatUtil.formatar(data);
     }
 
+    /** Identificacao curta do registro para o log de operacoes (tecnico e prestador sao opcionais). */
+    public String getResumoLog() {
+        String resumo = servicoDescricao != null ? servicoDescricao : ("serviço " + servicoId);
+        resumo += " em " + getDataFormatada();
+        if (nomeTecnico != null && !nomeTecnico.trim().isEmpty()) {
+            resumo += " (" + nomeTecnico.trim() + ")";
+        }
+        return resumo;
+    }
+
     public String getNomeTecnico() {
         return nomeTecnico;
     }
@@ -69,35 +78,22 @@ public class PendenciaServico implements Serializable {
         this.nomeTecnico = nomeTecnico;
     }
 
-    public String getDescricaoOcorrencia() {
-        return descricaoOcorrencia;
+    public List<ItemPendenciaServico> getItens() {
+        return itens;
     }
 
-    public void setDescricaoOcorrencia(String descricaoOcorrencia) {
-        this.descricaoOcorrencia = descricaoOcorrencia;
+    public void setItens(List<ItemPendenciaServico> itens) {
+        this.itens = itens;
     }
 
-    /** Linhas nao vazias da descricao (uma por linha do textarea), para exibir em tabela sem linhas em branco. */
-    public List<String> getDescricaoOcorrenciaLinhas() {
-        List<String> linhas = new ArrayList<>();
-        if (descricaoOcorrencia == null) {
-            return linhas;
-        }
-        for (String linha : descricaoOcorrencia.split("\\r?\\n")) {
-            String aparada = linha.trim();
-            if (!aparada.isEmpty()) {
-                linhas.add(aparada);
+    /** Pendente se ao menos um item estiver pendente; resolvido quando todos estiverem resolvidos. */
+    public StatusPendencia getStatus() {
+        for (ItemPendenciaServico item : itens) {
+            if (item.getStatus() == StatusPendencia.PENDENTE) {
+                return StatusPendencia.PENDENTE;
             }
         }
-        return linhas;
-    }
-
-    public StatusPendencia getStatus() {
-        return status;
-    }
-
-    public void setStatus(StatusPendencia status) {
-        this.status = status;
+        return itens.isEmpty() ? StatusPendencia.PENDENTE : StatusPendencia.RESOLVIDO;
     }
 
     public String getServicoDescricao() {

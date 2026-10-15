@@ -184,6 +184,10 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
+        <url-pattern>/sorteio-vagas/pdf</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
         <url-pattern>/unidades</url-pattern>
     </filter-mapping>
     <filter-mapping>
@@ -433,6 +437,10 @@
     <filter-mapping>
         <filter-name>Autorizacao_sorteioVagas</filter-name>
         <url-pattern>/sorteio-vagas</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_sorteioVagas</filter-name>
+        <url-pattern>/sorteio-vagas/pdf</url-pattern>
     </filter-mapping>
 
     <filter>
@@ -738,6 +746,15 @@
     <servlet-mapping>
         <servlet-name>SorteioVagaServlet</servlet-name>
         <url-pattern>/sorteio-vagas</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>SorteioVagaPdfServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.SorteioVagaPdfServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>SorteioVagaPdfServlet</servlet-name>
+        <url-pattern>/sorteio-vagas/pdf</url-pattern>
     </servlet-mapping>
 
     <servlet>

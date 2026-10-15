@@ -105,7 +105,7 @@ public class ServicoDao {
      * informada for futura, vira a proxima execucao agendada do servico; se for hoje ou passada,
      * some como proxima execucao (ja aconteceu) e vira a ultima execucao registrada.
      */
-    public void atualizarExecucaoAPartirDePendencia(int servicoId, java.time.LocalDate data, int prestadorId)
+    public void atualizarExecucaoAPartirDePendencia(int servicoId, java.time.LocalDate data, Integer prestadorId)
             throws SQLException {
         boolean futura = data.isAfter(java.time.LocalDate.now());
         String sql = futura
@@ -116,7 +116,11 @@ public class ServicoDao {
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setDate(1, Date.valueOf(data));
-            stmt.setInt(2, prestadorId);
+            if (prestadorId == null) {
+                stmt.setNull(2, java.sql.Types.INTEGER);
+            } else {
+                stmt.setInt(2, prestadorId);
+            }
             stmt.setInt(3, servicoId);
             stmt.executeUpdate();
         }

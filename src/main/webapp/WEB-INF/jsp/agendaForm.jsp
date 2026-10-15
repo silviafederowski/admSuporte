@@ -49,7 +49,7 @@
                 </div>
                 <div class="field">
                     <label for="hora">Hora</label>
-                    <input type="time" id="hora" name="hora" value="${agendaItem.hora}" ${dis} required>
+                    <input type="time" id="hora" name="hora" value="${agendaItem.hora}" step="300" ${dis} required>
                     <c:if test="${not empty errors.hora}"><div class="field-error">${errors.hora}</div></c:if>
                 </div>
                 <div class="field">

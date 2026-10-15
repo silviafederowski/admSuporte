@@ -1053,7 +1053,7 @@ tr.selected-row:hover {
 .sorteio-secao-titulo {
     font-size: 12px;
     font-weight: 700;
-    margin: 0 0 6px;
+    margin: 0 0 4px;
     color: var(--text);
 }
 
@@ -1134,36 +1134,106 @@ tr.selected-row:hover {
     font-weight: 700;
 }
 
-.sorteio-emergencia {
+.sorteio-especial {
     background: #ead1dc;
     color: #4c1130;
 }
 
-.sorteio-zelador {
-    background: #ffe599;
-    color: #543f00;
-}
-
 .sorteio-texto-live {
     font-size: 13px;
-    text-align: center;
-    margin: 0 0 8px;
+    text-align: left;
+    margin: 0 0 2px;
 }
 
 .sorteio-ja-sorteada {
     background: #ffffff;
+    color: #000000;
 }
 
 .sorteio-vaga-riscada {
-    text-decoration: line-through;
+    background: transparent;
+}
+
+.sorteio-preferencial.sorteio-vaga-riscada {
+    color: #000000;
+}
+
+.sorteio-previa-atribuida {
+    box-shadow: inset 0 0 0 2px #000000;
+}
+
+.sorteio-previa-insuficiente {
+    box-shadow: inset 0 0 0 2px #d32f2f;
 }
 
 .sorteio-log {
-    max-height: 220px;
-    overflow-y: auto;
-    margin: 0 0 8px;
+    margin: 0 0 2px;
 }
 
 .sorteio-log .sorteio-texto-live {
+    margin: 0 0 1px;
+}
+
+#sorteioPainel {
+    overflow-y: auto;
+    overflow-x: hidden;
+    justify-content: flex-start;
+    gap: 2px;
+}
+
+.sorteio-linha-inline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.sorteio-linha-inline .sorteio-btn-confirmar {
+    flex-shrink: 0;
+}
+
+.pendencia-bloco {
+    margin: 0 0 18px;
+}
+
+.pendencia-cabecalho {
+    display: block;
+    padding: 8px 10px;
     margin: 0 0 4px;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.pendencia-cabecalho:hover {
+    border-color: var(--primary);
+}
+
+.pendencia-detalhe {
+    display: block;
+    font-size: 12px;
+    color: #6B7280;
+    margin-top: 2px;
+}
+
+#itensTabela input[type="text"],
+#itensTabela select {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.filtro-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+    margin: 0 0 16px;
+}
+
+.filtro-form .field {
+    margin: 0;
+    min-width: 180px;
 }
