@@ -17,6 +17,9 @@
                 <h1 class="title" style="text-align:left;margin:0;">Veículos</h1>
             </div>
             <div class="toolbar-actions">
+                <c:if test="${not empty veiculos}">
+                    <a class="menu-icon-link" href="javascript:void(0)" onclick="gerarPdfVeiculos()" title="Gerar PDF da lista filtrada" aria-label="Gerar PDF da lista filtrada">🖨️</a>
+                </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
@@ -51,7 +54,7 @@
                         <c:set var="unidadeAnterior" value="" />
                         <c:forEach var="v" items="${veiculos}">
                             <c:set var="primeiraDaUnidade" value="${v.unidadeCodigo != unidadeAnterior}" />
-                            <tr class="clickable-row"
+                            <tr class="clickable-row" data-key="${v.unidadeChave}:${v.id}"
                                 onclick="window.location='${pageContext.request.contextPath}/veiculos/form?unidade=${v.unidadeChave}'">
                                 <td>
                                     <c:choose>
@@ -86,6 +89,22 @@
 
     </div>
 </div>
+<script>
+    /* PDF igual a tela: so as linhas visiveis pelos filtros, na ordem atual da tabela. */
+    function gerarPdfVeiculos() {
+        var chaves = [];
+        document.querySelectorAll('table.veiculos-table tbody tr[data-key]').forEach(function (row) {
+            if (row.style.display !== 'none') {
+                chaves.push(row.getAttribute('data-key'));
+            }
+        });
+        if (!chaves.length) {
+            alert('Nenhuma linha visível com os filtros atuais.');
+            return;
+        }
+        window.location = '${pageContext.request.contextPath}/veiculos/pdf?linhas=' + encodeURIComponent(chaves.join(','));
+    }
+</script>
 <script src="${pageContext.request.contextPath}/js/dataTable.js?v=7"></script>
 </body>
 </html>

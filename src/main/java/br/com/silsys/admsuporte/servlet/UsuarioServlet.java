@@ -27,6 +27,8 @@ public class UsuarioServlet extends HttpServlet {
             request.setAttribute("infoMessage", "Usuário cadastrado com sucesso.");
         } else if (request.getParameter("atualizado") != null) {
             request.setAttribute("infoMessage", "Usuário atualizado com sucesso.");
+        } else if (request.getParameter("excluido") != null) {
+            request.setAttribute("infoMessage", "Usuário excluído com sucesso.");
         }
 
         try {

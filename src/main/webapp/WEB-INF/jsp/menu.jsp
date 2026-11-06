@@ -23,8 +23,16 @@
             <c:if test="${telasPermitidas.contains('agenda')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/agenda">Agenda</a>
             </c:if>
-            <!-- Autorizacoes: consulta liberada a qualquer usuario logado, edicao so ao sindico (nivel 0) -->
-            <a class="btn btn-primary" href="${pageContext.request.contextPath}/autorizacoes">Autorizações</a>
+            <%-- Autorizacoes: fixo no codigo, so para o nivel 0 (ver AutorizacaoMenuServlet) --%>
+            <c:if test="${sessionScope.userNivel == 0}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/autorizacoes">Autorizações</a>
+            </c:if>
+            <c:if test="${telasPermitidas.contains('checklist-itens')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/checklist-itens">Itens de checklist</a>
+            </c:if>
+            <c:if test="${telasPermitidas.contains('checklist-portaria')}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/checklist-portaria">Checklist</a>
+            </c:if>
             <c:if test="${telasPermitidas.contains('documento-condominio')}">
                 <a class="btn btn-primary" href="${pageContext.request.contextPath}/documento-condominio">Dados do condomínio</a>
             </c:if>

@@ -50,6 +50,26 @@ public class AutorizacaoMenuDao {
         }
     }
 
+    /**
+     * Telas liberadas para um nivel, com o tipo de acesso, em ordem de descricao. Sem a linha
+     * "autorizacoes", que e so informativa (o acesso a essa tela e fixo no codigo).
+     */
+    public List<AutorizacaoMenu> listByNivel(int nivel) throws SQLException {
+        List<AutorizacaoMenu> result = new ArrayList<>();
+        try (Connection conn = ConnectionProvider.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(
+                     "SELECT * FROM autorizacoes_menu WHERE nivel = ? AND tela_codigo <> 'autorizacoes' " +
+                     "ORDER BY tela_descricao")) {
+            stmt.setInt(1, nivel);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    result.add(mapRow(rs));
+                }
+            }
+        }
+        return result;
+    }
+
     /** Usado pelo MenuServlet: codigos de tela com qualquer autorizacao (consulta ou edicao) para o nivel. */
     public Set<String> listarTelasPermitidas(int nivel) throws SQLException {
         Set<String> result = new HashSet<>();

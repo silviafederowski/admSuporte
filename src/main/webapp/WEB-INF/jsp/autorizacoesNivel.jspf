@@ -1,0 +1,45 @@
+<%-- Telas liberadas para um nivel (autorizacoesNivel/nivelAutorizacoes vem do servlet).
+     Incluido em tipoUsuarioForm.jsp e usuarioForm.jsp; so leitura. --%>
+<c:if test="${not empty nivelAutorizacoes}">
+    <div class="field" style="margin-top:20px;">
+        <label>Telas liberadas (nível ${nivelAutorizacoes lt 10 ? '0' : ''}${nivelAutorizacoes})</label>
+        <c:choose>
+            <c:when test="${empty autorizacoesNivel && nivelAutorizacoes != 0}">
+                <p class="empty-state" style="margin:4px 0;">Nenhuma tela liberada para este nível.</p>
+            </c:when>
+            <c:otherwise>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead>
+                        <tr>
+                            <th style="text-align:left;">Tela</th>
+                            <th style="width:110px;">Acesso</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <%-- Autorizacoes nao vem da tabela: e fixa no codigo, so para o nivel 00. --%>
+                        <c:if test="${nivelAutorizacoes == 0}">
+                            <tr>
+                                <td style="text-align:left;">Autorizações do menu</td>
+                                <td><span class="badge badge-resolvido">Edição</span></td>
+                            </tr>
+                        </c:if>
+                        <c:forEach var="a" items="${autorizacoesNivel}">
+                            <tr>
+                                <td style="text-align:left;">${a.telaDescricao}</td>
+                                <td>
+                                    <c:choose>
+                                        <c:when test="${a.tipoAcesso == 'edicao'}"><span class="badge badge-resolvido">Edição</span></c:when>
+                                        <c:otherwise><span class="badge badge-cancelado">Consulta</span></c:otherwise>
+                                    </c:choose>
+                                </td>
+                            </tr>
+                        </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </c:otherwise>
+        </c:choose>
+        <div class="field-hint">As telas valem para todos os tipos com este nível e são definidas na tela de Autorizações.</div>
+    </div>
+</c:if>

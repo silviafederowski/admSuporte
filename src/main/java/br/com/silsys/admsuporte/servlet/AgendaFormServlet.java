@@ -5,8 +5,10 @@ import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.ServicoDao;
 import br.com.silsys.admsuporte.model.Agenda;
 import br.com.silsys.admsuporte.model.Prestador;
+import br.com.silsys.admsuporte.model.Prioridade;
 import br.com.silsys.admsuporte.model.Servico;
 import br.com.silsys.admsuporte.model.StatusPendencia;
+import br.com.silsys.admsuporte.util.DateFormatUtil;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -51,6 +53,11 @@ public class AgendaFormServlet extends HttpServlet {
                 response.sendRedirect(request.getContextPath() + "/agenda");
                 return;
             }
+        } else {
+            // Compromisso novo ja abre sugerindo a data de hoje (fuso do condominio).
+            Agenda nova = new Agenda();
+            nova.setData(DateFormatUtil.hoje());
+            request.setAttribute("agendaItem", nova);
         }
         forward(request, response);
     }
@@ -69,6 +76,7 @@ public class AgendaFormServlet extends HttpServlet {
         boolean atualizarServico = "sim".equals(request.getParameter("atualizarServico"));
         String statusParam = request.getParameter("status");
         String dataStatusParam = request.getParameter("dataStatus");
+        String prioridadeParam = request.getParameter("prioridade");
 
         Map<String, String> errors = new HashMap<>();
 
@@ -85,6 +93,9 @@ public class AgendaFormServlet extends HttpServlet {
         if (!ValidationUtil.isBlank(horaParam)) {
             try {
                 hora = LocalTime.parse(horaParam.trim());
+                if (hora.getMinute() % 15 != 0 || hora.getSecond() != 0) {
+                    errors.put("hora", "Escolha uma hora de 15 em 15 minutos.");
+                }
             } catch (DateTimeParseException e) {
                 errors.put("hora", "Hora inválida.");
             }
@@ -96,6 +107,17 @@ public class AgendaFormServlet extends HttpServlet {
 
         if (ValidationUtil.isBlank(assunto)) {
             errors.put("assunto", "Informe o assunto.");
+        }
+
+        Prioridade prioridade = null;
+        if (ValidationUtil.isBlank(prioridadeParam)) {
+            errors.put("prioridade", "Informe a prioridade.");
+        } else {
+            try {
+                prioridade = Prioridade.fromDbValue(prioridadeParam);
+            } catch (IllegalArgumentException e) {
+                errors.put("prioridade", "Prioridade inválida.");
+            }
         }
 
         StatusPendencia status = StatusPendencia.PENDENTE;
@@ -128,7 +150,10 @@ public class AgendaFormServlet extends HttpServlet {
         Integer prestadorId = null;
         if (servicoId != null) {
             if (ValidationUtil.isBlank(prestadorIdParam)) {
-                errors.put("prestadorId", "Selecione o prestador do serviço.");
+                // So e obrigatorio informar quem executou quando o compromisso foi resolvido.
+                if (status == StatusPendencia.RESOLVIDO) {
+                    errors.put("prestadorId", "Selecione o prestador do serviço.");
+                }
             } else {
                 try {
                     prestadorId = Integer.parseInt(prestadorIdParam.trim());
@@ -163,6 +188,7 @@ public class AgendaFormServlet extends HttpServlet {
         agenda.setPrestadorId(prestadorId);
         agenda.setStatus(status);
         agenda.setDataStatus(dataStatus);
+        agenda.setPrioridade(prioridade);
 
         boolean isEdit = idParam != null && !idParam.trim().isEmpty();
         if (isEdit) {

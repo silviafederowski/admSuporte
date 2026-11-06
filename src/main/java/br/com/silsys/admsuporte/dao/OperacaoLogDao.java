@@ -1,12 +1,12 @@
 package br.com.silsys.admsuporte.dao;
 
 import br.com.silsys.admsuporte.model.OperacaoLog;
+import br.com.silsys.admsuporte.util.DateFormatUtil;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -28,7 +28,8 @@ public class OperacaoLogDao {
             stmt.setString(1, usuario);
             stmt.setString(2, tela);
             stmt.setString(3, operacao);
-            stmt.setTimestamp(4, Timestamp.valueOf(LocalDateTime.now()));
+            // Horario de Brasilia (o servidor roda em UTC).
+            stmt.setTimestamp(4, Timestamp.valueOf(DateFormatUtil.agora()));
             stmt.executeUpdate();
         } catch (SQLException e) {
             LOGGER.log(Level.WARNING, "Falha ao registrar operacao no log de auditoria.", e);

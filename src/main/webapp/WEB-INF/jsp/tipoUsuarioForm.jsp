@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tipo de usuário - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=34">
 </head>
 <body>
 <div class="page">
@@ -42,8 +42,9 @@
 
             <div class="field-row">
                 <div class="field">
-                    <label for="name">Nome</label>
-                    <input type="text" id="name" name="name" value="${tipo.name}" ${dis} required>
+                    <label for="name">Descrição</label>
+                    <%-- So a exibicao e em maiusculas: o servidor grava em minusculas (chave comparada em codigo). --%>
+                    <input type="text" id="name" name="name" value="${tipo.name}" style="text-transform:uppercase;" ${dis} required>
                     <c:if test="${not empty errors.name}"><div class="field-error">${errors.name}</div></c:if>
                 </div>
                 <div class="field">
@@ -59,6 +60,8 @@
             </div>
 
         </form>
+
+        <%@ include file="autorizacoesNivel.jspf" %>
 
         <c:if test="${!readOnly && not empty param.id}">
             <form id="tipoUsuarioExcluirForm" method="post" action="${pageContext.request.contextPath}/tipos-usuario/excluir"

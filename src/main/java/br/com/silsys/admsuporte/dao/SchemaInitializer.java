@@ -98,6 +98,12 @@ public final class SchemaInitializer {
         {"documento-condominio", "Dados do condomínio", "15", "consulta"},
         {"tipos-usuario", "Tipos de usuário", "0", "edicao"},
         {"tipos-usuario", "Tipos de usuário", "5", "edicao"},
+        {"checklist-itens", "Cadastro de itens de checklist", "0", "edicao"},
+        {"checklist-itens", "Cadastro de itens de checklist", "5", "edicao"},
+        {"checklist-itens", "Cadastro de itens de checklist", "10", "consulta"},
+        {"checklist-portaria", "Checklist", "0", "edicao"},
+        {"checklist-portaria", "Checklist", "5", "edicao"},
+        {"checklist-portaria", "Checklist", "10", "edicao"},
         // "autorizacoes" e so informativa nesta lista: o acesso a propria tela de Autorizacoes
         // e sempre fixo no codigo (AutorizacaoMenuFormServlet/DeleteServlet), nunca controlado
         // por esta tabela - assim nao ha risco de alguem se trancar fora editando essa linha.
@@ -108,7 +114,7 @@ public final class SchemaInitializer {
     private static final String BUILTIN_ADMIN_EMAIL = "s070460@gmail.com";
 
     private static final String[] DEFAULT_USER_TYPES = {
-        "administrador", "zelador", "condomino", "colaborador"
+        UserType.ADMINISTRADOR, UserType.ZELADOR, UserType.CONDOMINO, UserType.PORTEIRO
     };
 
     /** Nivel de acesso de cada tipo de usuario: <= 9 tem escrita liberada, > 9 e somente consulta. */
@@ -136,12 +142,50 @@ public final class SchemaInitializer {
     public static void initialize() throws SQLException {
         try (Connection conn = ConnectionProvider.getConnection()) {
             createTables(conn);
+            dropChecklistItensPeriodicidade(conn);
             seedUserTypes(conn);
             ensureUserTypeNivelColumn(conn);
             syncUserTypeNiveis(conn);
             ensureUserTypeColumn(conn);
             backfillUserTypes(conn);
             promoteBuiltinAdmin(conn);
+            ensureUsersNameUnico(conn);
+            ensureUsersTrocarSenhaColumn(conn);
+            ajustarOperacoesLogParaBrasilia(conn);
+            ensureChecklistItensTipoUsuario(conn);
+            // Validacao do checklist por um colega do mesmo tipo de usuario (ou por quem ve todos):
+            // quem/quando/observacao geral no cabecalho (colunas verificado_*), mais o status.
+            if (!columnExists(conn, "checklist_cabecalho", "verificado_por")) {
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("ALTER TABLE checklist_cabecalho ADD COLUMN verificado_por VARCHAR(255) NULL");
+                    stmt.executeUpdate("ALTER TABLE checklist_cabecalho ADD COLUMN verificado_em DATETIME NULL");
+                    stmt.executeUpdate("ALTER TABLE checklist_cabecalho ADD COLUMN verificacao_obs VARCHAR(1000) NULL");
+                }
+            }
+            if (!columnExists(conn, "checklist_cabecalho", "status")) {
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate(
+                        "ALTER TABLE checklist_cabecalho ADD COLUMN status VARCHAR(20) NOT NULL DEFAULT 'em_andamento'");
+                    // Ja validados pela versao anterior (so verificado_em preenchido) ficam como validada.
+                    stmt.executeUpdate("UPDATE checklist_cabecalho SET status = 'validada' WHERE verificado_em IS NOT NULL");
+                    stmt.executeUpdate(
+                        "ALTER TABLE checklist_cabecalho ADD CONSTRAINT chk_checklist_cabecalho_status " +
+                        "CHECK (status IN ('em_andamento', 'disponivel', 'validada'))");
+                }
+            }
+            // Validacao item a item: confirmado (S/N) ou a observacao de quem validou.
+            if (!columnExists(conn, "checklist_portaria", "validado")) {
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("ALTER TABLE checklist_portaria ADD COLUMN validado CHAR(1) NULL");
+                    stmt.executeUpdate("ALTER TABLE checklist_portaria ADD COLUMN validacao_obs VARCHAR(1000) NULL");
+                }
+            }
+            if (!columnExists(conn, "checklist_portaria", "observacao")) {
+                // Observacao livre por item do checklist.
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("ALTER TABLE checklist_portaria ADD COLUMN observacao VARCHAR(1000) NULL AFTER checado");
+                }
+            }
             ensureServicoUltimoPrestadorColumn(conn);
             ensureServicoValorPagoColumn(conn);
             dropServicoProximaExecucaoColumns(conn);
@@ -176,10 +220,13 @@ public final class SchemaInitializer {
             ensureAgendaServicoPrestadorColumns(conn);
             ensureAgendaStatusColumns(conn);
             migrarHistoricoServicosParaAgenda(conn);
+            preencherPontoFocalVazioAgenda(conn);
             seedLogo(conn);
             seedNomeCondominio(conn);
             seedPavimentoImagens(conn);
             seedAutorizacoesMenu(conn);
+            seedAutorizacoesTelaNova(conn, "checklist-itens");
+            seedAutorizacoesTelaNova(conn, "checklist-portaria");
         }
     }
 
@@ -295,7 +342,7 @@ public final class SchemaInitializer {
                 "  usuario VARCHAR(255) NOT NULL," +
                 "  tela VARCHAR(100) NOT NULL," +
                 "  operacao VARCHAR(255) NOT NULL," +
-                "  data_hora DATETIME NOT NULL," +
+                "  data_hora DATETIME NOT NULL COMMENT 'horario de Brasilia'," +
                 "  INDEX idx_operacoes_log_data_hora (data_hora)" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
@@ -453,6 +500,64 @@ public final class SchemaInitializer {
                 "  tipo_acesso VARCHAR(15) NOT NULL," +
                 "  CONSTRAINT uq_autorizacoes_menu_tela_nivel UNIQUE (tela_codigo, nivel)," +
                 "  CONSTRAINT chk_autorizacoes_menu_tipo_acesso CHECK (tipo_acesso IN ('consulta', 'edicao'))" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            // Itens de checklist, cada um do tipo de usuario que deve fazer a verificacao.
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS checklist_itens (" +
+                "  id INT PRIMARY KEY AUTO_INCREMENT," +
+                "  user_type_id INT NOT NULL," +
+                "  descricao VARCHAR(255) NOT NULL," +
+                "  CONSTRAINT fk_checklist_itens_user_type FOREIGN KEY (user_type_id) REFERENCES user_types(id)" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            // Dados do checklist como um todo (um por data+usuario, como o agrupamento de checklist_portaria):
+            // quantas encomendas estao no aplicativo sem baixa no momento do checklist.
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS checklist_cabecalho (" +
+                "  data DATE NOT NULL," +
+                "  usuario VARCHAR(255) NOT NULL," +
+                "  encomendas_sem_baixa INT NOT NULL," +
+                "  verificado_por VARCHAR(255) NULL," +
+                "  verificado_em DATETIME NULL," +
+                "  verificacao_obs VARCHAR(1000) NULL," +
+                "  status VARCHAR(20) NOT NULL DEFAULT 'em_andamento'," +
+                "  PRIMARY KEY (data, usuario)," +
+                "  CONSTRAINT chk_checklist_cabecalho_status CHECK (status IN ('em_andamento', 'disponivel', 'validada'))," +
+                "  CONSTRAINT chk_checklist_cabecalho_encomendas CHECK (encomendas_sem_baixa >= 0)" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            // Encomendas em estoque por unidade, contadas no checklist (data+usuario). So as
+            // unidades com quantidade > 0 tem linha; a soma aparece ao lado das encomendas do app.
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS checklist_encomendas (" +
+                "  data DATE NOT NULL," +
+                "  usuario VARCHAR(255) NOT NULL," +
+                "  unidade_chave INT(11) NOT NULL," +
+                "  quantidade INT NOT NULL," +
+                "  PRIMARY KEY (data, usuario, unidade_chave)," +
+                "  CONSTRAINT fk_checklist_encomendas_unidade FOREIGN KEY (unidade_chave) REFERENCES unidades(chave) ON DELETE CASCADE," +
+                "  CONSTRAINT chk_checklist_encomendas_quantidade CHECK (quantidade BETWEEN 1 AND 999)" +
+                ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            // Checklist (tabela com o nome antigo, de quando era so da portaria): um registro por
+            // item; (data, usuario) agrupa um checklist feito.
+            // alterado_em guarda quando o item foi checado/desmarcado depois de o checklist ser criado.
+            stmt.executeUpdate(
+                "CREATE TABLE IF NOT EXISTS checklist_portaria (" +
+                "  id INT PRIMARY KEY AUTO_INCREMENT," +
+                "  data DATE NOT NULL," +
+                "  hora TIME NOT NULL," +
+                "  usuario VARCHAR(255) NOT NULL," +
+                "  item_id INT NOT NULL," +
+                "  checado CHAR(1) NOT NULL DEFAULT 'N'," +
+                "  observacao VARCHAR(1000) NULL," +
+                "  validado CHAR(1) NULL," +
+                "  validacao_obs VARCHAR(1000) NULL," +
+                "  alterado_em DATETIME NULL," +
+                "  CONSTRAINT uq_checklist_portaria_data_usuario_item UNIQUE (data, usuario, item_id)," +
+                "  CONSTRAINT fk_checklist_portaria_item FOREIGN KEY (item_id) REFERENCES checklist_itens(id)," +
+                "  CONSTRAINT chk_checklist_portaria_checado CHECK (checado IN ('S', 'N'))" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
         }
     }
@@ -1144,6 +1249,19 @@ public final class SchemaInitializer {
         }
     }
 
+    /**
+     * Compromissos sem ponto focal (vindos da migracao do historico, que nem sempre tinha) ficam
+     * com TUKKA. O formulario da agenda exige ponto focal, entao isso so pega registros antigos.
+     */
+    private static void preencherPontoFocalVazioAgenda(Connection conn) throws SQLException {
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(
+                "UPDATE agenda SET ponto_focal = 'TUKKA' WHERE ponto_focal IS NULL OR TRIM(ponto_focal) = ''");
+            // Corrige a grafia antiga "TUKA" (com um K so).
+            stmt.executeUpdate("UPDATE agenda SET ponto_focal = 'TUKKA' WHERE UPPER(TRIM(ponto_focal)) = 'TUKA'");
+        }
+    }
+
     private static boolean tableExists(Connection conn, String table) throws SQLException {
         try (PreparedStatement check = conn.prepareStatement(
                 "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?")) {
@@ -1182,19 +1300,42 @@ public final class SchemaInitializer {
         }
     }
 
-    /** Situacao do compromisso da agenda (pendente/resolvido) e a data em que passou a essa situacao. */
+    /**
+     * Situacao do compromisso da agenda (pendente/resolvido/cancelado) e a data em que passou a essa
+     * situacao. O CHECK com "cancelado" usa nome versionado (_v2), como em ensurePeriodicidadePorDemanda.
+     */
     private static void ensureAgendaStatusColumns(Connection conn) throws SQLException {
         if (!columnExists(conn, "agenda", "status")) {
             try (Statement stmt = conn.createStatement()) {
                 stmt.executeUpdate(
                     "ALTER TABLE agenda ADD COLUMN status VARCHAR(10) NOT NULL DEFAULT 'pendente' AFTER prestador_id");
+            }
+        }
+        if (!constraintExists(conn, "agenda", "chk_agenda_status_v2")) {
+            if (constraintExists(conn, "agenda", "chk_agenda_status")) {
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("ALTER TABLE agenda DROP CONSTRAINT chk_agenda_status");
+                }
+            }
+            try (Statement stmt = conn.createStatement()) {
                 stmt.executeUpdate(
-                    "ALTER TABLE agenda ADD CONSTRAINT chk_agenda_status CHECK (status IN ('pendente', 'resolvido'))");
+                    "ALTER TABLE agenda ADD CONSTRAINT chk_agenda_status_v2 " +
+                    "CHECK (status IN ('pendente', 'resolvido', 'cancelado'))");
             }
         }
         if (!columnExists(conn, "agenda", "data_status")) {
             try (Statement stmt = conn.createStatement()) {
                 stmt.executeUpdate("ALTER TABLE agenda ADD COLUMN data_status DATE NULL AFTER status");
+            }
+        }
+        // Prioridade obrigatoria; os compromissos que ja existiam ficam com "media" pelo DEFAULT.
+        if (!columnExists(conn, "agenda", "prioridade")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE agenda ADD COLUMN prioridade VARCHAR(5) NOT NULL DEFAULT 'media' AFTER data_status");
+                stmt.executeUpdate(
+                    "ALTER TABLE agenda ADD CONSTRAINT chk_agenda_prioridade " +
+                    "CHECK (prioridade IN ('alta', 'media', 'baixa'))");
             }
         }
     }
@@ -1604,6 +1745,160 @@ public final class SchemaInitializer {
         try (PreparedStatement insert = conn.prepareStatement(
                 "INSERT INTO autorizacoes_menu (tela_codigo, tela_descricao, nivel, tipo_acesso) VALUES (?, ?, ?, ?)")) {
             for (String[] linha : AUTORIZACOES_MENU_PADRAO) {
+                insert.setString(1, linha[0]);
+                insert.setString(2, linha[1]);
+                insert.setInt(3, Integer.parseInt(linha[2]));
+                insert.setString(4, linha[3]);
+                insert.addBatch();
+            }
+            insert.executeBatch();
+        }
+    }
+
+    /**
+     * O log de operacoes passou a gravar data_hora no horario de Brasilia (antes, no do servidor,
+     * UTC). Converte uma unica vez os registros antigos (UTC - 3h; Brasilia nao tem horario de
+     * verao desde 2019) e marca a coluna com um comentario para nao converter de novo.
+     */
+    private static void ajustarOperacoesLogParaBrasilia(Connection conn) throws SQLException {
+        final String marca = "horario de Brasilia";
+        try (PreparedStatement check = conn.prepareStatement(
+                "SELECT column_comment FROM information_schema.columns " +
+                "WHERE table_schema = DATABASE() AND table_name = 'operacoes_log' AND column_name = 'data_hora'");
+             ResultSet rs = check.executeQuery()) {
+            if (!rs.next() || marca.equals(rs.getString(1))) {
+                return;
+            }
+        }
+        boolean autoCommit = conn.getAutoCommit();
+        conn.setAutoCommit(false);
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("UPDATE operacoes_log SET data_hora = data_hora - INTERVAL 3 HOUR");
+            conn.commit();
+        } catch (SQLException e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            conn.setAutoCommit(autoCommit);
+        }
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("ALTER TABLE operacoes_log MODIFY COLUMN data_hora DATETIME NOT NULL COMMENT '" + marca + "'");
+        }
+    }
+
+    /**
+     * trocar_senha = 'S': no proximo login o usuario so entra depois de criar a propria senha
+     * (TrocarSenhaServlet). Marcado quando o administrador cria o usuario ou define a senha dele;
+     * quem ja existia fica com 'N'.
+     */
+    private static void ensureUsersTrocarSenhaColumn(Connection conn) throws SQLException {
+        if (!columnExists(conn, "users", "trocar_senha")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE users ADD COLUMN trocar_senha CHAR(1) NOT NULL DEFAULT 'N'");
+            }
+        }
+    }
+
+    /**
+     * O login passou a ser pelo nome do usuario, que por isso nao pode se repetir. O indice unico
+     * so e criado se ja nao houver nomes repetidos (na collation da coluna, sem diferenca de
+     * maiusculas/acentos); se houver, fica para a proxima subida e o cadastro (UserDao) ja barra novos.
+     */
+    private static void ensureUsersNameUnico(Connection conn) throws SQLException {
+        if (constraintExists(conn, "users", "uq_users_name")) {
+            return;
+        }
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(
+                     "SELECT 1 FROM users GROUP BY TRIM(name) HAVING COUNT(*) > 1 LIMIT 1")) {
+            if (rs.next()) {
+                java.util.logging.Logger.getLogger(SchemaInitializer.class.getName()).warning(
+                        "Ha nomes de usuario repetidos; indice uq_users_name nao criado.");
+                return;
+            }
+        }
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("UPDATE users SET name = TRIM(name)");
+            stmt.executeUpdate("ALTER TABLE users ADD CONSTRAINT uq_users_name UNIQUE (name)");
+        }
+    }
+
+    /**
+     * Itens de checklist deixaram de ter "nivel" fixo (portaria/zelador/limpeza) e passaram a ser de
+     * um tipo de usuario: portaria -> porteiro(a), zelador -> zelador(a), limpeza -> aux.limpeza; o
+     * que nao achar tipo correspondente fica com porteiro(a). Tambem renomeia a tela no menu de
+     * autorizacoes de "Checklist da portaria" para "Checklist".
+     */
+    private static void ensureChecklistItensTipoUsuario(Connection conn) throws SQLException {
+        if (!columnExists(conn, "checklist_itens", "user_type_id")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE checklist_itens ADD COLUMN user_type_id INT NULL AFTER id");
+                if (columnExists(conn, "checklist_itens", "nivel")) {
+                    stmt.executeUpdate(
+                        "UPDATE checklist_itens i SET user_type_id = (SELECT t.id FROM user_types t WHERE t.name = " +
+                        "CASE i.nivel WHEN 'portaria' THEN 'porteiro(a)' WHEN 'zelador' THEN 'zelador(a)' " +
+                        "WHEN 'limpeza' THEN 'aux.limpeza' END)");
+                }
+            }
+            try (PreparedStatement update = conn.prepareStatement(
+                    "UPDATE checklist_itens SET user_type_id = ? WHERE user_type_id IS NULL")) {
+                update.setInt(1, findTypeId(conn, UserType.PORTEIRO));
+                update.executeUpdate();
+            }
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE checklist_itens MODIFY COLUMN user_type_id INT NOT NULL");
+            }
+        }
+        if (!constraintExists(conn, "checklist_itens", "fk_checklist_itens_user_type")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate(
+                    "ALTER TABLE checklist_itens ADD CONSTRAINT fk_checklist_itens_user_type " +
+                    "FOREIGN KEY (user_type_id) REFERENCES user_types(id)");
+            }
+        }
+        if (constraintExists(conn, "checklist_itens", "chk_checklist_itens_nivel")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE checklist_itens DROP CONSTRAINT chk_checklist_itens_nivel");
+            }
+        }
+        dropColumnIfExists(conn, "checklist_itens", "nivel");
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(
+                "UPDATE autorizacoes_menu SET tela_descricao = 'Checklist' " +
+                "WHERE tela_codigo = 'checklist-portaria' AND tela_descricao = 'Checklist da portaria'");
+        }
+    }
+
+    /** A periodicidade saiu dos itens de checklist: remove o CHECK (o MySQL 8 exige antes) e a coluna. */
+    private static void dropChecklistItensPeriodicidade(Connection conn) throws SQLException {
+        if (constraintExists(conn, "checklist_itens", "chk_checklist_itens_periodicidade")) {
+            try (Statement stmt = conn.createStatement()) {
+                stmt.executeUpdate("ALTER TABLE checklist_itens DROP CONSTRAINT chk_checklist_itens_periodicidade");
+            }
+        }
+        dropColumnIfExists(conn, "checklist_itens", "periodicidade");
+    }
+
+    /**
+     * Tela criada depois do primeiro deploy: seedAutorizacoesMenu nao roda mais (tabela ja tem
+     * linhas), entao semeia so as linhas padrao desta tela, e so enquanto ela nao tiver nenhuma.
+     */
+    private static void seedAutorizacoesTelaNova(Connection conn, String telaCodigo) throws SQLException {
+        try (PreparedStatement check = conn.prepareStatement(
+                "SELECT 1 FROM autorizacoes_menu WHERE tela_codigo = ?")) {
+            check.setString(1, telaCodigo);
+            try (ResultSet rs = check.executeQuery()) {
+                if (rs.next()) {
+                    return;
+                }
+            }
+        }
+        try (PreparedStatement insert = conn.prepareStatement(
+                "INSERT INTO autorizacoes_menu (tela_codigo, tela_descricao, nivel, tipo_acesso) VALUES (?, ?, ?, ?)")) {
+            for (String[] linha : AUTORIZACOES_MENU_PADRAO) {
+                if (!linha[0].equals(telaCodigo)) {
+                    continue;
+                }
                 insert.setString(1, linha[0]);
                 insert.setString(2, linha[1]);
                 insert.setInt(3, Integer.parseInt(linha[2]));

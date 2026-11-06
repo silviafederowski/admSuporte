@@ -2,10 +2,10 @@ package br.com.silsys.admsuporte.servlet;
 
 import br.com.silsys.admsuporte.model.SpreadsheetRow;
 import br.com.silsys.admsuporte.util.CondoPdfGenerator;
+import br.com.silsys.admsuporte.util.DateFormatUtil;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,7 +73,7 @@ public class GoogleFormPdfServlet extends HttpServlet {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             CondoPdfGenerator.generate(selectedRows, buffer);
 
-            String fileName = "condominio-" + LocalDateTime.now().format(FILE_TIMESTAMP) + ".pdf";
+            String fileName = "condominio-" + DateFormatUtil.agora().format(FILE_TIMESTAMP) + ".pdf";
             response.setContentType("application/pdf");
             response.setContentLength(buffer.size());
             // "attachment" faz o navegador baixar o arquivo (pasta Downloads) em vez de

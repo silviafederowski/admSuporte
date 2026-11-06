@@ -83,6 +83,10 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
+        <url-pattern>/trocar-senha</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
         <url-pattern>/prestadores</url-pattern>
     </filter-mapping>
     <filter-mapping>
@@ -123,6 +127,34 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
+        <url-pattern>/agenda/pdf</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/checklist-itens</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/checklist-itens/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/checklist-itens/excluir</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/checklist-portaria</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/checklist-portaria/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/checklist-portaria/pdf</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
         <url-pattern>/operacoes</url-pattern>
     </filter-mapping>
     <filter-mapping>
@@ -156,6 +188,10 @@
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
         <url-pattern>/usuarios/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/usuarios/excluir</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
@@ -201,6 +237,10 @@
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
         <url-pattern>/veiculos/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
+        <url-pattern>/veiculos/pdf</url-pattern>
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
@@ -333,6 +373,52 @@
         <filter-name>Autorizacao_agenda</filter-name>
         <url-pattern>/agenda/excluir</url-pattern>
     </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_agenda</filter-name>
+        <url-pattern>/agenda/pdf</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_checklistItens</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>checklist-itens</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>Autorizacao_checklistItens</filter-name>
+        <url-pattern>/checklist-itens</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_checklistItens</filter-name>
+        <url-pattern>/checklist-itens/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_checklistItens</filter-name>
+        <url-pattern>/checklist-itens/excluir</url-pattern>
+    </filter-mapping>
+
+    <filter>
+        <filter-name>Autorizacao_checklistPortaria</filter-name>
+        <filter-class>br.com.silsys.admsuporte.filter.MenuAutorizacaoFilter</filter-class>
+        <init-param>
+            <param-name>telaCodigo</param-name>
+            <param-value>checklist-portaria</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>Autorizacao_checklistPortaria</filter-name>
+        <url-pattern>/checklist-portaria</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_checklistPortaria</filter-name>
+        <url-pattern>/checklist-portaria/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_checklistPortaria</filter-name>
+        <url-pattern>/checklist-portaria/pdf</url-pattern>
+    </filter-mapping>
 
     <filter>
         <filter-name>Autorizacao_produtos</filter-name>
@@ -391,6 +477,10 @@
     <filter-mapping>
         <filter-name>Autorizacao_usuarios</filter-name>
         <url-pattern>/usuarios/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_usuarios</filter-name>
+        <url-pattern>/usuarios/excluir</url-pattern>
     </filter-mapping>
 
     <filter>
@@ -463,6 +553,10 @@
     <filter-mapping>
         <filter-name>Autorizacao_veiculos</filter-name>
         <url-pattern>/veiculos/form</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>Autorizacao_veiculos</filter-name>
+        <url-pattern>/veiculos/pdf</url-pattern>
     </filter-mapping>
 
     <filter>
@@ -688,6 +782,69 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>ChecklistItemServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.ChecklistItemServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ChecklistItemServlet</servlet-name>
+        <url-pattern>/checklist-itens</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ChecklistItemFormServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.ChecklistItemFormServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ChecklistItemFormServlet</servlet-name>
+        <url-pattern>/checklist-itens/form</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ChecklistItemDeleteServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.ChecklistItemDeleteServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ChecklistItemDeleteServlet</servlet-name>
+        <url-pattern>/checklist-itens/excluir</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ChecklistPortariaServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.ChecklistPortariaServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ChecklistPortariaServlet</servlet-name>
+        <url-pattern>/checklist-portaria</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ChecklistPdfServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.ChecklistPdfServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ChecklistPdfServlet</servlet-name>
+        <url-pattern>/checklist-portaria/pdf</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>ChecklistPortariaFormServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.ChecklistPortariaFormServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>ChecklistPortariaFormServlet</servlet-name>
+        <url-pattern>/checklist-portaria/form</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AgendaPdfServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.AgendaPdfServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AgendaPdfServlet</servlet-name>
+        <url-pattern>/agenda/pdf</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>OperacoesLogServlet</servlet-name>
         <servlet-class>br.com.silsys.admsuporte.servlet.OperacoesLogServlet</servlet-class>
     </servlet>
@@ -778,6 +935,15 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>VeiculoPdfServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.VeiculoPdfServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>VeiculoPdfServlet</servlet-name>
+        <url-pattern>/veiculos/pdf</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>ProcedimentosServlet</servlet-name>
         <servlet-class>br.com.silsys.admsuporte.servlet.ProcedimentosServlet</servlet-class>
     </servlet>
@@ -865,6 +1031,15 @@
     <servlet-mapping>
         <servlet-name>UsuarioFormServlet</servlet-name>
         <url-pattern>/usuarios/form</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>UsuarioDeleteServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.UsuarioDeleteServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UsuarioDeleteServlet</servlet-name>
+        <url-pattern>/usuarios/excluir</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -981,21 +1156,21 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>TrocarSenhaServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.TrocarSenhaServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>TrocarSenhaServlet</servlet-name>
+        <url-pattern>/trocar-senha</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>ForgotPasswordServlet</servlet-name>
         <servlet-class>br.com.silsys.admsuporte.servlet.ForgotPasswordServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>ForgotPasswordServlet</servlet-name>
         <url-pattern>/forgot-password</url-pattern>
-    </servlet-mapping>
-
-    <servlet>
-        <servlet-name>ResetPasswordServlet</servlet-name>
-        <servlet-class>br.com.silsys.admsuporte.servlet.ResetPasswordServlet</servlet-class>
-    </servlet>
-    <servlet-mapping>
-        <servlet-name>ResetPasswordServlet</servlet-name>
-        <url-pattern>/reset-password</url-pattern>
     </servlet-mapping>
 
     <servlet>

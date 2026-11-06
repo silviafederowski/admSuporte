@@ -1,5 +1,6 @@
 package br.com.silsys.admsuporte.servlet;
 
+import br.com.silsys.admsuporte.dao.AutorizacaoMenuDao;
 import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.UserTypeDao;
 import br.com.silsys.admsuporte.model.UserType;
@@ -23,6 +24,7 @@ public class TipoUsuarioFormServlet extends HttpServlet {
     private static final Logger LOGGER = Logger.getLogger(TipoUsuarioFormServlet.class.getName());
 
     private final UserTypeDao userTypeDao = new UserTypeDao();
+    private final AutorizacaoMenuDao autorizacaoMenuDao = new AutorizacaoMenuDao();
     private final OperacaoLogDao operacaoLogDao = new OperacaoLogDao();
 
     @Override
@@ -37,6 +39,8 @@ public class TipoUsuarioFormServlet extends HttpServlet {
                     response.sendRedirect(request.getContextPath() + "/tipos-usuario");
                     return;
                 }
+                request.setAttribute("autorizacoesNivel", autorizacaoMenuDao.listByNivel(tipo.getNivel()));
+                request.setAttribute("nivelAutorizacoes", tipo.getNivel());
             } catch (NumberFormatException | SQLException e) {
                 ErrorMessages.logErro(LOGGER, "tipos-usuario", "Carregar tipo de usuário para edição", e);
                 response.sendRedirect(request.getContextPath() + "/tipos-usuario");
@@ -57,7 +61,7 @@ public class TipoUsuarioFormServlet extends HttpServlet {
 
         Map<String, String> errors = new HashMap<>();
         if (ValidationUtil.isBlank(name)) {
-            errors.put("name", "Informe o nome do tipo de usuário.");
+            errors.put("name", "Informe a descrição do tipo de usuário.");
         }
         Integer nivel = null;
         if (ValidationUtil.isBlank(nivelParam)) {

@@ -23,9 +23,6 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        if (request.getParameter("reset") != null) {
-            request.setAttribute("infoMessage", "Sua senha foi atualizada. Faça login novamente.");
-        }
         forward(request, response);
     }
 
@@ -36,7 +33,7 @@ public class LoginServlet extends HttpServlet {
         String password = request.getParameter("password");
 
         if (identifier == null || identifier.trim().isEmpty() || password == null || password.isEmpty()) {
-            request.setAttribute("formError", "Informe seu e-mail ou telefone e a senha.");
+            request.setAttribute("formError", "Informe seu nome de usuário e a senha.");
             request.setAttribute("identifier", identifier);
             forward(request, response);
             return;
@@ -45,9 +42,7 @@ public class LoginServlet extends HttpServlet {
         try {
             User user = userDao.verifyLogin(identifier, password);
             if (user == null) {
-                boolean pareceEmail = identifier.contains("@");
-                request.setAttribute("formError",
-                        (pareceEmail ? "E-mail" : "Telefone") + " ou senha inválidos.");
+                request.setAttribute("formError", "Nome de usuário ou senha inválidos.");
                 request.setAttribute("identifier", identifier);
                 forward(request, response);
                 return;
@@ -64,6 +59,12 @@ public class LoginServlet extends HttpServlet {
             session.setAttribute("userName", user.getName());
             session.setAttribute("userType", user.getUserTypeName());
             session.setAttribute("userNivel", user.getUserTypeNivel());
+            if (user.isTrocarSenha()) {
+                // Senha definida pelo administrador: o AuthFilter so libera o resto depois da troca.
+                session.setAttribute(TrocarSenhaServlet.ATRIBUTO_SESSAO, Boolean.TRUE);
+                response.sendRedirect(request.getContextPath() + "/trocar-senha");
+                return;
+            }
             response.sendRedirect(request.getContextPath() + "/alerta-servicos");
         } catch (SQLException e) {
             request.setAttribute("formError", "Não foi possível entrar: "

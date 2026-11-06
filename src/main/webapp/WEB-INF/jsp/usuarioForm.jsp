@@ -9,7 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Usuário - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=34">
 </head>
 <body>
 <div class="page">
@@ -28,6 +28,9 @@
                     <button type="submit" form="usuarioForm" class="menu-icon-link" title="Salvar" aria-label="Salvar">💾</button>
                 </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/usuarios" title="Cancelar" aria-label="Cancelar">↩️</a>
+                <c:if test="${!readOnly && podeExcluir}">
+                    <button type="submit" form="usuarioExcluirForm" class="menu-icon-link" title="Excluir" aria-label="Excluir">🗑️</button>
+                </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
@@ -40,8 +43,9 @@
             <input type="hidden" name="id" value="${param.id}">
 
             <div class="field">
-                <label for="name">Nome</label>
+                <label for="name">Nome de usuário</label>
                 <input type="text" id="name" name="name" value="${usuario.name}" ${dis} required>
+                <c:if test="${empty errors.name}"><div class="field-hint">Usado para entrar no sistema; não pode se repetir.</div></c:if>
                 <c:if test="${not empty errors.name}"><div class="field-error">${errors.name}</div></c:if>
             </div>
             <div class="field">
@@ -57,6 +61,7 @@
             <div class="field">
                 <label for="password">${empty param.id ? 'Senha' : 'Nova senha (deixe em branco para não alterar)'}</label>
                 <input type="password" id="password" name="password" placeholder="Mínimo 6 caracteres" ${dis}>
+                <c:if test="${empty errors.password}"><div class="field-hint">Senha provisória: o usuário cria a própria no próximo acesso.</div></c:if>
                 <c:if test="${not empty errors.password}"><div class="field-error">${errors.password}</div></c:if>
             </div>
             <div class="field">
@@ -96,6 +101,22 @@
             </div>
 
         </form>
+
+        <%@ include file="autorizacoesNivel.jspf" %>
+
+        <c:if test="${!readOnly && not empty param.id}">
+            <c:choose>
+                <c:when test="${podeExcluir}">
+                    <form id="usuarioExcluirForm" method="post" action="${pageContext.request.contextPath}/usuarios/excluir"
+                          onsubmit="return confirm('Excluir este usuário? Esta ação não pode ser desfeita.');">
+                        <input type="hidden" name="id" value="${param.id}">
+                    </form>
+                </c:when>
+                <c:when test="${not empty motivoNaoExcluir}">
+                    <p class="field-error" style="color:var(--text-muted);">Exclusão indisponível: ${motivoNaoExcluir}. Para bloquear o acesso, desmarque "Ativo".</p>
+                </c:when>
+            </c:choose>
+        </c:if>
     </div>
 </div>
 </body>

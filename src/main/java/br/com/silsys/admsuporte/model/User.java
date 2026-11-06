@@ -18,6 +18,7 @@ public class User implements Serializable {
     private String userTypeName;
     private int userTypeNivel;
     private boolean ativo = true;
+    private boolean trocarSenha;
 
     public int getId() {
         return id;
@@ -105,5 +106,14 @@ public class User implements Serializable {
 
     public void setAtivo(boolean ativo) {
         this.ativo = ativo;
+    }
+
+    /** Senha definida pelo administrador: no proximo login o usuario precisa criar a propria. */
+    public boolean isTrocarSenha() {
+        return trocarSenha;
+    }
+
+    public void setTrocarSenha(boolean trocarSenha) {
+        this.trocarSenha = trocarSenha;
     }
 }

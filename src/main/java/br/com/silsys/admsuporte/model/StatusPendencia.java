@@ -1,9 +1,10 @@
 package br.com.silsys.admsuporte.model;
 
-/** Situacao de um compromisso da agenda (coluna "status" de agenda): pendente ou resolvido. */
+/** Situacao de um compromisso da agenda (coluna "status" de agenda): pendente, resolvido ou cancelado. */
 public enum StatusPendencia {
     PENDENTE,
-    RESOLVIDO;
+    RESOLVIDO,
+    CANCELADO;
 
     public static StatusPendencia fromDbValue(String value) {
         if (value == null) {
@@ -14,6 +15,8 @@ public enum StatusPendencia {
                 return PENDENTE;
             case "resolvido":
                 return RESOLVIDO;
+            case "cancelado":
+                return CANCELADO;
             default:
                 throw new IllegalArgumentException("Status de pendencia invalido: " + value);
         }
@@ -25,6 +28,8 @@ public enum StatusPendencia {
                 return "pendente";
             case RESOLVIDO:
                 return "resolvido";
+            case CANCELADO:
+                return "cancelado";
             default:
                 throw new IllegalStateException("Status de pendencia nao mapeado: " + this);
         }
@@ -41,6 +46,8 @@ public enum StatusPendencia {
                 return "Pendente";
             case RESOLVIDO:
                 return "Resolvido";
+            case CANCELADO:
+                return "Cancelado";
             default:
                 throw new IllegalStateException("Status de pendencia nao mapeado: " + this);
         }

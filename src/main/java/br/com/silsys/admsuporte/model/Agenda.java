@@ -19,6 +19,8 @@ public class Agenda implements Serializable {
     private Integer prestadorId;
     private StatusPendencia status = StatusPendencia.PENDENTE;
     private LocalDate dataStatus;
+    /** Obrigatoria ao salvar; fica nula so no formulario de um compromisso novo, ate o usuario escolher. */
+    private Prioridade prioridade;
 
     /** Preenchido via join na leitura; nao corresponde a uma coluna propria. */
     private String servicoDescricao;
@@ -84,6 +86,14 @@ public class Agenda implements Serializable {
         this.observacao = observacao;
     }
 
+    public Prioridade getPrioridade() {
+        return prioridade;
+    }
+
+    public void setPrioridade(Prioridade prioridade) {
+        this.prioridade = prioridade;
+    }
+
     public Integer getServicoId() {
         return servicoId;
     }
@@ -137,8 +147,13 @@ public class Agenda implements Serializable {
         this.prestadorNome = prestadorNome;
     }
 
+    /** Compromisso ainda pendente com data anterior a hoje (ficou para tras sem ser resolvido/cancelado). */
+    public boolean isPendenteAnterior() {
+        return status == StatusPendencia.PENDENTE && data != null && data.isBefore(DateFormatUtil.hoje());
+    }
+
     /** Compromisso pendente marcado para hoje (os ja resolvidos nao precisam mais de aviso). */
     public boolean isHoje() {
-        return status != StatusPendencia.RESOLVIDO && data != null && data.isEqual(LocalDate.now());
+        return status == StatusPendencia.PENDENTE && data != null && data.isEqual(DateFormatUtil.hoje());
     }
 }

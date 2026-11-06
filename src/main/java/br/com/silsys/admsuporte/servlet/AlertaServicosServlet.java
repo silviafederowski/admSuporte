@@ -21,7 +21,8 @@ import javax.servlet.http.HttpSession;
 /**
  * Exibido logo apos o login, antes do menu: avisa sobre servicos de manutencao atrasados
  * (nivel <= NIVEL_MAXIMO_ALERTA_ATRASO) e sobre compromissos da agenda para hoje
- * (nivel <= NIVEL_MAXIMO_ALERTA_AGENDADO, mais restrito: so administrador/zelador). Se nao houver
+ * (nivel <= NIVEL_MAXIMO_ALERTA_AGENDADO, mais restrito: so administrador/zelador), com a opcao
+ * de ver tambem os pendentes de datas anteriores. Se nao houver
  * nada para mostrar (ou o nivel do usuario nao se aplicar a nenhum dos dois), passa direto para o menu.
  */
 public class AlertaServicosServlet extends HttpServlet {
@@ -56,11 +57,14 @@ public class AlertaServicosServlet extends HttpServlet {
         }
 
         List<Agenda> agendaHoje = new ArrayList<>();
+        List<Agenda> agendaPendentesAnteriores = new ArrayList<>();
         if (verificaAgendados) {
             try {
                 for (Agenda compromisso : agendaDao.listAll()) {
                     if (compromisso.isHoje()) {
                         agendaHoje.add(compromisso);
+                    } else if (compromisso.isPendenteAnterior()) {
+                        agendaPendentesAnteriores.add(compromisso);
                     }
                 }
             } catch (SQLException e) {
@@ -68,13 +72,14 @@ public class AlertaServicosServlet extends HttpServlet {
             }
         }
 
-        if (servicosAtrasados.isEmpty() && agendaHoje.isEmpty()) {
+        if (servicosAtrasados.isEmpty() && agendaHoje.isEmpty() && agendaPendentesAnteriores.isEmpty()) {
             response.sendRedirect(request.getContextPath() + "/menu");
             return;
         }
 
         request.setAttribute("servicosAtrasados", servicosAtrasados);
         request.setAttribute("agendaHoje", agendaHoje);
+        request.setAttribute("agendaPendentesAnteriores", agendaPendentesAnteriores);
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/alertaServicos.jsp");
         dispatcher.forward(request, response);
     }

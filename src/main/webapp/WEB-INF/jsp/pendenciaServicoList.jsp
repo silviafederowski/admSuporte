@@ -47,6 +47,7 @@
                     <option value="">Todas</option>
                     <option value="pendente" ${statusFiltro == 'pendente' ? 'selected' : ''}>Pendente</option>
                     <option value="resolvido" ${statusFiltro == 'resolvido' ? 'selected' : ''}>Resolvido</option>
+                    <option value="cancelado" ${statusFiltro == 'cancelado' ? 'selected' : ''}>Cancelado</option>
                 </select>
             </div>
             <c:if test="${filtroAtivo}">

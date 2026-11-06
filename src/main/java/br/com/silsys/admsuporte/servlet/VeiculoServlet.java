@@ -37,16 +37,7 @@ public class VeiculoServlet extends HttpServlet {
             request.setAttribute("infoMessage", "Veículos da unidade atualizados com sucesso.");
         }
         try {
-            List<Veiculo> veiculos = veiculoDao.listAllComDetalhes();
-            Map<Integer, String> vagasPorUnidade = new HashMap<>();
-            Map<Integer, String> observacoesPorUnidade = new HashMap<>();
-            for (Veiculo v : veiculos) {
-                v.setVagaAtual(vagasPorUnidade.computeIfAbsent(v.getUnidadeChave(),
-                        chave -> buscarVagaAtual(chave)));
-                v.setVagaObservacao(observacoesPorUnidade.computeIfAbsent(v.getUnidadeChave(),
-                        chave -> buscarVagaObservacao(chave)));
-            }
-            request.setAttribute("veiculos", veiculos);
+            request.setAttribute("veiculos", carregarComVagas(veiculoDao, vagaDao));
         } catch (SQLException e) {
             request.setAttribute("formError", "Não foi possível carregar os veículos: "
                     + ErrorMessages.friendly(LOGGER, "veiculos", "Listar veículos", e));
@@ -55,7 +46,21 @@ public class VeiculoServlet extends HttpServlet {
         dispatcher.forward(request, response);
     }
 
-    private String buscarVagaAtual(int unidadeChave) {
+    /** Linhas da tela (unidade+veiculo) com a vaga atual e a observacao dela; usado tambem pelo PDF. */
+    static List<Veiculo> carregarComVagas(VeiculoDao veiculoDao, VagaDao vagaDao) throws SQLException {
+        List<Veiculo> veiculos = veiculoDao.listAllComDetalhes();
+        Map<Integer, String> vagasPorUnidade = new HashMap<>();
+        Map<Integer, String> observacoesPorUnidade = new HashMap<>();
+        for (Veiculo v : veiculos) {
+            v.setVagaAtual(vagasPorUnidade.computeIfAbsent(v.getUnidadeChave(),
+                    chave -> buscarVagaAtual(vagaDao, chave)));
+            v.setVagaObservacao(observacoesPorUnidade.computeIfAbsent(v.getUnidadeChave(),
+                    chave -> buscarVagaObservacao(vagaDao, chave)));
+        }
+        return veiculos;
+    }
+
+    private static String buscarVagaAtual(VagaDao vagaDao, int unidadeChave) {
         try {
             return String.join(", ", vagaDao.listCodigosVagaAtual(unidadeChave));
         } catch (SQLException e) {
@@ -64,7 +69,7 @@ public class VeiculoServlet extends HttpServlet {
         }
     }
 
-    private String buscarVagaObservacao(int unidadeChave) {
+    private static String buscarVagaObservacao(VagaDao vagaDao, int unidadeChave) {
         try {
             return String.join(", ", vagaDao.listObservacoesVagaAtual(unidadeChave));
         } catch (SQLException e) {

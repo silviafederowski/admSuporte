@@ -1,10 +1,10 @@
 package br.com.silsys.admsuporte.servlet;
 
+import br.com.silsys.admsuporte.util.DateFormatUtil;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.SorteioVagaPdfGenerator;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +44,7 @@ public class SorteioVagaPdfServlet extends HttpServlet {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             SorteioVagaPdfGenerator.generate(linhas, buffer);
 
-            String fileName = "sorteio-vagas-" + LocalDateTime.now().format(FILE_TIMESTAMP) + ".pdf";
+            String fileName = "sorteio-vagas-" + DateFormatUtil.agora().format(FILE_TIMESTAMP) + ".pdf";
             response.setContentType("application/pdf");
             response.setContentLength(buffer.size());
             response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");

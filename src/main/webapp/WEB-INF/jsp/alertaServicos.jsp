@@ -1,6 +1,7 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<c:set var="totalColunas" value="${(empty servicosAtrasados ? 0 : 1) + (empty agendaHoje ? 0 : 1)}" />
+<c:set var="temAgenda" value="${not empty agendaHoje or not empty agendaPendentesAnteriores}" />
+<c:set var="totalColunas" value="${(empty servicosAtrasados ? 0 : 1) + (temAgenda ? 1 : 0)}" />
 <c:set var="multiplasColunas" value="${totalColunas > 1}" />
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -36,18 +37,40 @@
                 </div>
             </c:if>
 
-            <c:if test="${not empty agendaHoje}">
+            <c:if test="${temAgenda}">
                 <div class="alerta-coluna">
                     <p class="subtitle">Compromisso(s) da agenda para hoje</p>
                     <div class="row-list">
                         <c:forEach var="a" items="${agendaHoje}">
-                            <div class="row-item">
+                            <div class="row-item" style="cursor:pointer;" title="Abrir este compromisso na agenda"
+                                 onclick="window.location='${pageContext.request.contextPath}/agenda/form?id=${a.id}'">
                                 <span class="agendado">
                                     <c:if test="${not empty a.horaFormatada}">${a.horaFormatada} - </c:if>${a.assunto}<c:if test="${not empty a.pontoFocal}"> (${a.pontoFocal})</c:if>
                                 </span>
                             </div>
                         </c:forEach>
+                        <c:if test="${empty agendaHoje}">
+                            <div class="row-item"><span>Nenhum compromisso para hoje.</span></div>
+                        </c:if>
                     </div>
+
+                    <c:if test="${not empty agendaPendentesAnteriores}">
+                        <label class="radio-option" style="margin-bottom:8px;">
+                            <input type="checkbox" id="mostrarPendentesAnteriores"
+                                   onchange="document.getElementById('pendentesAnteriores').hidden = !this.checked">
+                            <span>Mostrar pendentes de datas anteriores (${agendaPendentesAnteriores.size()})</span>
+                        </label>
+                        <div id="pendentesAnteriores" class="row-list" hidden>
+                            <c:forEach var="a" items="${agendaPendentesAnteriores}">
+                                <div class="row-item" style="cursor:pointer;" title="Abrir este compromisso na agenda"
+                                     onclick="window.location='${pageContext.request.contextPath}/agenda/form?id=${a.id}'">
+                                    <span class="atrasado">
+                                        ${a.dataFormatada}<c:if test="${not empty a.horaFormatada}"> ${a.horaFormatada}</c:if> - ${a.assunto}<c:if test="${not empty a.pontoFocal}"> (${a.pontoFocal})</c:if>
+                                    </span>
+                                </div>
+                            </c:forEach>
+                        </div>
+                    </c:if>
                 </div>
             </c:if>
         </div>

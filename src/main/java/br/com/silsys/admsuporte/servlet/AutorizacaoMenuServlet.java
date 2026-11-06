@@ -16,20 +16,32 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Lista as autorizacoes de menu (tabela autorizacoes_menu). Regra fixa, independente da propria
- * tabela (para nao criar um problema de "galinha e ovo"): qualquer usuario logado pode consultar;
- * so o sindico (administrador, nivel 0) pode editar - ver AutorizacaoMenuFormServlet.
+ * tabela (para nao criar um problema de "galinha e ovo"): so o nivel 0 acessa a tela (consulta e
+ * edicao); qualquer outro nivel volta para o menu - ver tambem AutorizacaoMenuFormServlet e
+ * AutorizacaoMenuDeleteServlet.
  */
 public class AutorizacaoMenuServlet extends HttpServlet {
 
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = Logger.getLogger(AutorizacaoMenuServlet.class.getName());
+    private static final int NIVEL_SINDICO = 0;
 
     private final AutorizacaoMenuDao autorizacaoMenuDao = new AutorizacaoMenuDao();
     private final UserTypeDao userTypeDao = new UserTypeDao();
 
+    /** Unico nivel com acesso as telas de Autorizacoes. */
+    static boolean isNivelSindico(HttpServletRequest request) {
+        Object nivelAttr = request.getSession().getAttribute("userNivel");
+        return nivelAttr instanceof Integer && (Integer) nivelAttr == NIVEL_SINDICO;
+    }
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!isNivelSindico(request)) {
+            response.sendRedirect(request.getContextPath() + "/menu");
+            return;
+        }
         if (request.getParameter("criado") != null) {
             request.setAttribute("infoMessage", "Autorização criada com sucesso.");
         } else if (request.getParameter("atualizado") != null) {

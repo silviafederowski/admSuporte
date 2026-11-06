@@ -161,7 +161,7 @@ public class Servico implements Serializable {
         if (proximaExecucao == null) {
             return null;
         }
-        return ChronoUnit.DAYS.between(LocalDate.now(), proximaExecucao);
+        return ChronoUnit.DAYS.between(DateFormatUtil.hoje(), proximaExecucao);
     }
 
     /** Calculado em tela: nunca executado ou proxima execucao ja passou. */

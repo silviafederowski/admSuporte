@@ -9,7 +9,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-/** Leitura dos tipos de usuario (administrador, zelador, condomino, colaborador). */
+/** Leitura dos tipos de usuario (administrador(a), zelador(a), condômino(a), porteiro(a) e outros). */
 public class UserTypeDao {
 
     public List<UserType> listAll() throws SQLException {

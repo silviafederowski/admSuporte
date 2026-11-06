@@ -785,6 +785,183 @@ tr.selected-row:hover {
     color: var(--success);
 }
 
+.badge-cancelado {
+    background: rgba(100, 116, 139, 0.15);
+    color: #475569;
+}
+
+.badge-prioridade-alta {
+    background: rgba(220, 38, 38, 0.12);
+    color: var(--error);
+}
+
+.badge-prioridade-media {
+    background: rgba(217, 119, 6, 0.12);
+    color: #B45309;
+}
+
+.badge-prioridade-baixa {
+    background: rgba(37, 99, 235, 0.12);
+    color: #1D4ED8;
+}
+
+/* Checklist: tela mais larga e compacta, em duas colunas (itens | encomendas). */
+.card-checklist {
+    max-width: 1400px;
+    padding: 20px;
+}
+
+.card-checklist .field {
+    margin-bottom: 10px;
+}
+
+.card-checklist .field-row {
+    margin-bottom: 8px;
+}
+
+.card-checklist .data-table th,
+.card-checklist .data-table td {
+    padding: 5px 6px;
+}
+
+.card-checklist textarea {
+    padding: 4px 6px;
+}
+
+/* Linha do topo do checklist: quem fez (esquerda) e verificacao/encerramento (direita). */
+.checklist-topo {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.checklist-topo-lado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.checklist-topo-lado label {
+    margin: 0 0 0 4px;
+}
+
+.checklist-topo-lado .field-hint {
+    margin: 0;
+}
+
+.checklist-topo-lado input,
+.checklist-topo-lado select {
+    padding: 4px 6px;
+}
+
+.checklist-topo-lado .topo-data { width: 140px; }
+.checklist-topo-lado .topo-hora { width: 100px; }
+.checklist-topo-lado .topo-curto { width: 80px; text-align: center; }
+.checklist-topo-lado .topo-nome { width: 130px; }
+.checklist-topo-lado .topo-obs { flex: 1; min-width: 120px; width: auto; }
+.checklist-topo-lado .topo-status { width: 200px; }
+
+.checklist-topo-verificacao {
+    border-left: 1px solid var(--border);
+    padding-left: 12px;
+}
+
+@media (max-width: 900px) {
+    .checklist-topo {
+        grid-template-columns: 1fr;
+    }
+
+    .checklist-topo-verificacao {
+        border-left: none;
+        padding-left: 0;
+    }
+}
+
+.checklist-colunas {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 16px;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .checklist-colunas {
+        grid-template-columns: 1fr;
+    }
+}
+
+.checklist-quantidades {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    margin-bottom: 10px;
+}
+
+.checklist-quantidades label {
+    margin: 0 0 0 4px;
+}
+
+.checklist-quantidades input {
+    width: 70px;
+    text-align: center;
+    padding: 4px;
+    font-weight: 600;
+}
+
+.checklist-quantidades input.estoque-diferente {
+    color: var(--error);
+    border-color: var(--error);
+    background: rgba(220, 38, 38, 0.08);
+}
+
+.checklist-estoque-grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+    gap: 4px 8px;
+}
+
+.checklist-estoque-grade label {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    font-weight: normal;
+    font-size: 13px;
+}
+
+.checklist-estoque-grade span {
+    min-width: 28px;
+}
+
+.checklist-estoque-grade input {
+    width: 48px;
+    text-align: center;
+    padding: 3px 2px;
+}
+
+.agenda-pdf-dialog {
+    border: none;
+    border-radius: 12px;
+    padding: 20px;
+    width: min(360px, calc(100vw - 32px));
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.agenda-pdf-dialog::backdrop {
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.agenda-pdf-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
 @keyframes blink-atrasado {
     0%, 49% { opacity: 1; }
     50%, 100% { opacity: 0.25; }

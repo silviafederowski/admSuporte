@@ -21,8 +21,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * Formulario de criacao/edicao de uma autorizacao de menu. Regra fixa (nao depende da propria
- * tabela): qualquer usuario logado pode consultar (GET); so o sindico (administrador, nivel 0)
- * pode gravar (POST).
+ * tabela): so o nivel 0 abre (GET) e grava (POST).
  */
 public class AutorizacaoMenuFormServlet extends HttpServlet {
 
@@ -37,6 +36,10 @@ public class AutorizacaoMenuFormServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
+        if (!AutorizacaoMenuServlet.isNivelSindico(request)) {
+            response.sendRedirect(request.getContextPath() + "/menu");
+            return;
+        }
         String idParam = request.getParameter("id");
         AutorizacaoMenu autorizacao = new AutorizacaoMenu();
         if (idParam != null && !idParam.trim().isEmpty()) {

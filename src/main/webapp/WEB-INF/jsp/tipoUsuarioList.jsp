@@ -41,7 +41,7 @@
                     <table class="data-table" data-sortable>
                         <thead>
                         <tr>
-                            <th>Nome</th>
+                            <th>Descrição</th>
                             <th>Nível</th>
                         </tr>
                         </thead>
@@ -49,7 +49,8 @@
                         <c:forEach var="t" items="${tipos}">
                             <tr class="clickable-row"
                                 onclick="window.location='${pageContext.request.contextPath}/tipos-usuario/form?id=${t.id}'">
-                                <td>${t.name}</td>
+                                <%-- So a exibicao e em maiusculas: o nome e gravado em minusculas (chave comparada em codigo). --%>
+                                <td style="text-transform:uppercase;">${t.name}</td>
                                 <td>${t.nivelFormatado}</td>
                             </tr>
                         </c:forEach>

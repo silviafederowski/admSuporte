@@ -49,7 +49,22 @@
                 </div>
                 <div class="field">
                     <label for="hora">Hora</label>
-                    <input type="time" id="hora" name="hora" value="${agendaItem.hora}" step="300" ${dis}>
+                    <%-- Horarios de 15 em 15 minutos; uma hora antiga fora dessa grade aparece como opcao extra. --%>
+                    <c:set var="horaAtual" value="${agendaItem.horaFormatada}" />
+                    <c:set var="horaNaGrade" value="${empty horaAtual}" />
+                    <select id="hora" name="hora" ${dis}>
+                        <option value="" ${empty horaAtual ? 'selected' : ''}>Sem hora</option>
+                        <c:forEach var="h" begin="0" end="23">
+                            <c:forEach var="m" begin="0" end="45" step="15">
+                                <c:set var="hm" value="${h lt 10 ? '0' : ''}${h}:${m eq 0 ? '00' : m}" />
+                                <c:if test="${hm eq horaAtual}"><c:set var="horaNaGrade" value="${true}" /></c:if>
+                                <option value="${hm}" ${hm eq horaAtual ? 'selected' : ''}>${hm}</option>
+                            </c:forEach>
+                        </c:forEach>
+                        <c:if test="${!horaNaGrade}">
+                            <option value="${horaAtual}" selected>${horaAtual} (fora da grade)</option>
+                        </c:if>
+                    </select>
                     <c:if test="${not empty errors.hora}"><div class="field-error">${errors.hora}</div></c:if>
                 </div>
                 <div class="field">
@@ -66,6 +81,16 @@
             </div>
 
             <div class="field-row">
+                <div class="field">
+                    <label for="prioridade">Prioridade</label>
+                    <select id="prioridade" name="prioridade" ${dis} required>
+                        <option value="" ${empty agendaItem.prioridade ? 'selected' : ''}>Selecione...</option>
+                        <option value="alta" ${agendaItem.prioridade.dbValue == 'alta' ? 'selected' : ''}>Alta</option>
+                        <option value="media" ${agendaItem.prioridade.dbValue == 'media' ? 'selected' : ''}>Média</option>
+                        <option value="baixa" ${agendaItem.prioridade.dbValue == 'baixa' ? 'selected' : ''}>Baixa</option>
+                    </select>
+                    <c:if test="${not empty errors.prioridade}"><div class="field-error">${errors.prioridade}</div></c:if>
+                </div>
                 <div class="field">
                     <label for="servicoId">Serviço</label>
                     <select id="servicoId" name="servicoId" ${dis} onchange="atualizarCamposServico()">
@@ -96,9 +121,10 @@
             <div class="field-row">
                 <div class="field">
                     <label for="status">Status</label>
-                    <select id="status" name="status" ${dis} onchange="sugerirDataStatus(); atualizarOpcaoAtualizarServico()">
-                        <option value="pendente" ${agendaItem.status.dbValue != 'resolvido' ? 'selected' : ''}>Pendente</option>
+                    <select id="status" name="status" ${dis} onchange="sugerirDataStatus(); atualizarCamposServico()">
+                        <option value="pendente" ${agendaItem.status.dbValue != 'resolvido' && agendaItem.status.dbValue != 'cancelado' ? 'selected' : ''}>Pendente</option>
                         <option value="resolvido" ${agendaItem.status.dbValue == 'resolvido' ? 'selected' : ''}>Resolvido</option>
+                        <option value="cancelado" ${agendaItem.status.dbValue == 'cancelado' ? 'selected' : ''}>Cancelado</option>
                     </select>
                     <c:if test="${not empty errors.status}"><div class="field-error">${errors.status}</div></c:if>
                 </div>
@@ -160,7 +186,7 @@
         });
 
         var temServico = !!servicoId;
-        prestadorSelect.required = temServico;
+        prestadorSelect.required = temServico && document.getElementById('status').value === 'resolvido';
         if (!READ_ONLY) {
             prestadorSelect.disabled = !temServico;
         }
@@ -181,9 +207,9 @@
         });
     }
 
-    /* Ao marcar como resolvido, sugere a data de hoje (o usuario pode trocar depois). */
+    /* Ao marcar como resolvido ou cancelado, sugere a data de hoje (o usuario pode trocar depois). */
     function sugerirDataStatus() {
-        if (document.getElementById('status').value !== 'resolvido') {
+        if (document.getElementById('status').value === 'pendente') {
             return;
         }
         var hoje = new Date();

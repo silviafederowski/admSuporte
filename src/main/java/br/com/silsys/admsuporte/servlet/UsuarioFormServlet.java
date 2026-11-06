@@ -1,5 +1,6 @@
 package br.com.silsys.admsuporte.servlet;
 
+import br.com.silsys.admsuporte.dao.AutorizacaoMenuDao;
 import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.UserDao;
 import br.com.silsys.admsuporte.dao.UserTypeDao;
@@ -30,6 +31,7 @@ public class UsuarioFormServlet extends HttpServlet {
 
     private final UserDao userDao = new UserDao();
     private final UserTypeDao userTypeDao = new UserTypeDao();
+    private final AutorizacaoMenuDao autorizacaoMenuDao = new AutorizacaoMenuDao();
     private final OperacaoLogDao operacaoLogDao = new OperacaoLogDao();
 
     @Override
@@ -46,6 +48,19 @@ public class UsuarioFormServlet extends HttpServlet {
                     return;
                 }
                 usuario = found;
+                if (found.getUserTypeId() > 0) {
+                    request.setAttribute("autorizacoesNivel", autorizacaoMenuDao.listByNivel(found.getUserTypeNivel()));
+                    request.setAttribute("nivelAutorizacoes", found.getUserTypeNivel());
+                }
+                Object loggedUserId = request.getSession().getAttribute("userId");
+                String motivo = userDao.motivoNaoExcluir(found,
+                        loggedUserId instanceof Integer ? (Integer) loggedUserId : null);
+                request.setAttribute("podeExcluir", motivo == null);
+                request.setAttribute("motivoNaoExcluir", motivo);
+                if (request.getParameter("naoExcluido") != null && motivo != null) {
+                    request.setAttribute("errors", java.util.Collections.singletonMap("form",
+                            "Não foi possível excluir: " + motivo + "."));
+                }
             } catch (NumberFormatException | SQLException e) {
                 ErrorMessages.logErro(LOGGER, "usuarios", "Carregar usuário para edição", e);
                 response.sendRedirect(request.getContextPath() + "/usuarios");
@@ -104,14 +119,20 @@ public class UsuarioFormServlet extends HttpServlet {
                 String usuarioLogado = (String) session.getAttribute("userName");
                 if (isEdit) {
                     userDao.updateUser(id, name, email, phone, userTypeId, ativo);
-                    if (password != null && !password.isEmpty()) {
-                        userDao.updatePassword(id, password);
-                    }
                     operacaoLogDao.registrar(usuarioLogado, "Usuários", "Editar usuário: " + name.trim());
+                    if (password != null && !password.isEmpty()) {
+                        // Toda senha definida aqui e provisoria (inclusive a do proprio usuario logado):
+                        // no proximo acesso, o usuario cria a dele (TrocarSenhaServlet).
+                        userDao.updatePassword(id, password, true);
+                        // So o evento vai para o log, nunca a senha.
+                        operacaoLogDao.registrar(usuarioLogado, "Usuários", "Definir senha provisória do usuário: "
+                                + name.trim() + " (troca obrigatória no próximo acesso)");
+                    }
                     response.sendRedirect(request.getContextPath() + "/usuarios?atualizado=1");
                 } else {
                     userDao.createUser(name, email, phone, password, userTypeId);
-                    operacaoLogDao.registrar(usuarioLogado, "Usuários", "Criar usuário: " + name.trim());
+                    operacaoLogDao.registrar(usuarioLogado, "Usuários", "Criar usuário: " + name.trim()
+                            + " (com senha provisória; troca obrigatória no primeiro acesso)");
                     response.sendRedirect(request.getContextPath() + "/usuarios?criado=1");
                 }
                 return;

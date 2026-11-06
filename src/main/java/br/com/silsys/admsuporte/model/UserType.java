@@ -6,10 +6,11 @@ public class UserType implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    public static final String ADMINISTRADOR = "administrador";
-    public static final String ZELADOR = "zelador";
-    public static final String CONDOMINO = "condomino";
-    public static final String COLABORADOR = "colaborador";
+    // Nomes exatos dos tipos padrao em user_types (o SchemaInitializer garante que existam).
+    public static final String ADMINISTRADOR = "administrador(a)";
+    public static final String ZELADOR = "zelador(a)";
+    public static final String CONDOMINO = "condômino(a)";
+    public static final String PORTEIRO = "porteiro(a)";
 
     /** Acima deste nivel, o usuario so pode consultar telas; escrita (criar/editar/excluir) fica bloqueada. */
     public static final int NIVEL_MAXIMO_ESCRITA = 9;
@@ -26,6 +27,10 @@ public class UserType implements Serializable {
 
     /** Ate este nivel (inclusive), a tela de Documentos tambem mostra os arquivos da subpasta "procedimentos" dentro de "ParaWeb" (nivel < 6: so administrador e zelador). */
     public static final int NIVEL_MAXIMO_SUBPASTA_PROCEDIMENTOS = 5;
+
+    /** Tipos que, no Checklist, veem os itens de todos os tipos e os checklists de todos os usuarios. */
+    public static final java.util.Set<String> TIPOS_CHECKLIST_TODOS = java.util.Collections.unmodifiableSet(
+            new java.util.HashSet<>(java.util.Arrays.asList(ADMINISTRADOR, ZELADOR, "síndico(a)")));
 
     private int id;
     private String name;

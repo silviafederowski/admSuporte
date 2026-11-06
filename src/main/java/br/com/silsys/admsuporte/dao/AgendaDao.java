@@ -1,6 +1,7 @@
 package br.com.silsys.admsuporte.dao;
 
 import br.com.silsys.admsuporte.model.Agenda;
+import br.com.silsys.admsuporte.model.Prioridade;
 import br.com.silsys.admsuporte.model.StatusPendencia;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.sql.Connection;
@@ -24,7 +25,7 @@ public class AgendaDao {
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "INSERT INTO agenda (data, hora, ponto_focal, assunto, observacao, servico_id, prestador_id, " +
-                     "status, data_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                     "status, data_status, prioridade) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                      Statement.RETURN_GENERATED_KEYS)) {
             bindParams(stmt, a);
             stmt.executeUpdate();
@@ -41,7 +42,7 @@ public class AgendaDao {
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
                      "UPDATE agenda SET data = ?, hora = ?, ponto_focal = ?, assunto = ?, observacao = ?, " +
-                     "servico_id = ?, prestador_id = ?, status = ?, data_status = ? WHERE id = ?")) {
+                     "servico_id = ?, prestador_id = ?, status = ?, data_status = ?, prioridade = ? WHERE id = ?")) {
             int nextIndex = bindParams(stmt, a);
             stmt.setInt(nextIndex, a.getId());
             stmt.executeUpdate();
@@ -100,7 +101,8 @@ public class AgendaDao {
         } else {
             stmt.setDate(9, Date.valueOf(a.getDataStatus()));
         }
-        return 10;
+        stmt.setString(10, (a.getPrioridade() != null ? a.getPrioridade() : Prioridade.MEDIA).dbValue());
+        return 11;
     }
 
     private void setNullableInt(PreparedStatement stmt, int index, Integer value) throws SQLException {
@@ -128,6 +130,7 @@ public class AgendaDao {
         a.setStatus(StatusPendencia.fromDbValue(rs.getString("status")));
         Date dataStatus = rs.getDate("data_status");
         a.setDataStatus(dataStatus != null ? dataStatus.toLocalDate() : null);
+        a.setPrioridade(Prioridade.fromDbValue(rs.getString("prioridade")));
         a.setServicoDescricao(rs.getString("servico_descricao"));
         a.setPrestadorNome(rs.getString("prestador_nome"));
         return a;
