@@ -86,6 +86,19 @@ public class Agenda implements Serializable {
         this.observacao = observacao;
     }
 
+    /** Linhas nao vazias da observacao, para a lista mostrar cada uma comecando com "- ". */
+    public java.util.List<String> getObservacaoLinhas() {
+        java.util.List<String> linhas = new java.util.ArrayList<>();
+        if (observacao != null) {
+            for (String linha : observacao.split("\\r?\\n")) {
+                if (!linha.trim().isEmpty()) {
+                    linhas.add(linha.trim());
+                }
+            }
+        }
+        return linhas;
+    }
+
     public Prioridade getPrioridade() {
         return prioridade;
     }

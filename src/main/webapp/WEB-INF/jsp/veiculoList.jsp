@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Veículos - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -20,6 +20,9 @@
                 <c:if test="${not empty veiculos}">
                     <a class="menu-icon-link" href="javascript:void(0)" onclick="gerarPdfVeiculos()" title="Gerar PDF da lista filtrada" aria-label="Gerar PDF da lista filtrada">🖨️</a>
                 </c:if>
+                <c:set var="logTela" value="Veículos" />
+                <c:set var="logRegistro" value="" />
+                <%@ include file="logsIcone.jspf" %>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
@@ -105,6 +108,6 @@
         window.location = '${pageContext.request.contextPath}/veiculos/pdf?linhas=' + encodeURIComponent(chaves.join(','));
     }
 </script>
-<script src="${pageContext.request.contextPath}/js/dataTable.js?v=7"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=9"></script>
 </body>
 </html>

@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Histórico / Pendências de serviços - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -18,6 +18,9 @@
             </div>
             <div class="toolbar-actions">
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/servicos" title="Voltar para serviços" aria-label="Voltar para serviços">↩️</a>
+                <c:set var="logTela" value="Agenda,Serviços" />
+                <c:set var="logRegistro" value="" />
+                <%@ include file="logsIcone.jspf" %>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
@@ -102,6 +105,6 @@
 
     </div>
 </div>
-<script src="${pageContext.request.contextPath}/js/dataTable.js?v=7"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=9"></script>
 </body>
 </html>

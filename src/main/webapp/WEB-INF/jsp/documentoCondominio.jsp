@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dados do condomínio - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -14,6 +14,9 @@
         <p class="condominio-nome" style="text-align:left;">${nomeCondominio}</p>
         <div class="toolbar">
             <h1 class="title" style="text-align:left;margin:0;">Dados do condomínio</h1>
+            <c:set var="logTela" value="Dados do condomínio" />
+            <c:set var="logRegistro" value="" />
+            <%@ include file="logsIcone.jspf" %>
             <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
         </div>
         <p class="subtitle">PDF com os dados cadastrais do condomínio.</p>

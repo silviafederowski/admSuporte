@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tipo de usuário - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=34">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -29,6 +29,9 @@
                 <c:if test="${!readOnly && not empty param.id}">
                     <button type="submit" form="tipoUsuarioExcluirForm" class="menu-icon-link" title="Excluir" aria-label="Excluir">🗑️</button>
                 </c:if>
+                <c:set var="logTela" value="Tipos de usuário" />
+                <c:set var="logRegistro" value="${empty param.id ? '' : 'tipo-usuario:'.concat(param.id)}" />
+                <%@ include file="logsIcone.jspf" %>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>

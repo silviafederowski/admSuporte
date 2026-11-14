@@ -3,6 +3,7 @@ package br.com.silsys.admsuporte.servlet;
 import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.UnidadeDao;
 import br.com.silsys.admsuporte.model.Unidade;
+import br.com.silsys.admsuporte.util.Alteracoes;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -100,12 +101,14 @@ public class UnidadeFormServlet extends HttpServlet {
             try {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 if (isEdit) {
+                    Unidade antes = unidadeDao.findByChave(unidade.getChave());
                     unidadeDao.update(unidade);
-                    operacaoLogDao.registrar(usuarioLogado, "Unidades", "Editar unidade: " + unidade.getCodigo());
+                    operacaoLogDao.registrar(usuarioLogado, "Unidades", "Editar unidade: " + unidade.getCodigo(), "unidade:" + unidade.getChave(),
+                            Alteracoes.descrever(antes, unidadeDao.findByChave(unidade.getChave())));
                     response.sendRedirect(request.getContextPath() + "/unidades?atualizado=1");
                 } else {
                     unidadeDao.create(unidade);
-                    operacaoLogDao.registrar(usuarioLogado, "Unidades", "Criar unidade: " + unidade.getCodigo());
+                    operacaoLogDao.registrar(usuarioLogado, "Unidades", "Criar unidade: " + unidade.getCodigo(), "unidade:" + unidade.getChave());
                     response.sendRedirect(request.getContextPath() + "/unidades?criado=1");
                 }
                 return;

@@ -5,6 +5,7 @@ import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.SchemaInitializer;
 import br.com.silsys.admsuporte.dao.UserTypeDao;
 import br.com.silsys.admsuporte.model.AutorizacaoMenu;
+import br.com.silsys.admsuporte.util.Alteracoes;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -119,14 +120,16 @@ public class AutorizacaoMenuFormServlet extends HttpServlet {
             try {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 if (isEdit) {
+                    AutorizacaoMenu antes = autorizacaoMenuDao.findById(autorizacao.getId());
                     autorizacaoMenuDao.update(autorizacao);
                     operacaoLogDao.registrar(usuarioLogado, "Autorizações",
-                            "Editar autorização: " + autorizacao.getTelaCodigo() + " / nível " + autorizacao.getNivel());
+                            "Editar autorização: " + autorizacao.getTelaCodigo() + " / nível " + autorizacao.getNivel(), "autorizacao:" + autorizacao.getId(),
+                            Alteracoes.descrever(antes, autorizacaoMenuDao.findById(autorizacao.getId())));
                     response.sendRedirect(request.getContextPath() + "/autorizacoes?atualizado=1");
                 } else {
-                    autorizacaoMenuDao.create(autorizacao);
+                    autorizacao.setId(autorizacaoMenuDao.create(autorizacao));
                     operacaoLogDao.registrar(usuarioLogado, "Autorizações",
-                            "Criar autorização: " + autorizacao.getTelaCodigo() + " / nível " + autorizacao.getNivel());
+                            "Criar autorização: " + autorizacao.getTelaCodigo() + " / nível " + autorizacao.getNivel(), "autorizacao:" + autorizacao.getId());
                     response.sendRedirect(request.getContextPath() + "/autorizacoes?criado=1");
                 }
                 return;

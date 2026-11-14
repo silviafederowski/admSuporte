@@ -5,6 +5,7 @@ import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.UserTypeDao;
 import br.com.silsys.admsuporte.model.ChecklistItem;
 import br.com.silsys.admsuporte.model.UserType;
+import br.com.silsys.admsuporte.util.Alteracoes;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -95,12 +96,14 @@ public class ChecklistItemFormServlet extends HttpServlet {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 String resumo = item.getUserTypeName() + ": " + item.getDescricao();
                 if (isEdit) {
+                    ChecklistItem antes = checklistItemDao.findById(item.getId());
                     checklistItemDao.update(item);
-                    operacaoLogDao.registrar(usuarioLogado, TELA_LOG, "Editar item de checklist: " + resumo);
+                    operacaoLogDao.registrar(usuarioLogado, TELA_LOG, "Editar item de checklist: " + resumo, "checklist-item:" + item.getId(),
+                            Alteracoes.descrever(antes, checklistItemDao.findById(item.getId())));
                     response.sendRedirect(request.getContextPath() + "/checklist-itens?atualizado=1");
                 } else {
-                    checklistItemDao.create(item);
-                    operacaoLogDao.registrar(usuarioLogado, TELA_LOG, "Criar item de checklist: " + resumo);
+                    item.setId(checklistItemDao.create(item));
+                    operacaoLogDao.registrar(usuarioLogado, TELA_LOG, "Criar item de checklist: " + resumo, "checklist-item:" + item.getId());
                     response.sendRedirect(request.getContextPath() + "/checklist-itens?criado=1");
                 }
                 return;

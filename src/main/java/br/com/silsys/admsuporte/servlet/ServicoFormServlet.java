@@ -6,6 +6,7 @@ import br.com.silsys.admsuporte.dao.ServicoDao;
 import br.com.silsys.admsuporte.model.PeriodicidadeUnidade;
 import br.com.silsys.admsuporte.model.Servico;
 import br.com.silsys.admsuporte.model.TipoServico;
+import br.com.silsys.admsuporte.util.Alteracoes;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -160,14 +161,16 @@ public class ServicoFormServlet extends HttpServlet {
             try {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 if (isEdit) {
+                    Servico antes = servicoDao.findById(servico.getId());
                     servicoDao.update(servico);
                     operacaoLogDao.registrar(usuarioLogado, "Serviços de manutenção",
-                            "Editar serviço: " + servico.getDescricao());
+                            "Editar serviço: " + servico.getDescricao(), "servico:" + servico.getId(),
+                            Alteracoes.descrever(antes, servicoDao.findById(servico.getId())));
                     response.sendRedirect(request.getContextPath() + "/servicos?atualizado=1");
                 } else {
-                    servicoDao.create(servico);
+                    servico.setId(servicoDao.create(servico));
                     operacaoLogDao.registrar(usuarioLogado, "Serviços de manutenção",
-                            "Criar serviço: " + servico.getDescricao());
+                            "Criar serviço: " + servico.getDescricao(), "servico:" + servico.getId());
                     response.sendRedirect(request.getContextPath() + "/servicos?criado=1");
                 }
                 return;

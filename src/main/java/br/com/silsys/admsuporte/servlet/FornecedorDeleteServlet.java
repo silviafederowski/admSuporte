@@ -31,7 +31,7 @@ public class FornecedorDeleteServlet extends HttpServlet {
             fornecedorDao.delete(id);
             String descricao = fornecedor != null ? fornecedor.getNomeRazaoSocial() : ("id " + id);
             String usuarioLogado = (String) request.getSession().getAttribute("userName");
-            operacaoLogDao.registrar(usuarioLogado, "Fornecedores", "Excluir fornecedor: " + descricao);
+            operacaoLogDao.registrar(usuarioLogado, "Fornecedores", "Excluir fornecedor: " + descricao, "fornecedor:" + id);
         } catch (NumberFormatException | SQLException e) {
             ErrorMessages.logErro(LOGGER, "fornecedores", "Excluir fornecedor", e);
         }

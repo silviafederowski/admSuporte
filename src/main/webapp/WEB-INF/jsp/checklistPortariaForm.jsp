@@ -11,7 +11,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Checklist - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=38">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -31,6 +31,9 @@
                     <button type="submit" id="botaoSalvar" form="checklistForm" class="menu-icon-link" title="Salvar" aria-label="Salvar">💾</button>
                 </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/checklist-portaria" title="Cancelar" aria-label="Cancelar">↩️</a>
+                <c:set var="logTela" value="Checklist" />
+                <c:set var="logRegistro" value="${novo ? '' : 'checklist:'.concat(data).concat('|').concat(usuarioChecklist)}" />
+                <%@ include file="logsIcone.jspf" %>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
@@ -63,6 +66,8 @@
 
         <form id="checklistForm" method="post" action="${pageContext.request.contextPath}/checklist-portaria/form">
             <input type="hidden" name="modo" value="${novo ? 'novo' : 'editar'}">
+            <%-- Estado do checklist quando a tela foi aberta: se mudar ate gravar, a gravacao e recusada. --%>
+            <c:if test="${!novo}"><input type="hidden" name="impressao" value="${impressao}"></c:if>
 
             <%-- Uma linha: quem fez (data, hora, usuario) a esquerda; status e validacao a direita.
                  Os campos da validacao pertencem ao formulario "validarForm" (atributo form), fora deste. --%>
@@ -230,6 +235,7 @@
             <form id="validarForm" method="post" action="${pageContext.request.contextPath}/checklist-portaria/form"
                   onsubmit="return confirm('Depois de validado, o checklist não poderá mais ser alterado. Concluir a validação?');">
                 <input type="hidden" name="modo" value="validar">
+                <input type="hidden" name="impressao" value="${impressao}">
                 <input type="hidden" name="data" value="${data}">
                 <input type="hidden" name="usuario" value="${usuarioChecklist}">
             </form>
@@ -247,9 +253,12 @@
             var total = 0;
             campos.forEach(function (c) {
                 var n = parseInt(c.value, 10);
-                if (!isNaN(n) && n > 0) {
+                var temEncomenda = !isNaN(n) && n > 0;
+                if (temEncomenda) {
                     total += n;
                 }
+                // Unidade com encomenda: numero da unidade e quantidade em verde (zero/vazio volta ao normal).
+                c.closest('label').classList.toggle('com-encomenda', temEncomenda);
             });
             soma.value = total;
             var noApp = parseInt(app.value, 10);
@@ -263,6 +272,27 @@
     })();
 </script>
 <c:if test="${modoValidacao}">
+<script>
+    /* Validacao: tambem so conclui com todos os itens confirmados ou com motivo (o servidor confere de novo). */
+    document.getElementById('validarForm').addEventListener('submit', function (ev) {
+        var faltando = [];
+        document.querySelectorAll('tr.linha-item').forEach(function (tr) {
+            var cb = tr.querySelector('input[name="val"]');
+            var obs = tr.querySelector('textarea[name^="valobs_"]');
+            if (cb && !cb.checked && (!obs || obs.value.trim() === '')) {
+                faltando.push(tr.children[1].textContent.trim());
+                tr.style.outline = '2px solid var(--error)';
+            } else {
+                tr.style.outline = '';
+            }
+        });
+        if (faltando.length) {
+            ev.preventDefault();
+            ev.stopImmediatePropagation();
+            alert('Em cada item, confirme a validação ou escreva o motivo de não confirmar. Faltam:\n- ' + faltando.join('\n- '));
+        }
+    }, true);
+</script>
 <script>
     /* Validacao: em cada item, confirmado OU motivo de nao confirmar (mesma regra do servidor). */
     document.querySelectorAll('tr.linha-item').forEach(function (tr) {
@@ -289,6 +319,26 @@
 </script>
 </c:if>
 <c:if test="${editavel}">
+<script>
+    /* So salva com todos os itens checados ou com observacao (o servidor confere de novo). */
+    document.getElementById('checklistForm').addEventListener('submit', function (ev) {
+        var faltando = [];
+        document.querySelectorAll('tr.linha-item').forEach(function (tr) {
+            var cb = tr.querySelector('input[name="checado"]');
+            var obs = tr.querySelector('textarea[name^="obs_"]');
+            if (cb && !cb.checked && (!obs || obs.value.trim() === '')) {
+                faltando.push(tr.children[1].textContent.trim());
+                tr.style.outline = '2px solid var(--error)';
+            } else {
+                tr.style.outline = '';
+            }
+        });
+        if (faltando.length) {
+            ev.preventDefault();
+            alert('Todos os itens precisam estar checados ou com observação. Faltam:\n- ' + faltando.join('\n- '));
+        }
+    });
+</script>
 <script>
     /* Em cada linha: item checado nao tem observacao (apaga e bloqueia o campo); digitar uma
        observacao desfaz a checagem. O servidor aplica a mesma regra ao gravar. */

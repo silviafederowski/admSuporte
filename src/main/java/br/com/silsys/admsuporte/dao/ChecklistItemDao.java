@@ -38,12 +38,17 @@ public class ChecklistItemDao {
         }
     }
 
-    public void create(ChecklistItem item) throws SQLException {
+    /** Inclui o item e devolve o id gerado (-1 se o banco nao informar). */
+    public int create(ChecklistItem item) throws SQLException {
         try (Connection conn = ConnectionProvider.getConnection();
              PreparedStatement stmt = conn.prepareStatement(
-                     "INSERT INTO checklist_itens (user_type_id, descricao) VALUES (?, ?)")) {
+                     "INSERT INTO checklist_itens (user_type_id, descricao) VALUES (?, ?)",
+                     java.sql.Statement.RETURN_GENERATED_KEYS)) {
             bindParams(stmt, item);
             stmt.executeUpdate();
+            try (ResultSet keys = stmt.getGeneratedKeys()) {
+                return keys.next() ? keys.getInt(1) : -1;
+            }
         }
     }
 

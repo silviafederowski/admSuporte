@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Documentos - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -84,6 +84,6 @@
 
     </div>
 </div>
-<script src="${pageContext.request.contextPath}/js/dataTable.js?v=7"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=9"></script>
 </body>
 </html>

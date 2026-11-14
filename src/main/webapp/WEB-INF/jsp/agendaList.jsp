@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Agenda - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=34">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -23,6 +23,9 @@
                 <c:if test="${not empty agenda}">
                     <a class="menu-icon-link" href="javascript:void(0)" onclick="abrirDialogoPdf()" title="Gerar PDF da lista filtrada" aria-label="Gerar PDF da lista filtrada">🖨️</a>
                 </c:if>
+                <c:set var="logTela" value="Agenda" />
+                <c:set var="logRegistro" value="" />
+                <%@ include file="logsIcone.jspf" %>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
@@ -44,24 +47,26 @@
                         <thead>
                         <tr>
                             <%-- Titulos abreviados (nome completo no title) para sobrar espaco para a observacao. --%>
-                            <th data-sort-desc title="Data e hora">Data</th>
-                            <th title="Ponto focal">P.focal</th>
+                            <th data-sort-desc title="Data e hora" style="width:64px;">Data</th>
+                            <th title="Ponto focal" style="width:70px;">P.focal</th>
                             <th title="Prioridade">Prior.</th>
                             <th>Assunto</th>
                             <th title="Serviço e prestador">Serv.</th>
-                            <th>Status</th>
-                            <th style="min-width: 320px;" title="Observação">Obs.</th>
+                            <%-- Abre filtrada nos pendentes (o campo de filtro mostra "Pendente", destacado; apagar mostra todos). --%>
+                            <th data-filtro-inicial="Pendente">Status</th>
+                            <th style="min-width: 380px;" title="Observação">Obs.</th>
                             <c:if test="${!readOnly}"><th data-no-sort></th></c:if>
                         </tr>
                         </thead>
                         <tbody>
                         <c:forEach var="a" items="${agenda}">
-                            <tr class="clickable-row" data-id="${a.id}"
+                            <tr class="clickable-row" data-id="${a.id}" data-data="${a.data}"
                                 onclick="window.location='${pageContext.request.contextPath}/agenda/form?id=${a.id}'">
                                 <%-- Hora abaixo da data; o espaco antes do <br> mantem o texto "dd/mm/aa HH:mm",
                                      que o dataTable.js ordena e filtra como data e hora. --%>
-                                <td style="white-space:nowrap;">${a.dataFormatada}<c:if test="${not empty a.horaFormatada}"> <br>${a.horaFormatada}</c:if></td>
-                                <td>${a.pontoFocal}</td>
+                                <td style="white-space:nowrap;padding-left:4px;padding-right:4px;">${a.dataFormatada}<c:if test="${not empty a.horaFormatada}"> <br>${a.horaFormatada}</c:if></td>
+                                <%-- Coluna estreita: o ponto focal quebra em qualquer parte do texto (ate duas linhas). --%>
+                                <td style="padding-left:4px;padding-right:4px;"><div class="agenda-ponto-focal">${a.pontoFocal}</div></td>
                                 <td><span class="badge badge-prioridade-${a.prioridade.dbValue}">${a.prioridade.label}</span></td>
                                 <td>${a.assunto}</td>
                                 <td>
@@ -77,7 +82,15 @@
                                     <span class="badge badge-${a.status.dbValue}">${a.status.label}</span>
                                     <c:if test="${not empty a.dataStatus}"><br>${a.dataStatusFormatada}</c:if>
                                 </td>
-                                <td>${empty a.observacao ? '-' : a.observacao}</td>
+                                <%-- Cada linha da observacao comeca com "- ". --%>
+                                <td style="text-align:left;">
+                                    <c:choose>
+                                        <c:when test="${empty a.observacaoLinhas}">-</c:when>
+                                        <c:otherwise>
+                                            <c:forEach var="linha" items="${a.observacaoLinhas}" varStatus="st">- <c:out value="${linha}" /><c:if test="${!st.last}"><br></c:if></c:forEach>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </td>
                                 <c:if test="${!readOnly}">
                                     <td onclick="event.stopPropagation();">
                                         <form method="post" action="${pageContext.request.contextPath}/agenda/excluir"
@@ -153,6 +166,33 @@
         return true;
     }
 </script>
-<script src="${pageContext.request.contextPath}/js/dataTable.js?v=7"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=9"></script>
+<script>
+    /* Ao abrir, rola ate o compromisso de hoje ou o de data mais proxima de hoje (entre os visiveis
+       com o filtro atual) e o destaca por alguns segundos. Roda depois do dataTable.js ordenar/filtrar. */
+    window.addEventListener('load', function () {
+        var hoje = new Date('${hoje}T00:00:00').getTime();
+        var melhor = null;
+        var melhorDif = Infinity;
+        document.querySelectorAll('table.data-table tbody tr[data-data]').forEach(function (tr) {
+            var iso = tr.getAttribute('data-data');
+            if (!iso || tr.style.display === 'none') {
+                return;
+            }
+            var dif = Math.abs(new Date(iso + 'T00:00:00').getTime() - hoje);
+            if (dif < melhorDif) {
+                melhorDif = dif;
+                melhor = tr;
+            }
+        });
+        if (melhor) {
+            melhor.scrollIntoView({ block: 'center' });
+            melhor.classList.add('linha-destaque');
+            setTimeout(function () {
+                melhor.classList.remove('linha-destaque');
+            }, 3000);
+        }
+    });
+</script>
 </body>
 </html>

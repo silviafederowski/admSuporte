@@ -65,7 +65,7 @@ public class TrocarSenhaServlet extends HttpServlet {
                 userDao.updatePassword(userId, password, false);
                 session.removeAttribute(ATRIBUTO_SESSAO);
                 operacaoLogDao.registrar((String) session.getAttribute("userName"), "Usuários",
-                        "Trocar a própria senha (troca obrigatória)");
+                        "Trocar a própria senha (troca obrigatória)", "usuario:" + userId);
                 response.sendRedirect(request.getContextPath() + "/alerta-servicos");
                 return;
             }

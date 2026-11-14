@@ -45,7 +45,7 @@ public class UsuarioDeleteServlet extends HttpServlet {
             }
             userDao.delete(id);
             operacaoLogDao.registrar((String) session.getAttribute("userName"), "Usuários",
-                    "Excluir usuário: " + user.getName() + " (" + user.getEmail() + ")");
+                    "Excluir usuário: " + user.getName() + " (" + user.getEmail() + ")", "usuario:" + id);
             response.sendRedirect(request.getContextPath() + "/usuarios?excluido=1");
         } catch (NumberFormatException e) {
             response.sendRedirect(request.getContextPath() + "/usuarios");

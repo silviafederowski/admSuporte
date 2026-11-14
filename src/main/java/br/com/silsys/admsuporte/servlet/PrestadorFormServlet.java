@@ -6,6 +6,7 @@ import br.com.silsys.admsuporte.dao.ServicoDao;
 import br.com.silsys.admsuporte.model.Classificacao;
 import br.com.silsys.admsuporte.model.Prestador;
 import br.com.silsys.admsuporte.model.TipoServico;
+import br.com.silsys.admsuporte.util.Alteracoes;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -131,14 +132,16 @@ public class PrestadorFormServlet extends HttpServlet {
             try {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 if (isEdit) {
+                    Prestador antes = prestadorDao.findById(prestador.getId());
                     prestadorDao.update(prestador);
                     operacaoLogDao.registrar(usuarioLogado, "Prestadores",
-                            "Editar prestador: " + prestador.getNomeRazaoSocial());
+                            "Editar prestador: " + prestador.getNomeRazaoSocial(), "prestador:" + prestador.getId(),
+                            Alteracoes.descrever(antes, prestadorDao.findById(prestador.getId())));
                     response.sendRedirect(request.getContextPath() + "/prestadores?atualizado=1");
                 } else {
-                    prestadorDao.create(prestador);
+                    prestador.setId(prestadorDao.create(prestador));
                     operacaoLogDao.registrar(usuarioLogado, "Prestadores",
-                            "Criar prestador: " + prestador.getNomeRazaoSocial());
+                            "Criar prestador: " + prestador.getNomeRazaoSocial(), "prestador:" + prestador.getId());
                     response.sendRedirect(request.getContextPath() + "/prestadores?criado=1");
                 }
                 return;

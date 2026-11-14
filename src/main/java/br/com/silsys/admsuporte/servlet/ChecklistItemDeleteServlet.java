@@ -32,7 +32,7 @@ public class ChecklistItemDeleteServlet extends HttpServlet {
             if (item != null) {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 operacaoLogDao.registrar(usuarioLogado, "Itens de checklist",
-                        "Excluir item de checklist: " + item.getUserTypeName() + ": " + item.getDescricao());
+                        "Excluir item de checklist: " + item.getUserTypeName() + ": " + item.getDescricao(), "checklist-item:" + id);
             }
             response.sendRedirect(request.getContextPath() + "/checklist-itens?excluido=1");
         } catch (NumberFormatException e) {

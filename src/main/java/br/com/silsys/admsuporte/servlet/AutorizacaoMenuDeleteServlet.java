@@ -40,7 +40,7 @@ public class AutorizacaoMenuDeleteServlet extends HttpServlet {
             if (autorizacao != null) {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 operacaoLogDao.registrar(usuarioLogado, "Autorizações",
-                        "Excluir autorização: " + autorizacao.getTelaCodigo() + " / nível " + autorizacao.getNivel());
+                        "Excluir autorização: " + autorizacao.getTelaCodigo() + " / nível " + autorizacao.getNivel(), "autorizacao:" + id);
             }
         } catch (NumberFormatException | SQLException e) {
             ErrorMessages.logErro(LOGGER, "autorizacoes", "Excluir autorização", e);

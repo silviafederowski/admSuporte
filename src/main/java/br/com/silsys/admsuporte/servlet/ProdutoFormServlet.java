@@ -6,6 +6,7 @@ import br.com.silsys.admsuporte.dao.ProdutoDao;
 import br.com.silsys.admsuporte.dao.TipoProdutoDao;
 import br.com.silsys.admsuporte.model.Produto;
 import br.com.silsys.admsuporte.model.UnidadeMedidaProduto;
+import br.com.silsys.admsuporte.util.Alteracoes;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -195,14 +196,16 @@ public class ProdutoFormServlet extends HttpServlet {
             try {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 if (isEdit) {
+                    Produto antes = produtoDao.findById(produto.getId());
                     produtoDao.update(produto);
                     operacaoLogDao.registrar(usuarioLogado, "Produtos",
-                            "Editar produto: " + produto.getDescricao());
+                            "Editar produto: " + produto.getDescricao(), "produto:" + produto.getId(),
+                            Alteracoes.descrever(antes, produtoDao.findById(produto.getId())));
                     response.sendRedirect(request.getContextPath() + "/produtos?atualizado=1");
                 } else {
-                    produtoDao.create(produto);
+                    produto.setId(produtoDao.create(produto));
                     operacaoLogDao.registrar(usuarioLogado, "Produtos",
-                            "Criar produto: " + produto.getDescricao());
+                            "Criar produto: " + produto.getDescricao(), "produto:" + produto.getId());
                     response.sendRedirect(request.getContextPath() + "/produtos?criado=1");
                 }
                 return;

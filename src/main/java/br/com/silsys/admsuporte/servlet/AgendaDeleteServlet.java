@@ -31,7 +31,7 @@ public class AgendaDeleteServlet extends HttpServlet {
             agendaDao.delete(id);
             String descricao = agenda != null ? agenda.getAssunto() : ("id " + id);
             String usuarioLogado = (String) request.getSession().getAttribute("userName");
-            operacaoLogDao.registrar(usuarioLogado, "Agenda", "Excluir compromisso: " + descricao);
+            operacaoLogDao.registrar(usuarioLogado, "Agenda", "Excluir compromisso: " + descricao, "agenda:" + id);
         } catch (NumberFormatException | SQLException e) {
             ErrorMessages.logErro(LOGGER, "agenda", "Excluir compromisso", e);
         }

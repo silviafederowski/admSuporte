@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Serviço de manutenção - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -34,6 +34,9 @@
                 <c:if test="${!readOnly && not empty param.id}">
                     <button type="submit" form="servicoExcluirForm" class="menu-icon-link" title="Excluir" aria-label="Excluir">🗑️</button>
                 </c:if>
+                <c:set var="logTela" value="Serviços de manutenção,Serviços" />
+                <c:set var="logRegistro" value="${empty param.id ? '' : 'servico:'.concat(param.id)}" />
+                <%@ include file="logsIcone.jspf" %>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>

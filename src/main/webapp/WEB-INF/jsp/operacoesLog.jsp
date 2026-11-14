@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Log de operações - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -37,6 +37,7 @@
                             <th>Usuário</th>
                             <th>Tela</th>
                             <th>Operação</th>
+                            <th style="min-width:280px;">Alteração (antes → depois)</th>
                             <th>Data/hora</th>
                         </tr>
                         </thead>
@@ -46,6 +47,7 @@
                                 <td>${log.usuario}</td>
                                 <td>${log.tela}</td>
                                 <td>${log.operacao}</td>
+                                <td style="text-align:left;" class="log-alteracao"><c:out value="${empty log.alteracao ? '-' : log.alteracao}" /></td>
                                 <td>${log.dataHoraFormatada}</td>
                             </tr>
                         </c:forEach>
@@ -57,6 +59,6 @@
 
     </div>
 </div>
-<script src="${pageContext.request.contextPath}/js/dataTable.js?v=7"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=9"></script>
 </body>
 </html>

@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Tipo de produto - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -32,6 +32,9 @@
                 <c:if test="${!readOnly && not empty param.id}">
                     <button type="submit" form="tipoProdutoExcluirForm" class="menu-icon-link" title="Excluir" aria-label="Excluir">🗑️</button>
                 </c:if>
+                <c:set var="logTela" value="Tipos de produtos" />
+                <c:set var="logRegistro" value="${empty param.id ? '' : 'tipo-produto:'.concat(param.id)}" />
+                <%@ include file="logsIcone.jspf" %>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>

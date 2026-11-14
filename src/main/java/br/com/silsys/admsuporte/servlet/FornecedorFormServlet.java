@@ -5,6 +5,7 @@ import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.TipoProdutoDao;
 import br.com.silsys.admsuporte.model.Classificacao;
 import br.com.silsys.admsuporte.model.Fornecedor;
+import br.com.silsys.admsuporte.util.Alteracoes;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -118,14 +119,16 @@ public class FornecedorFormServlet extends HttpServlet {
             try {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 if (isEdit) {
+                    Fornecedor antes = fornecedorDao.findById(fornecedor.getId());
                     fornecedorDao.update(fornecedor);
                     operacaoLogDao.registrar(usuarioLogado, "Fornecedores",
-                            "Editar fornecedor: " + fornecedor.getNomeRazaoSocial());
+                            "Editar fornecedor: " + fornecedor.getNomeRazaoSocial(), "fornecedor:" + fornecedor.getId(),
+                            Alteracoes.descrever(antes, fornecedorDao.findById(fornecedor.getId())));
                     response.sendRedirect(request.getContextPath() + "/fornecedores?atualizado=1");
                 } else {
-                    fornecedorDao.create(fornecedor);
+                    fornecedor.setId(fornecedorDao.create(fornecedor));
                     operacaoLogDao.registrar(usuarioLogado, "Fornecedores",
-                            "Criar fornecedor: " + fornecedor.getNomeRazaoSocial());
+                            "Criar fornecedor: " + fornecedor.getNomeRazaoSocial(), "fornecedor:" + fornecedor.getId());
                     response.sendRedirect(request.getContextPath() + "/fornecedores?criado=1");
                 }
                 return;

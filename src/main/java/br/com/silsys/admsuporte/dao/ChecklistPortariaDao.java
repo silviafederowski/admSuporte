@@ -168,12 +168,15 @@ public class ChecklistPortariaDao {
             try {
                 try (PreparedStatement cab = conn.prepareStatement(
                         "UPDATE checklist_cabecalho SET verificado_por = ?, verificado_em = ?, verificacao_obs = ?, " +
-                        "status = 'validada' WHERE data = ? AND usuario = ? AND status = 'disponivel'")) {
+                        "status = 'validada' WHERE data = ? AND usuario = ? AND status = 'disponivel' " +
+                        // Quem incluiu nunca valida o proprio checklist (o servlet ja barra; isto garante no banco).
+                        "AND TRIM(usuario) <> TRIM(?)")) {
                     cab.setString(1, validadoPor);
                     cab.setTimestamp(2, Timestamp.valueOf(validadoEm));
                     cab.setString(3, obsGeral);
                     cab.setDate(4, Date.valueOf(data));
                     cab.setString(5, usuario);
+                    cab.setString(6, validadoPor);
                     if (cab.executeUpdate() == 0) {
                         conn.rollback();
                         return false;

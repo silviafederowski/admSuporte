@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Compromisso - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -30,6 +30,9 @@
                 <c:if test="${!readOnly && not empty param.id}">
                     <button type="submit" form="agendaExcluirForm" class="menu-icon-link" title="Excluir" aria-label="Excluir">🗑️</button>
                 </c:if>
+                <c:set var="logTela" value="Agenda" />
+                <c:set var="logRegistro" value="${empty param.id ? '' : 'agenda:'.concat(param.id)}" />
+                <%@ include file="logsIcone.jspf" %>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
@@ -49,16 +52,19 @@
                 </div>
                 <div class="field">
                     <label for="hora">Hora</label>
-                    <%-- Horarios de 15 em 15 minutos; uma hora antiga fora dessa grade aparece como opcao extra. --%>
+                    <%-- Horarios das 07:00 as 19:00, de meia em meia hora; uma hora antiga fora dessa grade
+                         aparece como opcao extra (e continua aceita enquanto nao for trocada). --%>
                     <c:set var="horaAtual" value="${agendaItem.horaFormatada}" />
                     <c:set var="horaNaGrade" value="${empty horaAtual}" />
                     <select id="hora" name="hora" ${dis}>
                         <option value="" ${empty horaAtual ? 'selected' : ''}>Sem hora</option>
-                        <c:forEach var="h" begin="0" end="23">
-                            <c:forEach var="m" begin="0" end="45" step="15">
-                                <c:set var="hm" value="${h lt 10 ? '0' : ''}${h}:${m eq 0 ? '00' : m}" />
-                                <c:if test="${hm eq horaAtual}"><c:set var="horaNaGrade" value="${true}" /></c:if>
-                                <option value="${hm}" ${hm eq horaAtual ? 'selected' : ''}>${hm}</option>
+                        <c:forEach var="h" begin="7" end="19">
+                            <c:forEach var="m" begin="0" end="30" step="30">
+                                <c:if test="${h lt 19 || m eq 0}">
+                                    <c:set var="hm" value="${h lt 10 ? '0' : ''}${h}:${m eq 0 ? '00' : m}" />
+                                    <c:if test="${hm eq horaAtual}"><c:set var="horaNaGrade" value="${true}" /></c:if>
+                                    <option value="${hm}" ${hm eq horaAtual ? 'selected' : ''}>${hm}</option>
+                                </c:if>
                             </c:forEach>
                         </c:forEach>
                         <c:if test="${!horaNaGrade}">

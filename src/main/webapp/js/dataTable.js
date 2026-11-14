@@ -60,13 +60,52 @@
         return normalize(a).localeCompare(normalize(b), 'pt-BR');
     }
 
-    function initDataTable(table) {
+    /**
+     * Voltando de uma tela "filha" desta lista (ex.: /agenda/form -> /agenda, ao salvar ou cancelar)?
+     * Nesse caso a lista volta com os filtros e a ordenacao de antes; entrando de outro lugar (menu),
+     * abre no padrao da tela.
+     */
+    function voltandoDeTelaFilha() {
+        try {
+            if (!document.referrer) {
+                return false;
+            }
+            var origem = new URL(document.referrer);
+            // Tela filha (/agenda/form) ou a propria lista (ex.: excluir pela lista volta para ela).
+            return origem.origin === location.origin
+                && (origem.pathname === location.pathname || origem.pathname.indexOf(location.pathname + '/') === 0);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function lerEstado(chave) {
+        try {
+            var bruto = sessionStorage.getItem(chave);
+            return bruto ? JSON.parse(bruto) : null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function gravarEstado(chave, estado) {
+        try {
+            sessionStorage.setItem(chave, JSON.stringify(estado));
+        } catch (e) {
+            // sem sessionStorage (ex.: navegacao privada): so nao lembra o estado
+        }
+    }
+
+    function initDataTable(table, tableIndex) {
         var thead = table.tHead;
         var tbody = table.tBodies[0];
         if (!thead || !tbody) {
             return;
         }
         var headerRow = thead.rows[0];
+        // Filtros/ordenacao desta tabela nesta tela, guardados na sessao do navegador.
+        var chaveEstado = 'dataTable:' + location.pathname + ':' + tableIndex;
+        var estadoSalvo = voltandoDeTelaFilha() ? lerEstado(chaveEstado) : null;
 
         var filterRow = document.createElement('tr');
         filterRow.className = 'filter-row';
@@ -79,6 +118,12 @@
                 input.placeholder = 'Filtrar';
                 input.setAttribute('aria-label', 'Filtrar esta coluna');
                 input.className = 'column-filter';
+                // Indice da coluna no proprio campo: colunas sem filtro (data-no-sort) nao deslocam as demais.
+                input.setAttribute('data-col', index);
+                // data-filtro-inicial no <th>: a tabela ja abre filtrada por esse texto (o campo mostra o filtro).
+                if (th.hasAttribute('data-filtro-inicial')) {
+                    input.value = th.getAttribute('data-filtro-inicial');
+                }
                 input.addEventListener('input', applyFilters);
                 filterCell.appendChild(input);
 
@@ -92,15 +137,30 @@
         thead.appendChild(filterRow);
 
         var sortState = { column: -1, ascending: true };
+        var restaurando = true;
 
         function getRows() {
             return Array.prototype.slice.call(tbody.rows);
         }
 
+        function salvarEstado() {
+            if (restaurando) {
+                return;
+            }
+            var filtros = {};
+            Array.prototype.forEach.call(filterRow.querySelectorAll('.column-filter'), function (input) {
+                filtros[input.getAttribute('data-col')] = input.value;
+            });
+            gravarEstado(chaveEstado, { filtros: filtros, ordem: sortState });
+        }
+
         function applyFilters() {
             var inputs = filterRow.querySelectorAll('.column-filter');
-            var filters = Array.prototype.map.call(inputs, function (input) {
-                return normalize(input.value);
+            var filters = [];
+            Array.prototype.forEach.call(inputs, function (input) {
+                filters[Number(input.getAttribute('data-col'))] = normalize(input.value);
+                // Filtro em uso fica destacado, para ficar claro que a lista nao esta completa.
+                input.classList.toggle('filtro-ativo', input.value.trim() !== '');
             });
             getRows().forEach(function (row) {
                 var visible = true;
@@ -111,6 +171,7 @@
                 });
                 row.style.display = visible ? '' : 'none';
             });
+            salvarEstado();
         }
 
         function sortByColumn(index, forceAscending) {
@@ -133,14 +194,28 @@
                     th.classList.add(ascending ? 'sort-asc' : 'sort-desc');
                 }
             });
+            salvarEstado();
         }
 
-        // Coluna marcada com data-sort-desc no <th>: a tabela ja abre ordenada por ela, decrescente.
-        Array.prototype.forEach.call(headerRow.cells, function (th, index) {
-            if (th.hasAttribute('data-sort-desc')) {
-                sortByColumn(index, false);
+        if (estadoSalvo) {
+            // Volta como estava antes de abrir o registro: mesmos filtros e mesma ordenacao.
+            Array.prototype.forEach.call(filterRow.querySelectorAll('.column-filter'), function (input) {
+                var valor = estadoSalvo.filtros ? estadoSalvo.filtros[input.getAttribute('data-col')] : undefined;
+                input.value = typeof valor === 'string' ? valor : '';
+            });
+            if (estadoSalvo.ordem && estadoSalvo.ordem.column >= 0) {
+                sortByColumn(estadoSalvo.ordem.column, !!estadoSalvo.ordem.ascending);
             }
-        });
+        } else {
+            // Coluna marcada com data-sort-desc no <th>: a tabela ja abre ordenada por ela, decrescente.
+            Array.prototype.forEach.call(headerRow.cells, function (th, index) {
+                if (th.hasAttribute('data-sort-desc')) {
+                    sortByColumn(index, false);
+                }
+            });
+        }
+        restaurando = false;
+        applyFilters();
     }
 
     /**
@@ -202,7 +277,9 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         var tables = document.querySelectorAll('table.data-table[data-sortable]');
-        Array.prototype.forEach.call(tables, initDataTable);
+        Array.prototype.forEach.call(tables, function (table, i) {
+            initDataTable(table, i);
+        });
 
         var tableWraps = document.querySelectorAll('.table-wrap');
         Array.prototype.forEach.call(tableWraps, initStickyScrollbar);

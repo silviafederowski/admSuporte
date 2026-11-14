@@ -3,6 +3,7 @@ package br.com.silsys.admsuporte.servlet;
 import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.TipoProdutoDao;
 import br.com.silsys.admsuporte.model.TipoProduto;
+import br.com.silsys.admsuporte.util.Alteracoes;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -75,12 +76,14 @@ public class TipoProdutoFormServlet extends HttpServlet {
             try {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 if (isEdit) {
+                    TipoProduto antes = tipoProdutoDao.findById(tipo.getId());
                     tipoProdutoDao.update(tipo);
-                    operacaoLogDao.registrar(usuarioLogado, "Tipos de produtos", "Editar tipo de produto: " + tipo.getDescricao());
+                    operacaoLogDao.registrar(usuarioLogado, "Tipos de produtos", "Editar tipo de produto: " + tipo.getDescricao(), "tipo-produto:" + tipo.getId(),
+                            Alteracoes.descrever(antes, tipoProdutoDao.findById(tipo.getId())));
                     response.sendRedirect(request.getContextPath() + "/tipos-produtos?atualizado=1");
                 } else {
-                    tipoProdutoDao.create(tipo);
-                    operacaoLogDao.registrar(usuarioLogado, "Tipos de produtos", "Criar tipo de produto: " + tipo.getDescricao());
+                    tipo.setId(tipoProdutoDao.create(tipo));
+                    operacaoLogDao.registrar(usuarioLogado, "Tipos de produtos", "Criar tipo de produto: " + tipo.getDescricao(), "tipo-produto:" + tipo.getId());
                     response.sendRedirect(request.getContextPath() + "/tipos-produtos?criado=1");
                 }
                 return;

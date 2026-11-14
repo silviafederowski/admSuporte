@@ -9,6 +9,7 @@ import br.com.silsys.admsuporte.dao.VagaDao;
 import br.com.silsys.admsuporte.dao.VeiculoDao;
 import br.com.silsys.admsuporte.model.Unidade;
 import br.com.silsys.admsuporte.model.Veiculo;
+import br.com.silsys.admsuporte.util.Alteracoes;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -134,11 +135,17 @@ public class VeiculoFormServlet extends HttpServlet {
 
         if (errors.isEmpty()) {
             try {
+                String veiculosAntes = descreverVeiculos(unidadeChave);
+                String obsAntes = String.join(", ", vagaDao.listObservacoesVagaAtual(unidadeChave));
                 veiculoDao.salvarPorUnidade(unidadeChave, paraSalvar);
                 vagaDao.atualizarObservacao(vagaDao.listChavesVagaAtual(unidadeChave), obs);
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 operacaoLogDao.registrar(usuarioLogado, "Veículos",
-                        "Atualizar veículos da unidade: " + unidade.getCodigo());
+                        "Atualizar veículos da unidade: " + unidade.getCodigo(), "veiculos-unidade:" + unidadeChave,
+                        Alteracoes.juntar(
+                                Alteracoes.campo("Veículos", veiculosAntes, descreverVeiculos(unidadeChave)),
+                                Alteracoes.campo("Observação da vaga", obsAntes,
+                                        String.join(", ", vagaDao.listObservacoesVagaAtual(unidadeChave)))));
                 response.sendRedirect(request.getContextPath() + "/veiculos?atualizado=1");
                 return;
             } catch (SQLException e) {
@@ -199,5 +206,21 @@ public class VeiculoFormServlet extends HttpServlet {
 
         RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/veiculoForm.jsp");
         dispatcher.forward(request, response);
+    }
+
+    /** Veiculos da unidade como texto para o log ("COR MARCA MODELO PLACAS, ..."), ou null se nenhum. */
+    private String descreverVeiculos(int unidadeChave) throws SQLException {
+        List<String> descricoes = new ArrayList<>();
+        for (Veiculo v : veiculoDao.listAllComDetalhes()) {
+            if (v.getUnidadeChave() == unidadeChave && !ValidationUtil.isBlank(v.getPlacas())) {
+                descricoes.add(String.join(" ", naoNulo(v.getCorDescricao()), naoNulo(v.getMarcaDescricao()),
+                        naoNulo(v.getModeloDescricao()), v.getPlacas().trim()).replaceAll(" +", " ").trim());
+            }
+        }
+        return descricoes.isEmpty() ? null : String.join(", ", descricoes);
+    }
+
+    private static String naoNulo(String valor) {
+        return valor == null ? "" : valor;
     }
 }

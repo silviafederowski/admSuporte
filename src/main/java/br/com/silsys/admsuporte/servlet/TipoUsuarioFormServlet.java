@@ -4,6 +4,7 @@ import br.com.silsys.admsuporte.dao.AutorizacaoMenuDao;
 import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.UserTypeDao;
 import br.com.silsys.admsuporte.model.UserType;
+import br.com.silsys.admsuporte.util.Alteracoes;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
 import java.io.IOException;
@@ -99,12 +100,14 @@ public class TipoUsuarioFormServlet extends HttpServlet {
             try {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 if (isEdit) {
+                    UserType antes = userTypeDao.findById(tipo.getId());
                     userTypeDao.update(tipo);
-                    operacaoLogDao.registrar(usuarioLogado, "Tipos de usuário", "Editar tipo de usuário: " + tipo.getName());
+                    operacaoLogDao.registrar(usuarioLogado, "Tipos de usuário", "Editar tipo de usuário: " + tipo.getName(), "tipo-usuario:" + tipo.getId(),
+                            Alteracoes.descrever(antes, userTypeDao.findById(tipo.getId())));
                     response.sendRedirect(request.getContextPath() + "/tipos-usuario?atualizado=1");
                 } else {
-                    userTypeDao.create(tipo);
-                    operacaoLogDao.registrar(usuarioLogado, "Tipos de usuário", "Criar tipo de usuário: " + tipo.getName());
+                    tipo.setId(userTypeDao.create(tipo));
+                    operacaoLogDao.registrar(usuarioLogado, "Tipos de usuário", "Criar tipo de usuário: " + tipo.getName(), "tipo-usuario:" + tipo.getId());
                     response.sendRedirect(request.getContextPath() + "/tipos-usuario?criado=1");
                 }
                 return;

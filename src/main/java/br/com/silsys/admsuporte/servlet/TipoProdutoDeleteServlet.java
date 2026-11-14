@@ -31,7 +31,7 @@ public class TipoProdutoDeleteServlet extends HttpServlet {
             tipoProdutoDao.delete(id);
             if (tipo != null) {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
-                operacaoLogDao.registrar(usuarioLogado, "Tipos de produtos", "Excluir tipo de produto: " + tipo.getDescricao());
+                operacaoLogDao.registrar(usuarioLogado, "Tipos de produtos", "Excluir tipo de produto: " + tipo.getDescricao(), "tipo-produto:" + id);
             }
             response.sendRedirect(request.getContextPath() + "/tipos-produtos?excluido=1");
         } catch (NumberFormatException e) {

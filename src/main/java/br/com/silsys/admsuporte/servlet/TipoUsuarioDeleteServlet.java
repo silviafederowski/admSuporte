@@ -31,7 +31,7 @@ public class TipoUsuarioDeleteServlet extends HttpServlet {
             userTypeDao.delete(id);
             if (tipo != null) {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
-                operacaoLogDao.registrar(usuarioLogado, "Tipos de usuário", "Excluir tipo de usuário: " + tipo.getName());
+                operacaoLogDao.registrar(usuarioLogado, "Tipos de usuário", "Excluir tipo de usuário: " + tipo.getName(), "tipo-usuario:" + id);
             }
             response.sendRedirect(request.getContextPath() + "/tipos-usuario?excluido=1");
         } catch (NumberFormatException e) {

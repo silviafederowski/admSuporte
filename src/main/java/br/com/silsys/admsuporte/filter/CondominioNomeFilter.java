@@ -1,6 +1,7 @@
 package br.com.silsys.admsuporte.filter;
 
 import br.com.silsys.admsuporte.dao.AppAssetDao;
+import br.com.silsys.admsuporte.servlet.LogsServlet;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.logging.Level;
@@ -11,6 +12,7 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Disponibiliza o nome do condominio (app_assets, chave "nome_condominio") como atributo de
@@ -45,6 +47,16 @@ public class CondominioNomeFilter implements Filter {
             }
         }
         request.setAttribute("nomeCondominio", nome);
+        // Icone 📜 de log nas telas (logsIcone.jspf): so para quem pode ver o "Log de operacoes".
+        if (request instanceof HttpServletRequest) {
+            HttpServletRequest http = (HttpServletRequest) request;
+            String path = http.getServletPath();
+            boolean estatico = path.startsWith("/css/") || path.startsWith("/js/") || path.startsWith("/logo")
+                    || path.startsWith("/img/");
+            if (!estatico && http.getSession(false) != null && http.getSession(false).getAttribute("userId") != null) {
+                request.setAttribute("podeVerLogs", LogsServlet.podeVerLogs(http));
+            }
+        }
         chain.doFilter(request, response);
     }
 

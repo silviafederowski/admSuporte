@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Checklist - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=34">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -21,6 +21,9 @@
                     <a class="menu-icon-link" href="${pageContext.request.contextPath}/checklist-portaria/form" title="Novo checklist" aria-label="Novo checklist">➕</a>
                 </c:if>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/checklist-portaria/pdf" title="PDF do checklist em branco, para preencher à mão" aria-label="PDF do checklist em branco">🖨️</a>
+                <c:set var="logTela" value="Checklist" />
+                <c:set var="logRegistro" value="" />
+                <%@ include file="logsIcone.jspf" %>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
@@ -61,7 +64,7 @@
                             <tr class="clickable-row" onclick="window.location='${urlChecklist}'">
                                 <td onclick="event.stopPropagation();">
                                     <%-- Validar: so "disponivel para validacao" e nunca o proprio autor (o servidor confere de novo). --%>
-                                    <c:if test="${!readOnly && r.status == 'disponivel' && r.usuario != sessionScope.userName}">
+                                    <c:if test="${!readOnly && r.status == 'disponivel' && r.usuario.trim().toLowerCase() != sessionScope.userName.trim().toLowerCase()}">
                                         <c:url var="urlValidar" value="/checklist-portaria/form">
                                             <c:param name="data" value="${r.data}" />
                                             <c:param name="usuario" value="${r.usuario}" />
@@ -93,6 +96,6 @@
         </c:choose>
     </div>
 </div>
-<script src="${pageContext.request.contextPath}/js/dataTable.js?v=7"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=9"></script>
 </body>
 </html>

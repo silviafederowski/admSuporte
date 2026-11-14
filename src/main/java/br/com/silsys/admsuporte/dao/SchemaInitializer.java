@@ -152,6 +152,19 @@ public final class SchemaInitializer {
             ensureUsersNameUnico(conn);
             ensureUsersTrocarSenhaColumn(conn);
             ajustarOperacoesLogParaBrasilia(conn);
+            if (!columnExists(conn, "operacoes_log", "registro")) {
+                // Referencia do registro alterado (ex.: "agenda:12"), para o historico de cada item.
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("ALTER TABLE operacoes_log ADD COLUMN registro VARCHAR(100) NULL");
+                    stmt.executeUpdate("ALTER TABLE operacoes_log ADD INDEX idx_operacoes_log_registro (registro)");
+                }
+            }
+            if (!columnExists(conn, "operacoes_log", "alteracao")) {
+                // Nas edicoes, o que mudou (campo: antes -> depois); vazio em inclusoes e exclusoes.
+                try (Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("ALTER TABLE operacoes_log ADD COLUMN alteracao TEXT NULL AFTER registro");
+                }
+            }
             ensureChecklistItensTipoUsuario(conn);
             // Validacao do checklist por um colega do mesmo tipo de usuario (ou por quem ve todos):
             // quem/quando/observacao geral no cabecalho (colunas verificado_*), mais o status.
@@ -227,6 +240,7 @@ public final class SchemaInitializer {
             seedAutorizacoesMenu(conn);
             seedAutorizacoesTelaNova(conn, "checklist-itens");
             seedAutorizacoesTelaNova(conn, "checklist-portaria");
+            vincularLogsAntigosAosRegistros(conn);
         }
     }
 
@@ -343,7 +357,10 @@ public final class SchemaInitializer {
                 "  tela VARCHAR(100) NOT NULL," +
                 "  operacao VARCHAR(255) NOT NULL," +
                 "  data_hora DATETIME NOT NULL COMMENT 'horario de Brasilia'," +
-                "  INDEX idx_operacoes_log_data_hora (data_hora)" +
+                "  registro VARCHAR(100) NULL," +
+                "  alteracao TEXT NULL COMMENT 'edicoes: campo antes -> depois'," +
+                "  INDEX idx_operacoes_log_data_hora (data_hora)," +
+                "  INDEX idx_operacoes_log_registro (registro)" +
                 ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
             stmt.executeUpdate(
@@ -1259,6 +1276,59 @@ public final class SchemaInitializer {
                 "UPDATE agenda SET ponto_focal = 'TUKKA' WHERE ponto_focal IS NULL OR TRIM(ponto_focal) = ''");
             // Corrige a grafia antiga "TUKA" (com um K so).
             stmt.executeUpdate("UPDATE agenda SET ponto_focal = 'TUKKA' WHERE UPPER(TRIM(ponto_focal)) = 'TUKA'");
+        }
+    }
+
+    /**
+     * Registros de cada tela para ligar o log antigo: {tabela, coluna id, expressao do nome, prefixo
+     * da referencia, objeto como aparece no texto do log}. A ordem importa: "veiculos da unidade"
+     * vem antes de "unidade", porque "% unidade: 101" tambem casaria com o texto dos veiculos.
+     */
+    private static final String[][] LOG_REGISTROS = {
+        {"agenda", "id", "assunto", "agenda:", "compromisso"},
+        {"fornecedores", "id", "nome_razao_social", "fornecedor:", "fornecedor"},
+        {"prestadores", "id", "nome_razao_social", "prestador:", "prestador"},
+        {"produtos", "id", "descricao", "produto:", "produto"},
+        {"produtos_tipo", "id", "descricao", "tipo-produto:", "tipo de produto"},
+        {"servicos", "id", "descricao", "servico:", "serviço"},
+        {"user_types", "id", "name", "tipo-usuario:", "tipo de usuário"},
+        {"users", "id", "name", "usuario:", "usuário"},
+        {"unidades", "chave", "codigo", "veiculos-unidade:", "veículos da unidade"},
+        {"unidades", "chave", "codigo", "unidade:", "unidade"},
+        {"autorizacoes_menu", "id", "CONCAT(tela_codigo, ' / nível ', nivel)", "autorizacao:", "autorização"},
+    };
+
+    /**
+     * Entradas do log gravadas antes da coluna operacoes_log.registro existir ficaram sem a
+     * referencia do registro (ex.: "agenda:12") e nao aparecem no icone de log de cada item. Liga
+     * essas entradas ao registro pelo texto "<acao> <objeto>: <nome>" (ou "<nome> (...)"), so quando
+     * o nome e unico na tabela (nome repetido nao da para saber de qual registro era). Mexe so em
+     * entradas ainda sem referencia, entao rodar de novo nao altera nada ja ligado.
+     */
+    private static void vincularLogsAntigosAosRegistros(Connection conn) throws SQLException {
+        for (String[] r : LOG_REGISTROS) {
+            String tabela = r[0];
+            String id = r[1];
+            String nome = r[2];
+            String sql =
+                "UPDATE operacoes_log l " +
+                "JOIN (SELECT MIN(" + id + ") AS id, TRIM(" + nome + ") AS nome FROM " + tabela + " " +
+                "      WHERE TRIM(" + nome + ") <> '' GROUP BY TRIM(" + nome + ") HAVING COUNT(*) = 1) r " +
+                "  ON l.operacao LIKE CONCAT('% ', ?, ': ', r.nome) " +
+                "  OR l.operacao LIKE CONCAT('% ', ?, ': ', r.nome, ' (%') " +
+                "SET l.registro = CONCAT(?, r.id) " +
+                "WHERE l.registro IS NULL";
+            try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+                stmt.setString(1, r[4]);
+                stmt.setString(2, r[4]);
+                stmt.setString(3, r[3]);
+                stmt.executeUpdate();
+            }
+        }
+        try (Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate(
+                "UPDATE operacoes_log SET registro = 'condominio' " +
+                "WHERE registro IS NULL AND operacao = 'Atualizar dados do condomínio'");
         }
     }
 

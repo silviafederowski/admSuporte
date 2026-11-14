@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Criar nova senha - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=34">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -39,5 +39,6 @@
         </form>
     </div>
 </div>
+<script src="${pageContext.request.contextPath}/js/senhaVisivel.js?v=6"></script>
 </body>
 </html>

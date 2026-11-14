@@ -31,7 +31,7 @@ public class ProdutoDeleteServlet extends HttpServlet {
             produtoDao.delete(id);
             String descricao = produto != null ? produto.getDescricao() : ("id " + id);
             String usuarioLogado = (String) request.getSession().getAttribute("userName");
-            operacaoLogDao.registrar(usuarioLogado, "Produtos", "Excluir produto: " + descricao);
+            operacaoLogDao.registrar(usuarioLogado, "Produtos", "Excluir produto: " + descricao, "produto:" + id);
         } catch (NumberFormatException | SQLException e) {
             ErrorMessages.logErro(LOGGER, "produtos", "Excluir produto", e);
         }

@@ -8,6 +8,7 @@ import br.com.silsys.admsuporte.model.Prestador;
 import br.com.silsys.admsuporte.model.Prioridade;
 import br.com.silsys.admsuporte.model.Servico;
 import br.com.silsys.admsuporte.model.StatusPendencia;
+import br.com.silsys.admsuporte.util.Alteracoes;
 import br.com.silsys.admsuporte.util.DateFormatUtil;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
@@ -93,8 +94,8 @@ public class AgendaFormServlet extends HttpServlet {
         if (!ValidationUtil.isBlank(horaParam)) {
             try {
                 hora = LocalTime.parse(horaParam.trim());
-                if (hora.getMinute() % 15 != 0 || hora.getSecond() != 0) {
-                    errors.put("hora", "Escolha uma hora de 15 em 15 minutos.");
+                if (!horaNaGrade(hora) && !horaGravada(idParam, hora)) {
+                    errors.put("hora", "Escolha uma hora entre 07:00 e 19:00, de meia em meia hora.");
                 }
             } catch (DateTimeParseException e) {
                 errors.put("hora", "Hora inválida.");
@@ -203,20 +204,24 @@ public class AgendaFormServlet extends HttpServlet {
             try {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
                 if (isEdit) {
+                    Agenda antes = agendaDao.findById(agenda.getId());
                     agendaDao.update(agenda);
                     operacaoLogDao.registrar(usuarioLogado, "Agenda",
-                            "Editar compromisso: " + agenda.getAssunto());
+                            "Editar compromisso: " + agenda.getAssunto(), "agenda:" + agenda.getId(),
+                            Alteracoes.descrever(antes, agendaDao.findById(agenda.getId())));
                 } else {
-                    agendaDao.create(agenda);
+                    agenda.setId(agendaDao.create(agenda));
                     operacaoLogDao.registrar(usuarioLogado, "Agenda",
-                            "Criar compromisso: " + agenda.getAssunto());
+                            "Criar compromisso: " + agenda.getAssunto(), "agenda:" + agenda.getId());
                 }
 
                 if (atualizarServico) {
                     try {
+                        Servico servicoAntes = servicoDao.findById(servicoId);
                         servicoDao.atualizarUltimaExecucao(servicoId, dataStatus, prestadorId);
                         operacaoLogDao.registrar(usuarioLogado, "Serviços",
-                                "Atualizar cadastro a partir da agenda: " + agenda.getAssunto());
+                                "Atualizar cadastro a partir da agenda: " + agenda.getAssunto(), "servico:" + servicoId,
+                                Alteracoes.descrever(servicoAntes, servicoDao.findById(servicoId)));
                     } catch (SQLException e) {
                         ErrorMessages.logErro(LOGGER, "servicos",
                                 "Atualizar cadastro do serviço a partir da agenda", e);
@@ -235,6 +240,25 @@ public class AgendaFormServlet extends HttpServlet {
         request.setAttribute("errors", errors);
         request.setAttribute("agendaItem", agenda);
         forward(request, response);
+    }
+
+    /** Horarios oferecidos na tela: das 07:00 as 19:00, de meia em meia hora. */
+    private static boolean horaNaGrade(LocalTime hora) {
+        return hora.getSecond() == 0 && hora.getMinute() % 30 == 0
+                && !hora.isBefore(LocalTime.of(7, 0)) && !hora.isAfter(LocalTime.of(19, 0));
+    }
+
+    /** Hora antiga fora da grade continua aceita se for a mesma ja gravada no compromisso (nao foi trocada). */
+    private boolean horaGravada(String idParam, LocalTime hora) {
+        if (ValidationUtil.isBlank(idParam)) {
+            return false;
+        }
+        try {
+            Agenda gravada = agendaDao.findById(Integer.parseInt(idParam.trim()));
+            return gravada != null && hora.equals(gravada.getHora());
+        } catch (NumberFormatException | SQLException e) {
+            return false;
+        }
     }
 
     private boolean prestadorOfereceServico(int servicoId, int prestadorId) throws SQLException {

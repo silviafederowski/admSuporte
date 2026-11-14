@@ -31,7 +31,7 @@ public class UnidadeDeleteServlet extends HttpServlet {
             unidadeDao.delete(chave);
             if (unidade != null) {
                 String usuarioLogado = (String) request.getSession().getAttribute("userName");
-                operacaoLogDao.registrar(usuarioLogado, "Unidades", "Excluir unidade: " + unidade.getCodigo());
+                operacaoLogDao.registrar(usuarioLogado, "Unidades", "Excluir unidade: " + unidade.getCodigo(), "unidade:" + chave);
             }
             response.sendRedirect(request.getContextPath() + "/unidades?excluido=1");
         } catch (NumberFormatException e) {

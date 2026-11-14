@@ -7,7 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Autorizações - admSuporte</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=33">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/css/style.css?v=48">
 </head>
 <body>
 <div class="page">
@@ -21,6 +21,9 @@
                 <c:if test="${!readOnly}">
                     <a class="menu-icon-link" href="${pageContext.request.contextPath}/autorizacoes/form" title="Nova autorização" aria-label="Nova autorização">➕</a>
                 </c:if>
+                <c:set var="logTela" value="Autorizações" />
+                <c:set var="logRegistro" value="" />
+                <%@ include file="logsIcone.jspf" %>
                 <a class="menu-icon-link" href="${pageContext.request.contextPath}/menu" title="Voltar ao menu" aria-label="Voltar ao menu">🏠</a>
             </div>
         </div>
@@ -89,7 +92,7 @@
     <ul id="nivelPopupList"></ul>
 </div>
 
-<script src="${pageContext.request.contextPath}/js/dataTable.js?v=7"></script>
+<script src="${pageContext.request.contextPath}/js/dataTable.js?v=9"></script>
 <script>
     var TIPOS_POR_NIVEL = {};
     <c:forEach var="ut" items="${userTypes}">

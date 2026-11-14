@@ -15,6 +15,7 @@ public class OperacaoLog implements Serializable {
     private String tela;
     private String operacao;
     private LocalDateTime dataHora;
+    private String alteracao;
 
     public int getId() {
         return id;
@@ -54,6 +55,15 @@ public class OperacaoLog implements Serializable {
 
     public void setDataHora(LocalDateTime dataHora) {
         this.dataHora = dataHora;
+    }
+
+    /** Nas edicoes, o que mudou ("Campo: antes → depois; ..."); null em inclusoes e exclusoes. */
+    public String getAlteracao() {
+        return alteracao;
+    }
+
+    public void setAlteracao(String alteracao) {
+        this.alteracao = alteracao;
     }
 
     public String getDataHoraFormatada() {

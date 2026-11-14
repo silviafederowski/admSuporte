@@ -5,6 +5,7 @@ import br.com.silsys.admsuporte.dao.OperacaoLogDao;
 import br.com.silsys.admsuporte.dao.UserDao;
 import br.com.silsys.admsuporte.dao.UserTypeDao;
 import br.com.silsys.admsuporte.model.User;
+import br.com.silsys.admsuporte.util.Alteracoes;
 import br.com.silsys.admsuporte.util.AppException;
 import br.com.silsys.admsuporte.util.ErrorMessages;
 import br.com.silsys.admsuporte.util.ValidationUtil;
@@ -118,21 +119,23 @@ public class UsuarioFormServlet extends HttpServlet {
                 int userTypeId = Integer.parseInt(userTypeIdParam);
                 String usuarioLogado = (String) session.getAttribute("userName");
                 if (isEdit) {
+                    User antes = userDao.findById(id);
                     userDao.updateUser(id, name, email, phone, userTypeId, ativo);
-                    operacaoLogDao.registrar(usuarioLogado, "Usuários", "Editar usuário: " + name.trim());
+                    operacaoLogDao.registrar(usuarioLogado, "Usuários", "Editar usuário: " + name.trim(), "usuario:" + id,
+                            Alteracoes.descrever(antes, userDao.findById(id)));
                     if (password != null && !password.isEmpty()) {
                         // Toda senha definida aqui e provisoria (inclusive a do proprio usuario logado):
                         // no proximo acesso, o usuario cria a dele (TrocarSenhaServlet).
                         userDao.updatePassword(id, password, true);
                         // So o evento vai para o log, nunca a senha.
                         operacaoLogDao.registrar(usuarioLogado, "Usuários", "Definir senha provisória do usuário: "
-                                + name.trim() + " (troca obrigatória no próximo acesso)");
+                                + name.trim() + " (troca obrigatória no próximo acesso)", "usuario:" + id);
                     }
                     response.sendRedirect(request.getContextPath() + "/usuarios?atualizado=1");
                 } else {
-                    userDao.createUser(name, email, phone, password, userTypeId);
+                    int novoId = userDao.createUser(name, email, phone, password, userTypeId);
                     operacaoLogDao.registrar(usuarioLogado, "Usuários", "Criar usuário: " + name.trim()
-                            + " (com senha provisória; troca obrigatória no primeiro acesso)");
+                            + " (com senha provisória; troca obrigatória no primeiro acesso)", "usuario:" + novoId);
                     response.sendRedirect(request.getContextPath() + "/usuarios?criado=1");
                 }
                 return;

@@ -71,7 +71,7 @@ public class ChecklistPortariaFormServlet extends HttpServlet {
 
     /**
      * O que o usuario logado pode fazer num checklist gravado. Abrem: o autor, quem ve todos e os
-     * colegas do mesmo tipo do autor. Alteram itens/encomendas/status: autor e quem ve todos.
+     * colegas do mesmo tipo do autor. Alteram itens/encomendas/status: autor, zelador(a) e administrador(a).
      * Validam: colegas e quem ve todos, nunca o autor, e so com status "disponivel". Depois de
      * validado, ninguem altera mais nada.
      */
@@ -81,13 +81,23 @@ public class ChecklistPortariaFormServlet extends HttpServlet {
         boolean verificar;
     }
 
+    /** Zelador(a) e administrador(a) podem alterar checklists de qualquer pessoa (lido do cadastro). */
+    private boolean alteraDeTodos(HttpServletRequest request) throws SQLException {
+        Object userId = request.getSession().getAttribute("userId");
+        User user = userId instanceof Integer ? userDao.findById((Integer) userId) : null;
+        String tipo = user == null || user.getUserTypeName() == null ? "" : user.getUserTypeName().trim().toLowerCase();
+        return UserType.ZELADOR.equals(tipo) || UserType.ADMINISTRADOR.equals(tipo);
+    }
+
     private Permissoes permissoes(HttpServletRequest request, String usuarioChecklist, ChecklistCabecalho cabecalho)
             throws SQLException {
         Permissoes p = new Permissoes();
         if (usuarioChecklist == null) {
             return p;
         }
-        boolean dono = usuarioChecklist.equals(usuarioLogado(request));
+        // Autor: comparado sem diferenca de maiusculas/espacos (como o login, que e pelo nome).
+        String logado = usuarioLogado(request);
+        boolean dono = logado != null && usuarioChecklist.trim().equalsIgnoreCase(logado.trim());
         Integer tipoLogado = tipoDosItens(request, userDao);
         boolean veTodos = tipoLogado == null;
         User autor = userDao.findByNome(usuarioChecklist);
@@ -96,7 +106,8 @@ public class ChecklistPortariaFormServlet extends HttpServlet {
         boolean validada = cabecalho != null && cabecalho.isVerificado();
         boolean disponivel = cabecalho != null && ChecklistCabecalho.DISPONIVEL.equals(cabecalho.getStatus());
         p.abrir = dono || veTodos || colega;
-        p.editar = (dono || veTodos) && !validada;
+        // Alteram: so quem incluiu, zelador(a) ou administrador(a) (sindico ve e valida, mas nao altera).
+        p.editar = (dono || alteraDeTodos(request)) && !validada;
         p.verificar = !dono && (veTodos || colega) && disponivel;
         return p;
     }
@@ -113,6 +124,11 @@ public class ChecklistPortariaFormServlet extends HttpServlet {
                 if (itens.isEmpty() || !prepararExistente(request, itens)) {
                     response.sendRedirect(request.getContextPath() + "/checklist-portaria");
                     return;
+                }
+                if (request.getParameter("conflito") != null) {
+                    request.setAttribute("formError", "Este checklist foi alterado por outra pessoa depois que você "
+                            + "abriu a tela, e as suas alterações não foram gravadas para não apagar as dela. "
+                            + "Os dados abaixo são os atuais: confira e faça de novo o que for preciso.");
                 }
                 if (request.getParameter("verificado") != null) {
                     request.setAttribute("infoMessage", "Validação registrada. O checklist não pode mais ser alterado.");
@@ -197,17 +213,21 @@ public class ChecklistPortariaFormServlet extends HttpServlet {
                         + ". Não é possível incluir outro na mesma data: altere o checklist que já existe.";
                 request.setAttribute("dataExistente", data);
             }
+            List<Integer> itemIds = new ArrayList<>();
+            for (ChecklistPortaria item : itens) {
+                itemIds.add(item.getItemId());
+            }
+            Map<Integer, String> obs = observacoes(request, itemIds);
             if (erro == null) {
-                List<Integer> itemIds = new ArrayList<>();
-                for (ChecklistPortaria item : itens) {
-                    itemIds.add(item.getItemId());
-                }
-                Map<Integer, String> obs = observacoes(request, itemIds);
+                erro = itemSemResposta(itens, true, semObservacao(checados, obs), obs);
+            }
+            if (erro == null) {
                 checklistDao.criar(data, hora, usuario, itemIds, semObservacao(checados, obs), obs, encomendas, estoque,
                         lerStatus(request));
                 operacaoLogDao.registrar(usuario, TELA_LOG, "Criar checklist de " + DateFormatUtil.formatar(data)
                         + " (" + contarMarcados(itemIds, checados) + " de " + itemIds.size() + " itens checados; "
-                        + encomendas + " encomenda(s) sem baixa no app; " + soma(estoque) + " em estoque)");
+                        + encomendas + " encomenda(s) sem baixa no app; " + soma(estoque) + " em estoque)",
+                        registroChecklist(data, usuario));
                 response.sendRedirect(request.getContextPath() + "/checklist-portaria?criado=1");
                 return;
             }
@@ -248,11 +268,30 @@ public class ChecklistPortariaFormServlet extends HttpServlet {
                 response.sendRedirect(urlExistente(request, data, usuarioChecklist));
                 return;
             }
+            if (!impressao(data, usuarioChecklist).equals(request.getParameter("impressao"))) {
+                // Outra pessoa gravou depois que esta tela foi aberta: nao sobrescreve; recarrega o atual.
+                response.sendRedirect(urlExistente(request, data, usuarioChecklist) + "&conflito=1");
+                return;
+            }
             Map<Integer, Integer> estoque = lerEstoque(request);
-            if (encomendas == null || estoque == null) {
-                request.setAttribute("formError", encomendas == null ? ERRO_ENCOMENDAS : request.getAttribute("erroEstoque"));
-                prepararExistente(request, checklistDao.listByDataUsuario(data, usuarioChecklist));
+            List<ChecklistPortaria> linhasAtuais = checklistDao.listByDataUsuario(data, usuarioChecklist);
+            List<Integer> idsLinhas = new ArrayList<>();
+            for (ChecklistPortaria c : linhasAtuais) {
+                idsLinhas.add(c.getId());
+            }
+            Map<Integer, String> obs = observacoes(request, idsLinhas);
+            Set<Integer> checadosNovos = semObservacao(idsMarcados(request), obs);
+            String erroItens = itemSemResposta(linhasAtuais, false, checadosNovos, obs);
+            if (encomendas == null || estoque == null || erroItens != null) {
+                request.setAttribute("formError", encomendas == null ? ERRO_ENCOMENDAS
+                        : estoque == null ? request.getAttribute("erroEstoque") : erroItens);
+                prepararExistente(request, linhasAtuais);
                 request.setAttribute("encomendas", request.getParameter("encomendasSemBaixa"));
+                // Volta com o que foi marcado/digitado, para nao perder o trabalho.
+                for (ChecklistPortaria c : linhasAtuais) {
+                    c.setChecado(checadosNovos.contains(c.getId()));
+                    c.setObservacao(obs.get(c.getId()));
+                }
                 forward(request, response);
                 return;
             }
@@ -261,7 +300,8 @@ public class ChecklistPortariaFormServlet extends HttpServlet {
                 checklistDao.salvarEncomendasEstoque(data, usuarioChecklist, estoque);
                 operacaoLogDao.registrar(usuarioLogado, TELA_LOG, "Alterar encomendas em estoque: "
                         + soma(estoqueAntes) + " -> " + soma(estoque)
-                        + " (checklist de " + DateFormatUtil.formatar(data) + " - " + usuarioChecklist + ")");
+                        + " (checklist de " + DateFormatUtil.formatar(data) + " - " + usuarioChecklist + ")",
+                        registroChecklist(data, usuarioChecklist));
             }
             ChecklistCabecalho cabecalhoAntes = checklistDao.buscarCabecalho(data, usuarioChecklist);
             String status = lerStatus(request);
@@ -269,31 +309,30 @@ public class ChecklistPortariaFormServlet extends HttpServlet {
                 checklistDao.atualizarStatus(data, usuarioChecklist, status);
                 operacaoLogDao.registrar(usuarioLogado, TELA_LOG, "Alterar status: "
                         + cabecalhoAntes.getStatusLabel() + " -> " + ChecklistCabecalho.statusLabel(status)
-                        + " (checklist de " + DateFormatUtil.formatar(data) + " - " + usuarioChecklist + ")");
+                        + " (checklist de " + DateFormatUtil.formatar(data) + " - " + usuarioChecklist + ")",
+                        registroChecklist(data, usuarioChecklist));
             }
             Integer encomendasAntes = checklistDao.buscarEncomendas(data, usuarioChecklist);
             if (!encomendas.equals(encomendasAntes)) {
                 checklistDao.salvarEncomendas(data, usuarioChecklist, encomendas);
                 operacaoLogDao.registrar(usuarioLogado, TELA_LOG, "Alterar encomendas sem baixa: "
                         + (encomendasAntes == null ? "não informado" : encomendasAntes) + " -> " + encomendas
-                        + " (checklist de " + DateFormatUtil.formatar(data) + " - " + usuarioChecklist + ")");
+                        + " (checklist de " + DateFormatUtil.formatar(data) + " - " + usuarioChecklist + ")",
+                        registroChecklist(data, usuarioChecklist));
             }
-            List<Integer> idsLinhas = new ArrayList<>();
-            for (ChecklistPortaria c : checklistDao.listByDataUsuario(data, usuarioChecklist)) {
-                idsLinhas.add(c.getId());
-            }
-            Map<Integer, String> obs = observacoes(request, idsLinhas);
             List<ChecklistPortaria> alterados = checklistDao.atualizar(data, usuarioChecklist,
-                    semObservacao(idsMarcados(request), obs), obs, DateFormatUtil.agora());
+                    checadosNovos, obs, DateFormatUtil.agora());
             String sufixo = " (checklist de " + DateFormatUtil.formatar(data) + " - " + usuarioChecklist + ")";
             for (ChecklistPortaria c : alterados) {
                 if (c.isChecadoMudou()) {
                     operacaoLogDao.registrar(usuarioLogado, TELA_LOG,
-                            (c.isChecado() ? "Checar item: " : "Anular checagem: ") + c.getItemDescricao() + sufixo);
+                            (c.isChecado() ? "Checar item: " : "Anular checagem: ") + c.getItemDescricao() + sufixo,
+                            registroChecklist(data, usuarioChecklist));
                 }
                 if (c.isObservacaoMudou()) {
                     operacaoLogDao.registrar(usuarioLogado, TELA_LOG,
-                            "Alterar observação do item: " + c.getItemDescricao() + sufixo);
+                            "Alterar observação do item: " + c.getItemDescricao() + sufixo,
+                            registroChecklist(data, usuarioChecklist));
                 }
             }
             response.sendRedirect(request.getContextPath() + "/checklist-portaria?atualizado=1");
@@ -337,6 +376,11 @@ public class ChecklistPortariaFormServlet extends HttpServlet {
                 response.sendRedirect(urlExistente(request, data, usuarioChecklist));
                 return;
             }
+            if (!impressao(data, usuarioChecklist).equals(request.getParameter("impressao"))) {
+                // O checklist mudou depois que a tela de validacao foi aberta: valida so o que e atual.
+                response.sendRedirect(urlExistente(request, data, usuarioChecklist) + "&validar=1&conflito=1");
+                return;
+            }
             List<ChecklistPortaria> linhas = checklistDao.listByDataUsuario(data, usuarioChecklist);
             List<Integer> ids = new ArrayList<>();
             for (ChecklistPortaria c : linhas) {
@@ -356,12 +400,13 @@ public class ChecklistPortariaFormServlet extends HttpServlet {
             String validador = usuarioLogado(request);
             if (erro == null && !checklistDao.validar(data, usuarioChecklist, confirmados, obsValidacao,
                     validador, DateFormatUtil.agora(), obsGeral)) {
-                erro = "Este checklist não está mais disponível para validação.";
+                erro = "Este checklist não está disponível para você validar (já validado, fora do status "
+                        + "\"Disponível para validação\" ou incluído por você).";
             }
             if (erro == null) {
                 operacaoLogDao.registrar(validador, TELA_LOG, "Validar checklist de " + DateFormatUtil.formatar(data)
                         + " - " + usuarioChecklist + " (" + confirmados.size() + " de " + linhas.size()
-                        + " itens confirmados)");
+                        + " itens confirmados)", registroChecklist(data, usuarioChecklist));
                 response.sendRedirect(urlExistente(request, data, usuarioChecklist) + "&verificado=1");
                 return;
             }
@@ -385,6 +430,58 @@ public class ChecklistPortariaFormServlet extends HttpServlet {
             }
         }
         forward(request, response);
+    }
+
+    /**
+     * Regra de gravacao (inclusao e alteracao; a validacao tem a dela): todo item precisa estar
+     * checado ou com observacao. Devolve a mensagem com o primeiro item sem nenhum dos dois, ou
+     * null se todos estao respondidos. As chaves sao item_id no checklist novo e id da linha no gravado.
+     */
+    private String itemSemResposta(List<ChecklistPortaria> itens, boolean novo, Set<Integer> checados,
+                                   Map<Integer, String> observacoes) {
+        for (ChecklistPortaria item : itens) {
+            int chave = novo ? item.getItemId() : item.getId();
+            if (!checados.contains(chave) && !observacoes.containsKey(chave)) {
+                return "Todos os itens precisam estar checados ou com observação. Falta: " + item.getItemDescricao();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * "Impressao digital" do estado gravado do checklist (status, encomendas, estoque e cada item:
+     * checado/observacao/validacao). A tela leva a impressao de quando foi aberta; se, ao gravar,
+     * ela for outra, alguem alterou no meio tempo e a gravacao e recusada (nao sobrescreve o que
+     * a outra pessoa gravou).
+     */
+    private String impressao(LocalDate data, String usuario) throws SQLException {
+        StringBuilder sb = new StringBuilder();
+        ChecklistCabecalho cab = checklistDao.buscarCabecalho(data, usuario);
+        if (cab != null) {
+            sb.append(cab.getStatus()).append('|').append(cab.getEncomendasSemBaixa()).append('|')
+              .append(cab.getVerificadoEm()).append('|');
+        }
+        sb.append(new java.util.TreeMap<>(checklistDao.buscarEncomendasEstoque(data, usuario))).append('|');
+        for (ChecklistPortaria c : checklistDao.listByDataUsuario(data, usuario)) {
+            sb.append(c.getId()).append(':').append(c.isChecado()).append(':').append(c.getObservacao())
+              .append(':').append(c.getValidado()).append(':').append(c.getValidacaoObs()).append(';');
+        }
+        try {
+            byte[] hash = java.security.MessageDigest.getInstance("SHA-256")
+                    .digest(sb.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder();
+            for (byte b : hash) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (java.security.NoSuchAlgorithmException e) {
+            return Integer.toHexString(sb.toString().hashCode());
+        }
+    }
+
+    /** Referencia do checklist no log (data + autor), para o historico 📜 deste checklist. */
+    static String registroChecklist(LocalDate data, String usuario) {
+        return "checklist:" + data + "|" + (usuario == null ? "" : usuario.trim());
     }
 
     /** Status escolhido pelo autor: so "em_andamento" ou "disponivel" ("validada" so pela validacao). */
@@ -434,6 +531,7 @@ public class ChecklistPortariaFormServlet extends HttpServlet {
         prepararEstoque(request, checklistDao.buscarEncomendasEstoque(primeiro.getData(), primeiro.getUsuario()));
         request.setAttribute("podeEditar", p.editar);
         request.setAttribute("podeVerificar", p.verificar);
+        request.setAttribute("impressao", impressao(primeiro.getData(), primeiro.getUsuario()));
         return true;
     }
 

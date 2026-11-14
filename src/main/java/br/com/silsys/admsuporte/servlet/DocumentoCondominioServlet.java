@@ -74,9 +74,12 @@ public class DocumentoCondominioServlet extends HttpServlet {
 
         try (InputStream in = filePart.getInputStream()) {
             byte[] bytes = readAll(in);
+            boolean substituiu = appAssetDao.findByKey(ASSET_KEY) != null;
             appAssetDao.salvar(ASSET_KEY, "application/pdf", bytes);
             String usuarioLogado = (String) request.getSession().getAttribute("userName");
-            operacaoLogDao.registrar(usuarioLogado, "Dados do condomínio", "Atualizar dados do condomínio");
+            // So ha "situacao anterior" quando ja existia um documento (a primeira vez e inclusao).
+            operacaoLogDao.registrar(usuarioLogado, "Dados do condomínio", "Atualizar dados do condomínio", "condominio",
+                    substituiu ? "Documento PDF: anterior → substituído por " + submittedFileName : null);
             response.sendRedirect(request.getContextPath() + "/documento-condominio?atualizado=1");
         } catch (SQLException e) {
             request.setAttribute("formError", "Não foi possível salvar o documento: "

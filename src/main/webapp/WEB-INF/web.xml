@@ -87,6 +87,10 @@
     </filter-mapping>
     <filter-mapping>
         <filter-name>AuthFilter</filter-name>
+        <url-pattern>/logs</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>AuthFilter</filter-name>
         <url-pattern>/prestadores</url-pattern>
     </filter-mapping>
     <filter-mapping>
@@ -1156,6 +1160,15 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>LogsServlet</servlet-name>
+        <servlet-class>br.com.silsys.admsuporte.servlet.LogsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>LogsServlet</servlet-name>
+        <url-pattern>/logs</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>TrocarSenhaServlet</servlet-name>
         <servlet-class>br.com.silsys.admsuporte.servlet.TrocarSenhaServlet</servlet-class>
     </servlet>
@@ -1257,4 +1270,12 @@
         <location>/WEB-INF/jsp/error403.jsp</location>
     </error-page>
 
+    <!-- Fragmentos incluidos (<%@ include file="x.jspf" %>) nao tem diretiva page: sem isto o Tomcat
+         os le como ISO-8859-1 e emojis/acentos deles saem embaralhados (ex.: o icone do log). -->
+    <jsp-config>
+        <jsp-property-group>
+            <url-pattern>*.jspf</url-pattern>
+            <page-encoding>UTF-8</page-encoding>
+        </jsp-property-group>
+    </jsp-config>
 </web-app>

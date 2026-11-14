@@ -1,0 +1,50 @@
+<%-- Icone 📜 do log, para a barra de icones de cada tela. Antes do include, a tela define:
+       logTela     = nome(s) da tela no log, separados por virgula (ex.: "Agenda");
+       logRegistro = referencia do registro (ex.: "agenda:12"), so nas telas de um item ja gravado.
+     Com logRegistro, mostra o log daquele registro; sem, o log da tela. So aparece para quem pode
+     ver o "Log de operacoes" (LogsServlet.podeVerLogs, posto em request pelo CondominioNomeFilter). --%>
+<c:if test="${podeVerLogs}">
+    <c:url var="urlLogs" value="/logs">
+        <c:choose>
+            <c:when test="${not empty logRegistro}"><c:param name="registro" value="${logRegistro}" /></c:when>
+            <c:otherwise><c:param name="tela" value="${logTela}" /></c:otherwise>
+        </c:choose>
+    </c:url>
+    <a class="menu-icon-link" href="javascript:void(0)" data-url-logs="${urlLogs}"
+       onclick="abrirLogs(this.getAttribute('data-url-logs'))"
+       title="${not empty logRegistro ? 'Log deste registro' : 'Log desta tela'}"
+       aria-label="${not empty logRegistro ? 'Log deste registro' : 'Log desta tela'}">📜</a>
+    <dialog id="logsDialog" class="logs-dialog">
+        <div class="toolbar">
+            <h2 class="title" style="text-align:left;margin:0;font-size:18px;">
+                ${not empty logRegistro ? 'Log deste registro' : 'Log desta tela'}
+            </h2>
+            <div class="toolbar-actions">
+                <a class="menu-icon-link" href="javascript:void(0)" onclick="document.getElementById('logsDialog').close()"
+                   title="Fechar" aria-label="Fechar">✖️</a>
+            </div>
+        </div>
+        <div id="logsConteudo"><p class="field-hint">Carregando...</p></div>
+    </dialog>
+    <script>
+        function abrirLogs(url) {
+            var dialog = document.getElementById('logsDialog');
+            var conteudo = document.getElementById('logsConteudo');
+            conteudo.innerHTML = '<p class="field-hint">Carregando...</p>';
+            dialog.showModal();
+            fetch(url, { credentials: 'same-origin' })
+                .then(function (r) {
+                    if (!r.ok) {
+                        throw new Error('HTTP ' + r.status);
+                    }
+                    return r.text();
+                })
+                .then(function (html) {
+                    conteudo.innerHTML = html;
+                })
+                .catch(function () {
+                    conteudo.innerHTML = '<p class="form-error">Não foi possível carregar o log.</p>';
+                });
+        }
+    </script>
+</c:if>

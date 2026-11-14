@@ -38,6 +38,8 @@ public class AgendaServlet extends HttpServlet {
         try {
             List<?> agenda = agendaDao.listAll();
             request.setAttribute("agenda", agenda);
+            // Hoje no fuso do condominio: a lista abre posicionada nessa data (ou na mais proxima).
+            request.setAttribute("hoje", br.com.silsys.admsuporte.util.DateFormatUtil.hoje().toString());
         } catch (SQLException e) {
             request.setAttribute("formError", "Não foi possível carregar a agenda: "
                     + ErrorMessages.friendly(LOGGER, "agenda", "Listar agenda", e));
